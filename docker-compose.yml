@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: agent-swarm-backend
+    ports:
+      - "8001:8000"
+    environment:
+      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DATABASE_URL=sqlite+aiosqlite:///./data/agent_swarm.db
+      - VECTOR_DB_PATH=./data/chroma_db
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY}
+      - MINIMAX_API_URL=${MINIMAX_API_URL:-https://api.minimaxi.com/v1}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - agent-swarm-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: agent-swarm-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - agent-swarm-network
+    restart: unless-stopped
+
+networks:
+  agent-swarm-network:
+    driver: bridge
+
+volumes:
+  data:
