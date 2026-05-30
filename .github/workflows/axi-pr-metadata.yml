@@ -21,8 +21,8 @@ jobs:
         run: |
           set -euo pipefail
           case "$HEAD_REF" in
-            feature/*|debug/*|hotfix/*|release/*) ;;
-            *) echo "Head branch must use feature/*, debug/*, hotfix/*, or release/*"; exit 1 ;;
+            feature/*|debug/*|hotfix/*|release/*|dependabot/*) ;;
+            *) echo "Head branch must use feature/*, debug/*, hotfix/*, release/*, or dependabot/*"; exit 1 ;;
           esac
           if [ "$BASE_REF" = "main" ]; then
             case "$HEAD_REF" in
