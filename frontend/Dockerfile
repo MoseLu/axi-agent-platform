@@ -3,16 +3,16 @@ FROM node:18-alpine as builder
 WORKDIR /app
 
 # 复制package文件
-COPY package.json ./
+COPY package.json pnpm-lock.yaml ./
 
-# 使用 npm 安装依赖
-RUN npm install
+# 使用 pnpm 安装依赖
+RUN corepack enable && corepack prepare pnpm@10.33.2 --activate && pnpm install --frozen-lockfile
 
 # 复制源代码
 COPY . .
 
 # 构建
-RUN npm run build
+RUN pnpm run build
 
 # 生产环境
 FROM nginx:alpine

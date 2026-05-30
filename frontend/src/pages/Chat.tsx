@@ -217,7 +217,7 @@ export default function Chat() {
 
                         <div className="space-y-4">
                             <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                                Agent Swarm 协作中心
+                                Axi Agent Platform 协作中心
                             </h1>
                             <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
                                 描述您的复杂任务，系统将自动规划最优智能体架构进行协作。
