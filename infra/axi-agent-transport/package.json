@@ -1,0 +1,22 @@
+{
+  "name": "axi-agent-transport",
+  "version": "1.0.0",
+  "description": "Axi Agent terminal transport using Claude CLI with Windows Terminal split panes",
+  "main": "start.js",
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "start": "node start.js",
+    "start:2": "node start.js --workers=2",
+    "start:4": "node start.js --workers=4",
+    "test": "node tests/transport-contract.test.mjs"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "ws": "^8.17.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
