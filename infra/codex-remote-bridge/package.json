@@ -1,0 +1,13 @@
+{
+  "name": "@redamancy/codex-remote-bridge-sidecar",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "bin": {
+    "codex-remote-bridge": "bin/codex-remote-bridge.mjs",
+    "codex-remote-bridge-manager": "bin/codex-remote-bridge-manager.mjs"
+  }
+}
