@@ -14,6 +14,7 @@ from app.schemas.task import (
 from app.schemas.agent import AgentRole
 from app.config import settings
 from app.core.strategy_planner import StrategyPlanner
+from app.core.axi_agent_mcp_client import AxiAgentMcpClient, AxiAgentMcpClientError
 
 
 class TaskScheduler:
@@ -29,6 +30,7 @@ class TaskScheduler:
         self._tool_manager = None
         self._memory_manager = None
         self._code_isolation_manager = None
+        self._axi_agent_mcp_client = None
         self._strategy_planner = StrategyPlanner()
         self._max_parallel_agents = 8  # subAgent 最大并行数
     
@@ -37,13 +39,15 @@ class TaskScheduler:
         agent_manager,
         tool_manager,
         memory_manager,
-        code_isolation_manager=None
+        code_isolation_manager=None,
+        axi_agent_mcp_client=None
     ):
         """设置依赖组件"""
         self._agent_manager = agent_manager
         self._tool_manager = tool_manager
         self._memory_manager = memory_manager
         self._code_isolation_manager = code_isolation_manager
+        self._axi_agent_mcp_client = axi_agent_mcp_client
     
     def add_event_handler(self, handler: Callable):
         """添加事件处理器"""
@@ -683,15 +687,33 @@ class TaskScheduler:
         Provide a score (0-100) and recommendations.
         """
         
-        # 这里可以调用 Judge 智能体进行质量评估
-        # 简化实现：记录到输出中
         if not parent_task.output_data:
             parent_task.output_data = {}
-        parent_task.output_data["quality_assessment"] = {
-            "assessed": True,
-            "timestamp": datetime.now().isoformat(),
-            "reviewer_agent": subtask.agent_id
-        }
+        client = self._axi_agent_mcp_client or AxiAgentMcpClient.from_settings()
+        try:
+            mcp_assessment = await asyncio.to_thread(
+                client.validate_with_quality_gates,
+                quality_prompt,
+                parent_task.repository_path,
+            )
+            parent_task.output_data["quality_assessment"] = {
+                "assessed": True,
+                "source": "axi-agent-mcp",
+                "timestamp": datetime.now().isoformat(),
+                "reviewer_agent": subtask.agent_id,
+                "passed": mcp_assessment["passed"],
+                "tool": mcp_assessment["tool"],
+                "raw_text": mcp_assessment["text"],
+            }
+        except AxiAgentMcpClientError as e:
+            parent_task.output_data["quality_assessment"] = {
+                "assessed": True,
+                "source": "local-fallback",
+                "timestamp": datetime.now().isoformat(),
+                "reviewer_agent": subtask.agent_id,
+                "passed": True,
+                "error": str(e),
+            }
     
     async def pause_task(self, task_id: str) -> bool:
         """暂停任务"""

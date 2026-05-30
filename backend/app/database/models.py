@@ -44,7 +44,7 @@ class AgentModel(Base):
     max_tokens = Column(Integer, default=2048)
     tools = Column(JSON, default=list)
     capabilities = Column(JSON, default=list)
-    metadata = Column(JSON, default=dict)
+    metadata_json = Column("metadata", JSON, default=dict)
     status = Column(String(20), default="idle")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
