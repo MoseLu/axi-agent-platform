@@ -17,9 +17,13 @@ on:
           - major
           - minor
           - patch
+      release_notes:
+        description: Release notes for the GitHub Release
+        required: true
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
   release:
@@ -31,33 +35,97 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve version
+      - name: Resolve release metadata
         id: version
+        uses: actions/github-script@v7
         env:
           INPUT_VERSION: ${{ inputs.version }}
           INPUT_LEVEL: ${{ inputs.level }}
-        run: |
-          set -euo pipefail
-          message="$(git log -1 --pretty=%B)"
-          version="$INPUT_VERSION"
-          level="$INPUT_LEVEL"
-          if [ -z "$version" ]; then
-            version="$(printf '%s\n' "$message" | sed -nE 's/^Release-Version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' | head -1)"
-          fi
-          if [ -z "$level" ]; then
-            level="$(printf '%s\n' "$message" | sed -nE 's/^Release-Level:[[:space:]]*(major|minor|patch)$/\1/p' | head -1)"
-          fi
-          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "Release-Version: X.Y.Z is required for main releases"
-            exit 1
-          fi
-          if ! printf '%s' "$level" | grep -Eq '^(major|minor|patch)$'; then
-            echo "Release-Level: major|minor|patch is required"
-            exit 1
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "level=$level" >> "$GITHUB_OUTPUT"
-          echo "tag=axi-agent-platform/v$version" >> "$GITHUB_OUTPUT"
+          INPUT_RELEASE_NOTES: ${{ inputs.release_notes }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            const bodyCandidates = [];
+            const directInputs = [
+              process.env.INPUT_VERSION ? 'Release-Version: ' + process.env.INPUT_VERSION : '',
+              process.env.INPUT_LEVEL ? 'Release-Level: ' + process.env.INPUT_LEVEL : '',
+              process.env.INPUT_RELEASE_NOTES ? 'Release-Notes:\n' + process.env.INPUT_RELEASE_NOTES : ''
+            ].filter(Boolean).join('\n');
+            if (directInputs) bodyCandidates.push(directInputs);
+
+            const commit = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha
+            });
+            if (commit.data.commit && commit.data.commit.message) {
+              bodyCandidates.push(commit.data.commit.message);
+            }
+
+            if (context.eventName !== 'workflow_dispatch') {
+              const associated = await github.request('GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls', {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                headers: { accept: 'application/vnd.github+json' }
+              });
+              const releasePr = associated.data.find((pull) => pull.base && pull.base.ref === 'main') || associated.data[0];
+              if (releasePr && releasePr.body) bodyCandidates.unshift(releasePr.body);
+            }
+
+            const readLine = (text, name) => {
+              const regex = new RegExp('^' + name + ':[ \\t]*(.+)$', 'im');
+              const match = text.match(regex);
+              return match ? match[1].trim() : '';
+            };
+            const readBlock = (text, name) => {
+              const regex = new RegExp('^' + name + ':[ \\t]*(?:\\n)?([\\s\\S]*?)(?=\\n[A-Za-z][A-Za-z-]+:[ \\t]*|$)', 'im');
+              const match = text.match(regex);
+              return match ? match[1].trim() : '';
+            };
+            const first = (reader, name) => {
+              for (const candidate of bodyCandidates) {
+                const value = reader(candidate, name);
+                if (value) return value;
+              }
+              return '';
+            };
+
+            const version = process.env.INPUT_VERSION || first(readLine, 'Release-Version');
+            const level = process.env.INPUT_LEVEL || first(readLine, 'Release-Level');
+            const notes = process.env.INPUT_RELEASE_NOTES || first(readBlock, 'Release-Notes');
+            const rollback = first(readBlock, 'Rollback');
+
+            if (!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(version)) {
+              core.setFailed('Release-Version: X.Y.Z is required for main releases');
+              return;
+            }
+            if (!/^(major|minor|patch)$/.test(level)) {
+              core.setFailed('Release-Level: major|minor|patch is required');
+              return;
+            }
+            if (!notes) {
+              core.setFailed('Release-Notes is required for main releases');
+              return;
+            }
+            if (!rollback && context.eventName !== 'workflow_dispatch') {
+              core.setFailed('Rollback guidance is required for main releases');
+              return;
+            }
+
+            const releaseNotes = [
+              'Release level: ' + level,
+              '',
+              notes,
+              '',
+              'Rollback:',
+              rollback || 'Manual workflow_dispatch release; use the corresponding operator rollback plan.'
+            ].join('\n');
+            fs.writeFileSync('release-notes.md', releaseNotes + '\n');
+            core.setOutput('version', version);
+            core.setOutput('level', level);
+            core.setOutput('tag', 'axi-agent-platform/v' + version);
 
       - name: Create tag and release
         env:
@@ -76,5 +144,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release already exists: $TAG"
           else
-            gh release create "$TAG" --title "axi-agent-platform v$VERSION" --notes "Release level: $LEVEL"
+            gh release create "$TAG" --title "axi-agent-platform v$VERSION" --notes-file release-notes.md
           fi

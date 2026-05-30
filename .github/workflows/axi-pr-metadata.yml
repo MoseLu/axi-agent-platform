@@ -37,6 +37,10 @@ jobs:
               echo "PRs to main must include Release-Level: major|minor|patch"
               exit 1
             }
+            printf '%s\n' "$PR_BODY" | grep -Eiq 'Release-Notes:' || {
+              echo "PRs to main must include Release-Notes"
+              exit 1
+            }
             printf '%s\n' "$PR_BODY" | grep -Eiq 'Rollback:' || {
               echo "PRs to main must include Rollback guidance"
               exit 1

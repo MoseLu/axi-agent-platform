@@ -21,6 +21,7 @@ Fill these only for PRs targeting `main`.
 
 Release-Version:
 Release-Level:
+Release-Notes:
 Rollback:
 
 ## Operator Notes
