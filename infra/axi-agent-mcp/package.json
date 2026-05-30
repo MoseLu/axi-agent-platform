@@ -1,0 +1,41 @@
+{
+  "name": "axi-agent-mcp",
+  "version": "1.0.0",
+  "description": "Axi Agent MCP service: model routing, workflow tools, quality gates, and project analysis",
+  "type": "module",
+  "main": "dist/index.js",
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "mcp",
+    "swarm",
+    "multi-model"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.0",
+    "@types/pg": "^8.16.0",
+    "dotenv": "^16.4.0",
+    "fast-glob": "^3.3.3",
+    "mongodb": "^7.1.0",
+    "pg": "^8.18.0",
+    "redis": "^5.11.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.11",
+    "rollup": "npm:@rollup/wasm-node@^4.60.4",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
