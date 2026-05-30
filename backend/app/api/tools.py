@@ -1,6 +1,7 @@
 """
 工具管理 API
 """
+from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,7 +51,6 @@ async def create_tool(
 ):
     """创建自定义工具"""
     import uuid
-    from datetime import datetime
     
     tool = Tool(
         id=str(uuid.uuid4()),

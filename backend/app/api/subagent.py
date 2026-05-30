@@ -1,6 +1,8 @@
 """
 SubAgent 模式 API - 代码开发协作模式专用接口
 """
+import asyncio
+
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
@@ -103,7 +105,8 @@ async def create_worktree(
             )
         
         # 创建 worktree
-        worktree_path = await manager.create_worktree(
+        worktree_path = await asyncio.to_thread(
+            manager.create_worktree,
             agent_id=request.agent_id,
             branch_name=request.branch_name,
             base_branch=request.base_branch
@@ -174,7 +177,8 @@ async def sync_worktree(
         同步结果
     """
     try:
-        await manager.sync_worktree(
+        await asyncio.to_thread(
+            manager.sync_worktree,
             agent_id=request.agent_id,
             fetch=request.fetch
         )
@@ -234,7 +238,8 @@ async def commit_worktree(
         commit hash
     """
     try:
-        commit_hash = await manager.commit_worktree_changes(
+        commit_hash = await asyncio.to_thread(
+            manager.commit_worktree_changes,
             agent_id=request.agent_id,
             message=request.message
         )
@@ -268,7 +273,8 @@ async def merge_worktree(
         合并结果
     """
     try:
-        merge_success = await manager.merge_worktree(
+        merge_success = await asyncio.to_thread(
+            manager.merge_worktree,
             agent_id=request.agent_id,
             target_branch=request.target_branch
         )
@@ -301,6 +307,8 @@ async def merge_worktree(
 async def remove_worktree(
     agent_id: str,
     force: bool = False,
+    dry_run: bool = False,
+    require_clean: bool = False,
     manager: CodeIsolationManager = Depends(get_code_isolation_manager)
 ):
     """
@@ -309,16 +317,29 @@ async def remove_worktree(
     Args:
         agent_id: 智能体 ID
         force: 是否强制删除
+        dry_run: 是否仅预演删除
+        require_clean: 是否要求没有未提交变更
         
     Returns:
         删除结果
     """
     try:
-        await manager.remove_worktree(agent_id=agent_id, force=force)
+        result = await asyncio.to_thread(
+            manager.remove_worktree,
+            agent_id=agent_id,
+            force=force,
+            dry_run=dry_run,
+            require_clean=require_clean
+        )
         
         return {
             "success": True,
-            "message": f"Worktree for agent {agent_id} removed successfully"
+            "message": (
+                f"Dry run completed for agent {agent_id}"
+                if dry_run
+                else f"Worktree for agent {agent_id} removed successfully"
+            ),
+            "data": result
         }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -329,6 +350,8 @@ async def remove_worktree(
 @router.post("/worktree/cleanup")
 async def cleanup_old_worktrees(
     older_than_hours: int = 24,
+    dry_run: bool = False,
+    require_clean: bool = False,
     manager: CodeIsolationManager = Depends(get_code_isolation_manager)
 ):
     """
@@ -336,18 +359,25 @@ async def cleanup_old_worktrees(
     
     Args:
         older_than_hours: 清理超过此小时数的 worktree
+        dry_run: 是否仅预演清理
+        require_clean: 是否要求没有未提交变更
         
     Returns:
         被清理的 agent_id 列表
     """
     try:
-        removed_ids = manager.cleanup_old_worktrees(older_than_hours)
+        removed_ids = manager.cleanup_old_worktrees(
+            older_than_hours,
+            dry_run=dry_run,
+            require_clean=require_clean
+        )
         
         return {
             "success": True,
             "data": {
                 "removed_count": len(removed_ids),
-                "removed_ids": removed_ids
+                "removed_ids": removed_ids,
+                "dry_run": dry_run
             }
         }
     except Exception as e:
