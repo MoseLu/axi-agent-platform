@@ -8,13 +8,14 @@ python-multipart==0.0.6
 langchain==0.1.0
 langchain-community==0.0.10
 langchain-openai==0.0.2
-openai==1.6.0
+openai==1.33.0
 openai-swarm==0.1.0
 
 # Database
 sqlalchemy==2.0.25
 alembic==1.13.1
 chromadb==0.4.22
+greenlet==3.4.0
 
 # Data Models
 pydantic==2.5.3

@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     """应用配置类"""
     
     # 应用配置
-    APP_NAME: str = "Agent Swarm"
+    APP_NAME: str = "Axi Agent Platform"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     PORT: int = 8000
     
     # 数据库配置
-    DATABASE_URL: str = "sqlite:///./agent_swarm.db"
+    DATABASE_URL: str = "sqlite:///./axi_agent_platform.db"
     VECTOR_DB_PATH: str = "./chroma_db"
     
     # miniMax API配置
@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     MAX_PARALLEL_AGENTS: int = 8  # 最大并行智能体数
     DEFAULT_BASE_BRANCH: str = "main"  # 默认基础分支
     WORKTREES_CLEANUP_HOURS: int = 24  # worktree 自动清理时间（小时）
+
+    # Axi Agent MCP service client 配置
+    AXI_AGENT_MCP_COMMAND: str = "node"
+    AXI_AGENT_MCP_ARGS: Optional[str] = None
+    AXI_AGENT_MCP_CWD: Optional[str] = None
+    AXI_AGENT_MCP_TIMEOUT_SECONDS: float = 5.0
+    AXI_AGENT_MCP_PROTOCOL_VERSION: str = "2024-11-05"
     
     class Config:
         env_file = ".env"

@@ -3,6 +3,7 @@ FastAPI 应用入口
 """
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db, VectorStore
-from app.api import agents_router, tasks_router, tools_router, memory_router
+from app.api import agents_router, tasks_router, tools_router, memory_router, mcp_router, workstation_router
 from app.api.subagent import router as subagent_router, get_code_isolation_manager
 from app.core import AgentManager, TaskScheduler, MemoryManager, CodeIsolationManager
 from app.tools import ToolManager, get_builtin_tools
@@ -32,7 +33,7 @@ async def lifespan(app: FastAPI):
     global code_isolation_manager
     
     # 启动时初始化
-    print("🚀 Starting Agent Swarm Server...")
+    print("🚀 Starting Axi Agent Platform Server...")
     
     # 初始化数据库
     init_db()
@@ -82,7 +83,7 @@ async def lifespan(app: FastAPI):
     yield
     
     # 关闭时清理
-    print("🛑 Shutting down Agent Swarm Server...")
+    print("🛑 Shutting down Axi Agent Platform Server...")
     await task_scheduler.stop()
     print("✅ Task scheduler stopped")
 
@@ -109,6 +110,8 @@ app.include_router(agents_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(tools_router, prefix="/api/v1")
 app.include_router(memory_router, prefix="/api/v1")
+app.include_router(mcp_router, prefix="/api/v1")
+app.include_router(workstation_router, prefix="/api/v1")
 app.include_router(subagent_router)  # subAgent 模式专用接口
 
 
