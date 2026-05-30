@@ -3,14 +3,14 @@ version: '3.8'
 services:
   backend:
     build: ./backend
-    container_name: agent-swarm-backend
+    container_name: axi-agent-platform-backend
     ports:
       - "8001:8000"
     environment:
       - DEBUG=false
       - HOST=0.0.0.0
       - PORT=8000
-      - DATABASE_URL=sqlite+aiosqlite:///./data/agent_swarm.db
+      - DATABASE_URL=sqlite+aiosqlite:///./data/axi_agent_platform.db
       - VECTOR_DB_PATH=./data/chroma_db
       - MINIMAX_API_KEY=${MINIMAX_API_KEY}
       - MINIMAX_API_URL=${MINIMAX_API_URL:-https://api.minimaxi.com/v1}
@@ -19,22 +19,22 @@ services:
     volumes:
       - ./data:/app/data
     networks:
-      - agent-swarm-network
+      - axi-agent-platform-network
     restart: unless-stopped
 
   frontend:
     build: ./frontend
-    container_name: agent-swarm-frontend
+    container_name: axi-agent-platform-frontend
     ports:
       - "8080:80"
     depends_on:
       - backend
     networks:
-      - agent-swarm-network
+      - axi-agent-platform-network
     restart: unless-stopped
 
 networks:
-  agent-swarm-network:
+  axi-agent-platform-network:
     driver: bridge
 
 volumes:

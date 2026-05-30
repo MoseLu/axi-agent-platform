@@ -1,4 +1,4 @@
-# Agent Swarm - 多智能体协作系统
+# Axi Agent Platform - 多智能体协作系统
 
 基于 miniMax API + OpenAI Swarm + LangChain 的个人级多智能体协作系统，支持通用协作模式和代码开发专用模式（subAgent）。
 
@@ -42,7 +42,7 @@
 
 ```bash
 git clone <repository-url>
-cd agent-swarm
+cd axi-agent-platform
 ```
 
 ### 2. 配置环境变量
@@ -105,7 +105,7 @@ pnpm dev
 ## 项目结构
 
 ```
-agent-swarm/
+axi-agent-platform/
 ├── backend/              # 后端代码
 │   ├── app/
 │   │   ├── api/         # API路由
@@ -218,6 +218,11 @@ agent-swarm/
    - 清理过期的 worktrees
 
 ## 配置说明
+
+### Axi 命名迁移
+
+- 应用名、前端包名、Docker container/network 已从旧实验名迁为 `Axi Agent Platform` / `axi-agent-platform-*`。
+- 默认 SQLite 文件名已从 `agent_swarm.db` 迁为 `axi_agent_platform.db`；如需继续读取旧本地数据，可在 `.env` 中把 `DATABASE_URL` 指回旧文件，再手动迁移。
 
 ### 智能体配置
 - **模型选择**: 支持 miniMax (abab6-chat, abab5-chat) 和 OpenAI (GPT-4, GPT-3.5)

@@ -1,8 +1,8 @@
-# Agent Swarm v1.1.0 - SubAgent 模式升级说明
+# Axi Agent Platform v1.1.0 - SubAgent 模式升级说明
 
 ## 🚀 升级概述
 
-本次升级将 Agent Swarm 与 subAgent 模式结合，增加了代码开发专用协作能力，实现了通用协作模式和代码开发模式的无缝切换。
+本次升级将 Axi Agent Platform 与 subAgent 模式结合，增加了代码开发专用协作能力，实现了通用协作模式和代码开发模式的无缝切换。
 
 ## ✨ 新增功能
 
