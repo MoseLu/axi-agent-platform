@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/infra/axi-agent-mcp"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/infra/axi-agent-transport"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/infra/codex-remote-bridge"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/tools/axi-todo"
+    schedule:
+      interval: "weekly"

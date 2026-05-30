@@ -1,0 +1,53 @@
+name: Axi Branch Cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: Delete eligible branches when true
+        required: true
+        type: boolean
+        default: false
+  schedule:
+    - cron: '17 3 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: Cleanup merged legacy branches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXECUTE: ${{ inputs.execute || 'false' }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          branches="$(gh api "repos/$REPO/branches" --paginate --jq '.[].name')"
+          for branch in $branches; do
+            case "$branch" in
+              dev|main|feature/*|debug/*|hotfix/*|release/*) continue ;;
+              master|develop|claude/*|codex/*) ;;
+              *) continue ;;
+            esac
+            open_prs="$(gh pr list --repo "$REPO" --head "$branch" --state open --json number --jq length)"
+            if [ "$open_prs" != "0" ]; then
+              echo "skip $branch: open PR exists"
+              continue
+            fi
+            status="$(gh api "repos/$REPO/compare/dev...$branch" --jq .status 2>/dev/null || echo unknown)"
+            if [ "$status" = "identical" ] || [ "$status" = "behind" ]; then
+              if [ "$EXECUTE" = "true" ]; then
+                gh api -X DELETE "repos/$REPO/git/refs/heads/$branch"
+                echo "deleted $branch"
+              else
+                echo "dry-run delete $branch"
+              fi
+            else
+              echo "skip $branch: compare status $status"
+            fi
+          done

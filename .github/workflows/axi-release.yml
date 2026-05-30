@@ -1,0 +1,80 @@
+name: Axi Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: SemVer version without v
+        required: true
+      level:
+        description: major, minor, or patch
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Tag and GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_LEVEL: ${{ inputs.level }}
+        run: |
+          set -euo pipefail
+          message="$(git log -1 --pretty=%B)"
+          version="$INPUT_VERSION"
+          level="$INPUT_LEVEL"
+          if [ -z "$version" ]; then
+            version="$(printf '%s\n' "$message" | sed -nE 's/^Release-Version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' | head -1)"
+          fi
+          if [ -z "$level" ]; then
+            level="$(printf '%s\n' "$message" | sed -nE 's/^Release-Level:[[:space:]]*(major|minor|patch)$/\1/p' | head -1)"
+          fi
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Release-Version: X.Y.Z is required for main releases"
+            exit 1
+          fi
+          if ! printf '%s' "$level" | grep -Eq '^(major|minor|patch)$'; then
+            echo "Release-Level: major|minor|patch is required"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+          echo "tag=axi-agent-platform/v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          LEVEL: ${{ steps.version.outputs.level }}
+        run: |
+          set -euo pipefail
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag already exists: $TAG"
+          else
+            git tag -a "$TAG" -m "axi-agent-platform v$VERSION ($LEVEL)"
+            git push origin "$TAG"
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release already exists: $TAG"
+          else
+            gh release create "$TAG" --title "axi-agent-platform v$VERSION" --notes "Release level: $LEVEL"
+          fi

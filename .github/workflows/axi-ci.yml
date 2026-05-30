@@ -1,0 +1,54 @@
+name: Axi CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+      - main
+      - 'feature/**'
+      - 'debug/**'
+      - 'hotfix/**'
+      - 'release/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: axi-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    name: Baseline
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Python smoke
+        working-directory: .
+        run: |
+          python3 --version
+          if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
+          if [ -d tests ]; then python3 -m pytest -q tests; else echo "skip missing python tests"; fi
+
+
+
+
+      - name: Tracked secret filename guard
+        working-directory: .
+        run: |
+          if git ls-files | grep -Ei '(^|/)(\.env$|.*private[_-]?key.*|.*service-account.*\.json$|.*credential.*\.json$)'; then
+            echo "Tracked secret-like filename found."
+            exit 1
+          fi

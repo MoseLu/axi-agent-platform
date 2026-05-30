@@ -1,0 +1,34 @@
+name: Axi Workflow Task
+description: Track a workflow task that may become an AgentTask and PR.
+title: "[workflow] "
+labels:
+  - workflow/task
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should the agent or operator accomplish?
+    validations:
+      required: true
+  - type: input
+    id: repo
+    attributes:
+      label: Repository
+      value: MoseLu/axi-agent-platform
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk
+      options:
+        - low
+        - medium
+        - high
+        - production
+    validations:
+      required: true
+  - type: textarea
+    id: approval
+    attributes:
+      label: Approval notes
+      description: Optional operator guidance. Empty uses the Workbench default.
