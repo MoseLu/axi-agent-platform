@@ -1,0 +1,14 @@
+.DS_Store
+node_modules/
+coverage/
+dist/
+dist-web/
+build/
+.build/
+.swiftpm/
+.cache/
+
+# Local runtime state
+.axi-todo/
+*.log
+*.lock

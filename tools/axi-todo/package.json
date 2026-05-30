@@ -1,0 +1,42 @@
+{
+  "name": "axi-todo",
+  "version": "0.1.0",
+  "description": "Local persistent task ledger, Axi Todo/assistant surface, and Codex runner for Axi workflows.",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "bin": {
+    "axi-todo": "./bin/axi-todo.mjs",
+    "axi-todo-daemon": "./bin/axi-todo-daemon.mjs",
+    "axi-todo-mcp": "./bin/axi-todo-mcp.mjs",
+    "axi-todo-launchd": "./bin/axi-todo-launchd.mjs"
+  },
+  "scripts": {
+    "check": "for f in bin/*.mjs lib/*.mjs test/*.mjs; do node --check \"$f\"; done",
+    "desktop:build": "pnpm run frontend:build && swift build --product AxiTodoDesktop",
+    "desktop:bundle": "scripts/build-macos-app.sh",
+    "desktop:install": "scripts/install-macos-app.sh",
+    "desktop:test": "swift run AxiTodoStoreSmokeTests",
+    "frontend:build": "vite build",
+    "frontend:typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test",
+    "verify": "pnpm run check && pnpm test && pnpm run desktop:test && pnpm run frontend:typecheck && pnpm run desktop:build"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.2.0",
+    "antd": "^6.4.3",
+    "dayjs": "^1.11.19",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "typescript": "^6.0.3",
+    "vite": "^7.3.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT"
+}

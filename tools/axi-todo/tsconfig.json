@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "paths": {
+      "@axi/core": ["../../../../shared/axi-ui/packages/core/src/index.ts"],
+      "@axi/core/styles.css": ["../../../../shared/axi-ui/packages/core/dist/styles.css"],
+      "@axi/crud": ["../../../../shared/axi-ui/packages/crud/src/index.ts"],
+      "@axi/crud/styles.css": ["../../../../shared/axi-ui/packages/crud/dist/styles.css"],
+      "@axi/presets": ["../../../../shared/axi-ui/packages/presets/src/index.ts"],
+      "@axi/settings": ["../../../../shared/axi-ui/packages/settings/src/index.ts"],
+      "@axi/settings/styles.css": ["../../../../shared/axi-ui/packages/settings/dist/styles.css"],
+      "@axi/widgets": ["../../../../shared/axi-ui/packages/widgets/src/index.ts"],
+      "@axi/widgets/styles.css": ["../../../../shared/axi-ui/packages/widgets/dist/styles.css"],
+      "@axi/shell": ["../../../../shared/axi-ui/packages/shell/src/index.ts"],
+      "@axi/shell/styles.css": ["../../../../shared/axi-ui/packages/shell/dist/styles.css"],
+      "@axi/tokens/brand/app-icons/*": ["../../../../shared/axi-ui/packages/tokens/dist/brand/app-icons/*"],
+      "@axi/tokens/css": ["../../../../shared/axi-ui/packages/tokens/dist/css/variables.css"],
+      "@axi/tokens/ts": ["../../../../shared/axi-ui/packages/tokens/dist/ts/tokens.d.ts"]
+    },
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2023",
+    "types": ["vite/client"]
+  },
+  "include": ["src/web/**/*.ts", "src/web/**/*.tsx", "src/web/**/*.d.ts", "vite.config.ts"]
+}
