@@ -6,6 +6,7 @@ from datetime import datetime
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+import pytest
 
 # --- MOCK SCHEMAS ---
 class TaskStatus(str, Enum):
@@ -80,6 +81,7 @@ async def decompose_hybrid_task(task: Task):
     task.subtasks = subtasks
 
 # --- TEST RUNNER ---
+@pytest.mark.asyncio
 async def test_logic():
     print("🧪 Starting Core Logic Test (Self-Mocking Mode)...\n")
     

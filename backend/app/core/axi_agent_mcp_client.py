@@ -45,7 +45,11 @@ class AxiAgentMcpClientError(RuntimeError):
 
 
 def default_axi_agent_mcp_root() -> Path:
-    return Path(__file__).resolve().parents[5] / "infra" / "axi-agent-mcp"
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "infra" / "axi-agent-mcp"
+        if (candidate / "package.json").exists():
+            return candidate
+    return Path(__file__).resolve().parents[3] / "infra" / "axi-agent-mcp"
 
 
 def default_axi_agent_mcp_args(service_root: Path) -> List[str]:

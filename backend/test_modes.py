@@ -1,10 +1,12 @@
 import asyncio
 import json
 from datetime import datetime
+import pytest
 from app.core.task_scheduler import TaskScheduler
 from app.schemas.task import TaskCreate, TaskType, TaskStatus
 from app.core.agent_manager import AgentManager
 
+@pytest.mark.asyncio
 async def test_modes():
     print("🚀 Starting Collaboration Modes Test...\n")
     
