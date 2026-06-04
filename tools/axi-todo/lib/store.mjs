@@ -253,7 +253,9 @@ function selectSchedulableTasks(state, { limit, now }) {
   const runningKeys = new Set(state.tasks
     .filter((task) => task.status === "running")
     .flatMap(effectiveResourceKeys));
+  const runningGroups = countRunningGroups(state);
   const selectedKeys = new Set();
+  const selectedGroups = new Map();
   const completedIds = completedTaskIds(state);
   const selected = [];
   for (const task of state.tasks
@@ -261,8 +263,10 @@ function selectSchedulableTasks(state, { limit, now }) {
     .sort(taskSort)) {
     const keys = effectiveResourceKeys(task);
     if (keys.some((key) => runningKeys.has(key) || selectedKeys.has(key))) continue;
+    if (exceedsParallelGroupLimit(task, runningGroups, selectedGroups)) continue;
     selected.push(task);
     for (const key of keys) selectedKeys.add(key);
+    addParallelGroup(selectedGroups, task);
     if (selected.length >= limit) break;
   }
   return selected;
@@ -273,6 +277,7 @@ function explainBlockedTasks(state, { now }) {
   const runningKeys = new Set(state.tasks
     .filter((task) => task.status === "running")
     .flatMap(effectiveResourceKeys));
+  const runningGroups = countRunningGroups(state);
   return state.tasks
     .filter((task) => task.status === "pending")
     .map((task) => {
@@ -283,6 +288,7 @@ function explainBlockedTasks(state, { now }) {
       if (missing.length) reasons.push(`waiting_on:${missing.join(",")}`);
       const conflicts = effectiveResourceKeys(task).filter((key) => runningKeys.has(key));
       if (conflicts.length) reasons.push(`resource_locked:${conflicts.join(",")}`);
+      if (exceedsParallelGroupLimit(task, runningGroups, new Map())) reasons.push(`parallel_group_limited:${effectiveParallelGroup(task)}`);
       return reasons.length ? { id: task.id, title: task.title, reasons } : null;
     })
     .filter(Boolean);
@@ -302,7 +308,34 @@ function completedTaskIds(state) {
 }
 
 function effectiveResourceKeys(task) {
-  return task.resourceKeys.length ? task.resourceKeys : [task.cwd];
+  const keys = task.resourceKeys.length ? task.resourceKeys : [task.cwd];
+  if (!task.worktreePath) return keys;
+  return Array.from(new Set([...keys, `worktree:${task.worktreePath}`]));
+}
+
+function countRunningGroups(state) {
+  const counts = new Map();
+  for (const task of state.tasks) {
+    if (task.status === "running") addParallelGroup(counts, task);
+  }
+  return counts;
+}
+
+function addParallelGroup(counts, task) {
+  const group = effectiveParallelGroup(task);
+  if (!group) return;
+  counts.set(group, (counts.get(group) || 0) + 1);
+}
+
+function effectiveParallelGroup(task) {
+  return task.parallelGroup || task.agentCategory || task.agentRole || undefined;
+}
+
+function exceedsParallelGroupLimit(task, runningGroups, selectedGroups) {
+  const group = effectiveParallelGroup(task);
+  if (!group || !task.maxParallelGroup) return false;
+  const current = (runningGroups.get(group) || 0) + (selectedGroups.get(group) || 0);
+  return current >= task.maxParallelGroup;
 }
 
 function delay(ms) {

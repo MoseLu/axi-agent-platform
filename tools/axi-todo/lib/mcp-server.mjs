@@ -246,6 +246,34 @@ function taskInputProperties() {
     riskLevel: { type: "string", enum: ["low", "medium", "high"] },
     plannerConfidence: { type: "number" },
     evidenceContract: { type: "string" },
+    agentRole: {
+      type: "string",
+      enum: [
+        "sisyphus",
+        "prometheus",
+        "atlas",
+        "sisyphus-junior",
+        "hephaestus",
+        "oracle",
+        "librarian",
+        "explore",
+        "metis",
+        "momus",
+        "multimodal-looker",
+      ],
+    },
+    agentCategory: {
+      type: "string",
+      enum: ["visual-engineering", "ultrabrain", "deep", "artistry", "quick", "unspecified-low", "unspecified-high", "writing"],
+    },
+    executionMode: { type: "string", enum: ["plan", "inspect", "worker", "verify", "consult", "write"] },
+    modelHint: { type: "string" },
+    fallbackModels: { type: "array", items: { type: "string" } },
+    parallelGroup: { type: "string" },
+    maxParallelGroup: { type: "number" },
+    notepadPath: { type: "string" },
+    mailboxThreadId: { type: "string" },
+    worktreePath: { type: "string" },
   };
 }
 

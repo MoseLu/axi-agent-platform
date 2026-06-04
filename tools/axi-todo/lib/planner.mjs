@@ -6,6 +6,9 @@ const MAX_TARGET_READY = 64;
 const TASK_TEMPLATES = [
   {
     taskKind: "inspect",
+    agentRole: "explore",
+    agentCategory: "quick",
+    executionMode: "inspect",
     title: "Map the current implementation boundary",
     prompt: "Inspect the relevant code paths for this goal. Identify the smallest files/modules to touch, current tests, likely resource conflicts, and concrete acceptance criteria. Do not edit files unless the inspection itself requires a harmless generated report.",
     riskLevel: "low",
@@ -14,6 +17,9 @@ const TASK_TEMPLATES = [
   },
   {
     taskKind: "test",
+    agentRole: "atlas",
+    agentCategory: "quick",
+    executionMode: "verify",
     title: "Add or tighten focused regression coverage",
     prompt: "Add the smallest regression coverage that locks the intended behavior for this goal. Keep the test focused on one behavior surface and avoid broad refactors.",
     riskLevel: "medium",
@@ -22,6 +28,9 @@ const TASK_TEMPLATES = [
   },
   {
     taskKind: "edit",
+    agentRole: "sisyphus-junior",
+    agentCategory: "deep",
+    executionMode: "worker",
     title: "Implement one narrow behavior slice",
     prompt: "Implement one narrow, independently reviewable behavior slice for this goal. Stay inside the resource boundary and avoid unrelated cleanup.",
     riskLevel: "medium",
@@ -30,6 +39,9 @@ const TASK_TEMPLATES = [
   },
   {
     taskKind: "verify",
+    agentRole: "atlas",
+    agentCategory: "quick",
+    executionMode: "verify",
     title: "Run targeted verification and capture evidence",
     prompt: "Run the closest meaningful verification for this goal. Fix only small issues directly caused by the target slice; otherwise report blockers with exact commands.",
     riskLevel: "low",
@@ -38,6 +50,9 @@ const TASK_TEMPLATES = [
   },
   {
     taskKind: "doc",
+    agentRole: "librarian",
+    agentCategory: "writing",
+    executionMode: "write",
     title: "Update concise user/developer documentation",
     prompt: "Update only the documentation needed to make this goal understandable and repeatable. Do not rewrite unrelated sections.",
     riskLevel: "low",
@@ -79,6 +94,11 @@ export function createSplitPlan({
       riskLevel: template.riskLevel,
       plannerConfidence: 0.55,
       evidenceContract: template.evidenceContract,
+      agentRole: template.agentRole,
+      agentCategory: template.agentCategory,
+      executionMode: template.executionMode,
+      parallelGroup: `${prefix}:${template.agentCategory}`,
+      maxParallelGroup: defaultMaxParallelGroup(template.agentCategory),
     });
   }
   return {
@@ -109,6 +129,12 @@ ${template.evidenceContract}`;
 function defaultVerifyCommand(taskKind) {
   if (taskKind === "doc" || taskKind === "research" || taskKind === "inspect") return "";
   return "pnpm test";
+}
+
+function defaultMaxParallelGroup(agentCategory) {
+  if (agentCategory === "deep" || agentCategory === "ultrabrain") return 2;
+  if (agentCategory === "visual-engineering") return 1;
+  return 4;
 }
 
 function compactResourcePrefix(cwd) {

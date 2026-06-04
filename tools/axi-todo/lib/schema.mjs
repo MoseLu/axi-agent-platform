@@ -16,6 +16,30 @@ export const TASK_STATUSES = new Set([
 export const TERMINAL_STATUSES = new Set(["completed", "failed", "cancelled"]);
 export const TASK_KINDS = new Set(["task", "inspect", "edit", "test", "verify", "doc", "research"]);
 export const RISK_LEVELS = new Set(["low", "medium", "high"]);
+export const AGENT_ROLES = new Set([
+  "sisyphus",
+  "prometheus",
+  "atlas",
+  "sisyphus-junior",
+  "hephaestus",
+  "oracle",
+  "librarian",
+  "explore",
+  "metis",
+  "momus",
+  "multimodal-looker",
+]);
+export const AGENT_CATEGORIES = new Set([
+  "visual-engineering",
+  "ultrabrain",
+  "deep",
+  "artistry",
+  "quick",
+  "unspecified-low",
+  "unspecified-high",
+  "writing",
+]);
+export const EXECUTION_MODES = new Set(["plan", "inspect", "worker", "verify", "consult", "write"]);
 
 export function defaultAxiTodoHome(env = process.env) {
   return path.resolve(env.AXI_TODO_HOME || path.join(os.homedir(), ".axi-todo"));
@@ -64,6 +88,16 @@ export function createTask(input = {}, { now = nowIso(), cwd = process.cwd() } =
     riskLevel: normalizeEnum(input.riskLevel ?? input.risk_level, RISK_LEVELS, "medium"),
     plannerConfidence: normalizeBoundedNumber(input.plannerConfidence ?? input.planner_confidence, 0, 1),
     evidenceContract: optionalText(input.evidenceContract ?? input.evidence_contract),
+    agentRole: normalizeOptionalEnum(input.agentRole ?? input.agent_role, AGENT_ROLES),
+    agentCategory: normalizeOptionalEnum(input.agentCategory ?? input.agent_category, AGENT_CATEGORIES),
+    executionMode: normalizeOptionalEnum(input.executionMode ?? input.execution_mode, EXECUTION_MODES),
+    modelHint: optionalText(input.modelHint ?? input.model_hint),
+    fallbackModels: normalizeStringList(input.fallbackModels ?? input.fallback_models),
+    parallelGroup: optionalText(input.parallelGroup ?? input.parallel_group),
+    maxParallelGroup: normalizeOptionalPositiveInt(input.maxParallelGroup ?? input.max_parallel_group),
+    notepadPath: optionalResolvedPath(input.notepadPath ?? input.notepad_path),
+    mailboxThreadId: optionalText(input.mailboxThreadId ?? input.mailbox_thread_id),
+    worktreePath: optionalResolvedPath(input.worktreePath ?? input.worktree_path),
     summary: optionalText(input.summary),
     error: optionalText(input.error),
     createdAt: normalizeOptionalIso(input.createdAt ?? input.created_at) || now,
@@ -143,6 +177,46 @@ export function normalizePatch(input = {}) {
       case "evidence_contract":
         patch.evidenceContract = optionalText(value);
         break;
+      case "agentRole":
+      case "agent_role":
+        patch.agentRole = normalizeOptionalEnum(value, AGENT_ROLES);
+        break;
+      case "agentCategory":
+      case "agent_category":
+        patch.agentCategory = normalizeOptionalEnum(value, AGENT_CATEGORIES);
+        break;
+      case "executionMode":
+      case "execution_mode":
+        patch.executionMode = normalizeOptionalEnum(value, EXECUTION_MODES);
+        break;
+      case "modelHint":
+      case "model_hint":
+        patch.modelHint = optionalText(value);
+        break;
+      case "fallbackModels":
+      case "fallback_models":
+        patch.fallbackModels = normalizeStringList(value);
+        break;
+      case "parallelGroup":
+      case "parallel_group":
+        patch.parallelGroup = optionalText(value);
+        break;
+      case "maxParallelGroup":
+      case "max_parallel_group":
+        patch.maxParallelGroup = normalizeOptionalPositiveInt(value);
+        break;
+      case "notepadPath":
+      case "notepad_path":
+        patch.notepadPath = optionalResolvedPath(value);
+        break;
+      case "mailboxThreadId":
+      case "mailbox_thread_id":
+        patch.mailboxThreadId = optionalText(value);
+        break;
+      case "worktreePath":
+      case "worktree_path":
+        patch.worktreePath = optionalResolvedPath(value);
+        break;
       default:
         break;
     }
@@ -173,6 +247,16 @@ export function normalizeExistingTask(input) {
       riskLevel: normalizeEnum(input.riskLevel ?? input.risk_level, RISK_LEVELS, "medium"),
       plannerConfidence: normalizeBoundedNumber(input.plannerConfidence ?? input.planner_confidence, 0, 1),
       evidenceContract: optionalText(input.evidenceContract ?? input.evidence_contract),
+      agentRole: normalizeOptionalEnum(input.agentRole ?? input.agent_role, AGENT_ROLES),
+      agentCategory: normalizeOptionalEnum(input.agentCategory ?? input.agent_category, AGENT_CATEGORIES),
+      executionMode: normalizeOptionalEnum(input.executionMode ?? input.execution_mode, EXECUTION_MODES),
+      modelHint: optionalText(input.modelHint ?? input.model_hint),
+      fallbackModels: normalizeStringList(input.fallbackModels ?? input.fallback_models),
+      parallelGroup: optionalText(input.parallelGroup ?? input.parallel_group),
+      maxParallelGroup: normalizeOptionalPositiveInt(input.maxParallelGroup ?? input.max_parallel_group),
+      notepadPath: optionalResolvedPath(input.notepadPath ?? input.notepad_path),
+      mailboxThreadId: optionalText(input.mailboxThreadId ?? input.mailbox_thread_id),
+      worktreePath: optionalResolvedPath(input.worktreePath ?? input.worktree_path),
       summary: optionalText(input.summary),
       error: optionalText(input.error),
       createdAt: normalizeOptionalIso(input.createdAt ?? input.created_at) || now,
@@ -249,6 +333,13 @@ function normalizePositiveInt(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function normalizeOptionalPositiveInt(value) {
+  if (value === null || value === undefined || value === "") return undefined;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) throw new Error(`invalid positive integer: ${value}`);
+  return parsed;
+}
+
 function normalizeStringList(value) {
   if (value === null || value === undefined) return [];
   const raw = Array.isArray(value) ? value : String(value).split(",");
@@ -259,6 +350,18 @@ function normalizeEnum(value, allowed, fallback) {
   const text = optionalText(value) || fallback;
   if (!allowed.has(text)) throw new Error(`invalid enum value: ${text}`);
   return text;
+}
+
+function normalizeOptionalEnum(value, allowed) {
+  const text = optionalText(value);
+  if (!text) return undefined;
+  if (!allowed.has(text)) throw new Error(`invalid enum value: ${text}`);
+  return text;
+}
+
+function optionalResolvedPath(value) {
+  const text = optionalText(value);
+  return text ? path.resolve(text) : undefined;
 }
 
 function normalizeBoundedNumber(value, min, max) {

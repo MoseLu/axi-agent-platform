@@ -142,3 +142,62 @@ test("scheduler respects dependencies and resource locks", async () => {
   const ready = await store.listReadyTasks({ limit: 10, now });
   assert.deepEqual(ready.map((task) => task.id), [dependent.id]);
 });
+
+test("scheduler respects OMO-style parallel group limits", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-parallel-group-"));
+  const store = new TaskStore({ home });
+  const now = "2030-01-01T00:00:00.000Z";
+  const first = await store.addTask({
+    title: "Deep worker 1",
+    prompt: "Do deep work",
+    cwd: home,
+    dueAt: now,
+    priority: 20,
+    resourceKeys: "slice:1",
+    agentCategory: "deep",
+    parallelGroup: "team:deep",
+    maxParallelGroup: 2,
+  });
+  const second = await store.addTask({
+    title: "Deep worker 2",
+    prompt: "Do deep work",
+    cwd: home,
+    dueAt: now,
+    priority: 10,
+    resourceKeys: "slice:2",
+    agentCategory: "deep",
+    parallelGroup: "team:deep",
+    maxParallelGroup: 2,
+  });
+  const third = await store.addTask({
+    title: "Deep worker 3",
+    prompt: "Do deep work",
+    cwd: home,
+    dueAt: now,
+    priority: 5,
+    resourceKeys: "slice:3",
+    agentCategory: "deep",
+    parallelGroup: "team:deep",
+    maxParallelGroup: 2,
+  });
+  const quick = await store.addTask({
+    title: "Quick worker",
+    prompt: "Do quick work",
+    cwd: home,
+    dueAt: now,
+    priority: 1,
+    resourceKeys: "slice:4",
+    agentCategory: "quick",
+    parallelGroup: "team:quick",
+    maxParallelGroup: 4,
+  });
+
+  const selected = await store.listReadyTasks({ limit: 10, now });
+  assert.deepEqual(selected.map((task) => task.id), [first.id, second.id, quick.id]);
+
+  await store.claimNextTask({ now });
+  await store.claimNextTask({ now });
+  const schedule = await store.scheduleTasks({ limit: 10, now });
+  assert.deepEqual(schedule.tasks.map((task) => task.id), [quick.id]);
+  assert.equal(schedule.blocked.some((item) => item.id === third.id && item.reasons.includes("parallel_group_limited:team:deep")), true);
+});

@@ -14,7 +14,7 @@ It lives under `tools/` rather than `projects/` because it is local developer au
 - Daemon: single-worker loop; default interval is `300000` ms.
 - Executor: local `codex exec --output-last-message ... -C <task.cwd> <prompt>`.
 - Verification: optional `verifyCommand` runs in the task `cwd`. A failed verification moves a completed task back to `pending` when retries remain, otherwise `failed`.
-- Task graph: optional `parentId`, `dependsOn`, `resourceKeys`, `taskKind`, `estimatedCostPercent`, `riskLevel`, `plannerConfidence`, and `evidenceContract` fields let external loops schedule safe parallel work without losing the local JSON ledger model.
+- Task graph: optional `parentId`, `dependsOn`, `resourceKeys`, `taskKind`, `estimatedCostPercent`, `riskLevel`, `plannerConfidence`, `evidenceContract`, and OMO-style routing fields let external loops schedule safe parallel work without losing the local JSON ledger model.
 
 ## Desktop App
 
@@ -92,9 +92,18 @@ node bin/axi-todo.mjs split \
   --apply
 ```
 
-`ready` returns pending tasks whose dependencies are complete, whose due time has passed, and whose resource keys are not locked by running work. `schedule` returns the same selected batch plus blocked-task reasons such as `waiting_on:<id>` or `resource_locked:<key>`.
+`ready` returns pending tasks whose dependencies are complete, whose due time has passed, whose resource keys are not locked by running work, and whose OMO-style parallel group has capacity. `schedule` returns the same selected batch plus blocked-task reasons such as `waiting_on:<id>`, `resource_locked:<key>`, or `parallel_group_limited:<group>`.
 
-The built-in splitter is deterministic and local. It creates graph-ready slices with evidence contracts and resource keys; higher-level planners such as Hermes/CrewAI/LangGraph-style agents can replace the planning step as long as they write the same task fields.
+The built-in splitter is deterministic and local. It creates graph-ready slices with evidence contracts, resource keys, and routing metadata inspired by oh-my-openagent: `agentRole`, `agentCategory`, `executionMode`, `parallelGroup`, and `maxParallelGroup`. Higher-level planners such as Hermes/CrewAI/LangGraph-style agents can replace the planning step as long as they write the same task fields.
+
+Useful OMO-aligned task fields:
+
+- `agentRole`: `explore`, `sisyphus-junior`, `atlas`, `librarian`, `oracle`, and related OMO roles.
+- `agentCategory`: `quick`, `deep`, `ultrabrain`, `visual-engineering`, `writing`, `artistry`, `unspecified-low`, or `unspecified-high`.
+- `executionMode`: `inspect`, `worker`, `verify`, `plan`, `consult`, or `write`.
+- `modelHint` / `fallbackModels`: preferred model routing hints for loops such as the MiniMax quota drainer.
+- `parallelGroup` / `maxParallelGroup`: cap concurrent workers for a category or team lane without serializing unrelated resource keys.
+- `notepadPath`, `mailboxThreadId`, `worktreePath`: optional coordination anchors for team-style executors.
 
 ## Codex MCP Setup
 

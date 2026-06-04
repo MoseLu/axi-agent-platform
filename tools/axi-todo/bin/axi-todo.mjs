@@ -26,6 +26,16 @@ async function main() {
       riskLevel: flags["risk-level"] || flags.riskLevel,
       plannerConfidence: flags["planner-confidence"] || flags.plannerConfidence,
       evidenceContract: flags["evidence-contract"] || flags.evidenceContract,
+      agentRole: flags["agent-role"] || flags.agentRole,
+      agentCategory: flags["agent-category"] || flags.agentCategory,
+      executionMode: flags["execution-mode"] || flags.executionMode,
+      modelHint: flags["model-hint"] || flags.modelHint,
+      fallbackModels: flags["fallback-models"] || flags.fallbackModels,
+      parallelGroup: flags["parallel-group"] || flags.parallelGroup,
+      maxParallelGroup: flags["max-parallel-group"] || flags.maxParallelGroup,
+      notepadPath: flags["notepad-path"] || flags.notepadPath,
+      mailboxThreadId: flags["mailbox-thread-id"] || flags.mailboxThreadId,
+      worktreePath: flags["worktree-path"] || flags.worktreePath,
     });
     printJson(task);
     return;
@@ -107,6 +117,16 @@ async function main() {
         riskLevel: flags["risk-level"] || flags.riskLevel,
         plannerConfidence: flags["planner-confidence"] || flags.plannerConfidence,
         evidenceContract: flags["evidence-contract"] || flags.evidenceContract,
+        agentRole: flags["agent-role"] || flags.agentRole,
+        agentCategory: flags["agent-category"] || flags.agentCategory,
+        executionMode: flags["execution-mode"] || flags.executionMode,
+        modelHint: flags["model-hint"] || flags.modelHint,
+        fallbackModels: flags["fallback-models"] || flags.fallbackModels,
+        parallelGroup: flags["parallel-group"] || flags.parallelGroup,
+        maxParallelGroup: flags["max-parallel-group"] || flags.maxParallelGroup,
+        notepadPath: flags["notepad-path"] || flags.notepadPath,
+        mailboxThreadId: flags["mailbox-thread-id"] || flags.mailboxThreadId,
+        worktreePath: flags["worktree-path"] || flags.worktreePath,
       },
       { note: flags.note },
     );
@@ -183,6 +203,8 @@ function printHelp() {
 
   Commands:
   add --title <title> --prompt <prompt> [--cwd <path>] [--verify-command <cmd>]
+      [--agent-role sisyphus-junior] [--agent-category deep] [--execution-mode worker]
+      [--model-hint MiniMax-M3] [--parallel-group group --max-parallel-group 4]
   list [--status <status>] [--json]
   show <task-id>
   delete <task-id>

@@ -24,6 +24,12 @@ test("split planner creates verifiable graph-ready child tasks", () => {
   assert.equal(plan.tasks.every((task) => task.priority === 20), true);
   assert.equal(plan.tasks.every((task) => task.resourceKeys.length === 1), true);
   assert.equal(plan.tasks.every((task) => task.evidenceContract && task.prompt.includes("Evidence")), true);
+  assert.equal(plan.tasks.every((task) => task.agentRole && task.agentCategory && task.executionMode), true);
+  assert.equal(plan.tasks.every((task) => task.parallelGroup.startsWith("scheduler:")), true);
+  assert.equal(plan.tasks.every((task) => task.maxParallelGroup > 0), true);
+  assert.equal(plan.tasks.find((task) => task.taskKind === "inspect").agentRole, "explore");
+  assert.equal(plan.tasks.find((task) => task.taskKind === "edit").agentRole, "sisyphus-junior");
+  assert.equal(plan.tasks.find((task) => task.taskKind === "doc").agentRole, "librarian");
   assert.deepEqual(
     Array.from(new Set(plan.tasks.map((task) => task.taskKind))).sort(),
     ["doc", "edit", "inspect", "test", "verify"],

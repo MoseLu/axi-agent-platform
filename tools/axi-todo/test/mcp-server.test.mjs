@@ -19,6 +19,19 @@ test("tool definitions expose core axi-todo operations", () => {
     "axi_todo_split_task",
     "axi_todo_update_task",
   ]);
+  const addProperties = toolDefinitions().find((tool) => tool.name === "axi_todo_add_task").inputSchema.properties;
+  assert.deepEqual(addProperties.agentCategory.enum, [
+    "visual-engineering",
+    "ultrabrain",
+    "deep",
+    "artistry",
+    "quick",
+    "unspecified-low",
+    "unspecified-high",
+    "writing",
+  ]);
+  assert.equal(addProperties.modelHint.type, "string");
+  assert.equal(addProperties.maxParallelGroup.type, "number");
 });
 
 test("mcp server can add and list tasks", async () => {
@@ -29,10 +42,24 @@ test("mcp server can add and list tasks", async () => {
     method: "tools/call",
     params: {
       name: "axi_todo_add_task",
-      arguments: { title: "MCP task", prompt: "Do it", cwd: home },
+      arguments: {
+        title: "MCP task",
+        prompt: "Do it",
+        cwd: home,
+        agentRole: "sisyphus-junior",
+        agentCategory: "quick",
+        executionMode: "worker",
+        modelHint: "MiniMax-M2.7-highspeed",
+        parallelGroup: "mcp:quick",
+        maxParallelGroup: 4,
+      },
     },
   });
   assert.match(add.content[0].text, /MCP task/);
+  const added = JSON.parse(add.content[0].text);
+  assert.equal(added.agentRole, "sisyphus-junior");
+  assert.equal(added.agentCategory, "quick");
+  assert.equal(added.modelHint, "MiniMax-M2.7-highspeed");
 
   const list = await server.handle({
     method: "tools/call",
@@ -42,7 +69,7 @@ test("mcp server can add and list tasks", async () => {
 
   const deleted = await server.handle({
     method: "tools/call",
-    params: { name: "axi_todo_delete_task", arguments: { id: JSON.parse(add.content[0].text).id } },
+    params: { name: "axi_todo_delete_task", arguments: { id: added.id } },
   });
   assert.match(deleted.content[0].text, /MCP task/);
 });
