@@ -32,7 +32,7 @@
     "@types/node": "^22.19.11",
     "rollup": "npm:@rollup/wasm-node@^4.60.4",
     "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
+    "typescript": "^6.0.3",
     "vite": "^6.4.3",
     "vitest": "^4.1.8"
   },
