@@ -27,7 +27,7 @@ export async function runAppSessionJob({ paths, config, job, signal, cliPath, sp
     return runNewAppSessionJob({ paths, config, job, signal, cliPath, spawnCodex });
   }
   const startedAt = Date.now();
-  const requestedWorkdir = resolveWorkdir({ config, job });
+  const requestedWorkdir = resolveWorkdir({ config, job, ensureExists: false });
   const appSession = findAppSession({
     home: paths.home,
     selector: {
@@ -40,6 +40,7 @@ export async function runAppSessionJob({ paths, config, job, signal, cliPath, sp
     throw new Error("未找到可接管的 Codex App 会话");
   }
   const workdir = resolveAppSessionWorkdir({ config, appSession, fallback: requestedWorkdir });
+  fs.mkdirSync(workdir, { recursive: true });
   const appCodexHome = path.join(paths.home, ".codex");
   if (!fs.existsSync(appCodexHome)) {
     throw new Error("Codex App CODEX_HOME 不存在，无法接管会话");

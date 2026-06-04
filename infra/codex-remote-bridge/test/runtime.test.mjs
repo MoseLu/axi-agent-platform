@@ -87,12 +87,13 @@ test("shouldRetryCodexAccountFailure only retries account capacity errors", () =
   assert.equal(shouldRetryCodexAccountFailure("项目路径不在 allowlist 中"), false);
 });
 
-test("runCodexJob can resume a Codex App session without selecting account pool", async () => {
+test("runCodexJob can resume a Codex App session without selecting account pool", async (t) => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "codex-bridge-runtime-app-session-"));
   const paths = packagePaths(home, "0.1.0");
   const projectRoot = path.join(DEFAULT_PROJECTS_ROOT, `bridge-runtime-app-session-${path.basename(home)}`);
   const pollutedProjectRoot = path.join(DEFAULT_PROJECTS_ROOT, "019dd2d4-35db-7e41-90fd");
   const sessionId = "session_ielts";
+  t.after(() => removeWorkspaceFixture(projectRoot));
   fs.mkdirSync(path.join(home, ".codex"), { recursive: true });
   fs.mkdirSync(projectRoot, { recursive: true });
   fs.writeFileSync(
@@ -154,6 +155,7 @@ if (outIndex >= 0) fs.writeFileSync(args[outIndex + 1], "完成：App session re
     assert.equal(captured.env.CODEX_HOME, path.join(home, ".codex"));
     assert.match(prompt, new RegExp(escapeRegExp(projectRoot)));
     assert.doesNotMatch(prompt, new RegExp(escapeRegExp(pollutedProjectRoot)));
+    assert.equal(fs.existsSync(pollutedProjectRoot), false);
   } finally {
     if (previous === undefined) {
       delete process.env.CODEX_BRIDGE_CODEX_PATH;
@@ -163,10 +165,11 @@ if (outIndex >= 0) fs.writeFileSync(args[outIndex + 1], "完成：App session re
   }
 });
 
-test("runCodexJob can start a new Codex App session in a selected project", async () => {
+test("runCodexJob can start a new Codex App session in a selected project", async (t) => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "codex-bridge-runtime-new-app-session-"));
   const paths = packagePaths(home, "0.1.0");
   const projectRoot = path.join(DEFAULT_PROJECTS_ROOT, `new-app-session-${path.basename(home)}`);
+  t.after(() => removeWorkspaceFixture(projectRoot));
   fs.mkdirSync(path.join(home, ".codex"), { recursive: true });
   fs.mkdirSync(projectRoot, { recursive: true });
   const fakeCodex = path.join(home, "fake-codex-new.mjs");
@@ -290,11 +293,12 @@ fs.writeFileSync(${JSON.stringify(sessionIndexPath)}, JSON.stringify({
   }
 });
 
-test("runCodexJob reports Cockpit account switching during App session takeover", async () => {
+test("runCodexJob reports Cockpit account switching during App session takeover", async (t) => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "codex-bridge-runtime-switch-progress-"));
   const paths = packagePaths(home, "0.1.0");
   const projectRoot = path.join(DEFAULT_PROJECTS_ROOT, `bridge-runtime-switch-progress-${path.basename(home)}`);
   const sessionId = "session_switch_progress";
+  t.after(() => removeWorkspaceFixture(projectRoot));
   fs.mkdirSync(path.join(home, ".codex"), { recursive: true });
   fs.mkdirSync(paths.dataDir, { recursive: true });
   fs.mkdirSync(projectRoot, { recursive: true });
@@ -367,4 +371,12 @@ if (outIndex >= 0) fs.writeFileSync(args[outIndex + 1], "完成：App session re
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function removeWorkspaceFixture(target) {
+  const relative = path.relative(DEFAULT_PROJECTS_ROOT, target);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`Refusing to remove non-fixture workspace path: ${target}`);
+  }
+  fs.rmSync(target, { recursive: true, force: true });
 }
