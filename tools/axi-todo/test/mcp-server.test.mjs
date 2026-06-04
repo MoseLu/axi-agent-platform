@@ -13,7 +13,10 @@ test("tool definitions expose core axi-todo operations", () => {
     "axi_todo_delete_task",
     "axi_todo_get_task",
     "axi_todo_list_tasks",
+    "axi_todo_ready_tasks",
     "axi_todo_run_once",
+    "axi_todo_schedule_tasks",
+    "axi_todo_split_task",
     "axi_todo_update_task",
   ]);
 });
@@ -42,4 +45,21 @@ test("mcp server can add and list tasks", async () => {
     params: { name: "axi_todo_delete_task", arguments: { id: JSON.parse(add.content[0].text).id } },
   });
   assert.match(deleted.content[0].text, /MCP task/);
+});
+
+test("mcp server can split tasks without applying by default", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-mcp-split-"));
+  const store = new TaskStore({ home });
+  const server = createMcpServer({ store });
+  const split = await server.handle({
+    method: "tools/call",
+    params: {
+      name: "axi_todo_split_task",
+      arguments: { goal: "Improve scheduling", cwd: home, targetReady: 4 },
+    },
+  });
+  const plan = JSON.parse(split.content[0].text);
+  assert.equal(plan.dryRun, true);
+  assert.equal(plan.tasks.length, 4);
+  assert.equal((await store.listTasks()).length, 0);
 });

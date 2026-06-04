@@ -41,6 +41,21 @@ export class TaskStore {
       .sort(taskSort);
   }
 
+  async listReadyTasks({ limit = 50, now = nowIso() } = {}) {
+    const state = await this.readState();
+    return selectSchedulableTasks(state, { limit, now });
+  }
+
+  async scheduleTasks({ limit = 50, now = nowIso() } = {}) {
+    const state = await this.readState();
+    return {
+      now,
+      limit,
+      tasks: selectSchedulableTasks(state, { limit, now }),
+      blocked: explainBlockedTasks(state, { now }),
+    };
+  }
+
   async getTask(id) {
     const state = await this.readState();
     return state.tasks.find((task) => task.id === id) || null;
@@ -83,9 +98,7 @@ export class TaskStore {
 
   async claimNextTask({ runnerId = process.pid, now = nowIso() } = {}) {
     return this.mutate((state) => {
-      const task = state.tasks
-        .filter((candidate) => candidate.status === "pending" && isDue(candidate, now) && isActionableTask(candidate))
-        .sort(taskSort)[0];
+      const task = selectSchedulableTasks(state, { limit: 1, now })[0];
       if (!task) return { state, result: null };
       task.status = "running";
       task.attempts = Number(task.attempts || 0) + 1;
@@ -234,6 +247,62 @@ function compactRunResult(result = {}) {
     error: result.error,
     verification: result.verification,
   };
+}
+
+function selectSchedulableTasks(state, { limit, now }) {
+  const runningKeys = new Set(state.tasks
+    .filter((task) => task.status === "running")
+    .flatMap(effectiveResourceKeys));
+  const selectedKeys = new Set();
+  const completedIds = completedTaskIds(state);
+  const selected = [];
+  for (const task of state.tasks
+    .filter((candidate) => isReadyCandidate(candidate, now, completedIds))
+    .sort(taskSort)) {
+    const keys = effectiveResourceKeys(task);
+    if (keys.some((key) => runningKeys.has(key) || selectedKeys.has(key))) continue;
+    selected.push(task);
+    for (const key of keys) selectedKeys.add(key);
+    if (selected.length >= limit) break;
+  }
+  return selected;
+}
+
+function explainBlockedTasks(state, { now }) {
+  const completedIds = completedTaskIds(state);
+  const runningKeys = new Set(state.tasks
+    .filter((task) => task.status === "running")
+    .flatMap(effectiveResourceKeys));
+  return state.tasks
+    .filter((task) => task.status === "pending")
+    .map((task) => {
+      const reasons = [];
+      if (!isDue(task, now)) reasons.push("not_due");
+      if (!isActionableTask(task)) reasons.push("missing_prompt");
+      const missing = task.dependsOn.filter((id) => !completedIds.has(id));
+      if (missing.length) reasons.push(`waiting_on:${missing.join(",")}`);
+      const conflicts = effectiveResourceKeys(task).filter((key) => runningKeys.has(key));
+      if (conflicts.length) reasons.push(`resource_locked:${conflicts.join(",")}`);
+      return reasons.length ? { id: task.id, title: task.title, reasons } : null;
+    })
+    .filter(Boolean);
+}
+
+function isReadyCandidate(task, now, completedIds) {
+  return task.status === "pending"
+    && isDue(task, now)
+    && isActionableTask(task)
+    && task.dependsOn.every((id) => completedIds.has(id));
+}
+
+function completedTaskIds(state) {
+  return new Set(state.tasks
+    .filter((task) => task.status === "completed")
+    .map((task) => task.id));
+}
+
+function effectiveResourceKeys(task) {
+  return task.resourceKeys.length ? task.resourceKeys : [task.cwd];
 }
 
 function delay(ms) {

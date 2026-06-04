@@ -14,6 +14,7 @@ It lives under `tools/` rather than `projects/` because it is local developer au
 - Daemon: single-worker loop; default interval is `300000` ms.
 - Executor: local `codex exec --output-last-message ... -C <task.cwd> <prompt>`.
 - Verification: optional `verifyCommand` runs in the task `cwd`. A failed verification moves a completed task back to `pending` when retries remain, otherwise `failed`.
+- Task graph: optional `parentId`, `dependsOn`, `resourceKeys`, `taskKind`, `estimatedCostPercent`, `riskLevel`, `plannerConfidence`, and `evidenceContract` fields let external loops schedule safe parallel work without losing the local JSON ledger model.
 
 ## Desktop App
 
@@ -63,9 +64,37 @@ node bin/axi-todo.mjs add \
   --verify-command "pnpm verify"
 
 node bin/axi-todo.mjs list
+node bin/axi-todo.mjs ready --limit 16
+node bin/axi-todo.mjs schedule --limit 16
 node bin/axi-todo.mjs run-once
 node bin/axi-todo-daemon.mjs --interval-ms 300000
 ```
+
+## Task Splitting And Scheduling
+
+Use `split` to turn one broad goal into a dry-run child-task plan before writing anything:
+
+```bash
+node bin/axi-todo.mjs split \
+  --goal "Improve MiniMax five-hour quota scheduling" \
+  --cwd /Volumes/code/workspace/projects/axi-agent-platform/tools/axi-todo \
+  --target-ready 24 \
+  --verify-command "pnpm test"
+```
+
+Add `--apply` only after reviewing the generated plan:
+
+```bash
+node bin/axi-todo.mjs split \
+  --from <parent-task-id> \
+  --target-ready 24 \
+  --verify-command "pnpm test" \
+  --apply
+```
+
+`ready` returns pending tasks whose dependencies are complete, whose due time has passed, and whose resource keys are not locked by running work. `schedule` returns the same selected batch plus blocked-task reasons such as `waiting_on:<id>` or `resource_locked:<key>`.
+
+The built-in splitter is deterministic and local. It creates graph-ready slices with evidence contracts and resource keys; higher-level planners such as Hermes/CrewAI/LangGraph-style agents can replace the planning step as long as they write the same task fields.
 
 ## Codex MCP Setup
 
@@ -83,6 +112,9 @@ Useful MCP tools:
 - `axi_todo_update_task`
 - `axi_todo_delete_task`
 - `axi_todo_run_once`
+- `axi_todo_ready_tasks`
+- `axi_todo_schedule_tasks`
+- `axi_todo_split_task`
 
 ## LaunchAgent
 
@@ -118,6 +150,9 @@ node bin/axi-todo.mjs list [--status pending] [--json]
 node bin/axi-todo.mjs show <task-id>
 node bin/axi-todo.mjs delete <task-id>
 node bin/axi-todo.mjs update <task-id> [--status completed] [--note <text>]
+node bin/axi-todo.mjs split [--goal <goal> | --from <task-id>] [--target-ready 24] [--apply]
+node bin/axi-todo.mjs ready [--limit 50]
+node bin/axi-todo.mjs schedule [--limit 50]
 node bin/axi-todo.mjs run-once
 node bin/axi-todo.mjs daemon --interval-ms 300000
 node bin/axi-todo.mjs mcp

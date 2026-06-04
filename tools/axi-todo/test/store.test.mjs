@@ -100,3 +100,45 @@ test("store deletes tasks and refuses running deletions", async () => {
   await assert.rejects(() => store.deleteTask(running.id), /cannot delete running task/i);
   assert.equal((await store.getTask(running.id)).status, "running");
 });
+
+test("scheduler respects dependencies and resource locks", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-schedule-"));
+  const store = new TaskStore({ home });
+  const now = "2030-01-01T00:00:00.000Z";
+  const base = await store.addTask({
+    title: "Base",
+    prompt: "Do the base work",
+    cwd: home,
+    dueAt: now,
+    resourceKeys: "module:base",
+  });
+  const dependent = await store.addTask({
+    title: "Dependent",
+    prompt: "Do dependent work",
+    cwd: home,
+    dueAt: now,
+    dependsOn: base.id,
+    resourceKeys: "module:dependent",
+  });
+  const conflict = await store.addTask({
+    title: "Conflict",
+    prompt: "Do conflicting work",
+    cwd: home,
+    dueAt: now,
+    priority: 10,
+    resourceKeys: "module:base",
+  });
+
+  const claimed = await store.claimNextTask({ now });
+  assert.equal(claimed.id, conflict.id, "higher priority resource owner claims first");
+
+  const schedule = await store.scheduleTasks({ limit: 10, now });
+  assert.deepEqual(schedule.tasks.map((task) => task.id), []);
+  assert.equal(schedule.blocked.some((item) => item.id === dependent.id && item.reasons.some((reason) => reason.startsWith("waiting_on:"))), true);
+  assert.equal(schedule.blocked.some((item) => item.id === base.id && item.reasons.some((reason) => reason.startsWith("resource_locked:"))), true);
+
+  await store.completeTask(conflict.id, { success: true });
+  await store.completeTask(base.id, { success: true });
+  const ready = await store.listReadyTasks({ limit: 10, now });
+  assert.deepEqual(ready.map((task) => task.id), [dependent.id]);
+});

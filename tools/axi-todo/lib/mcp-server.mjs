@@ -1,4 +1,5 @@
 import { runOnce } from "./daemon.mjs";
+import { createSplitPlan } from "./planner.mjs";
 import { createStoreFromEnv } from "./store.mjs";
 
 export function createMcpServer({ store = createStoreFromEnv() } = {}) {
@@ -104,6 +105,22 @@ export function toolDefinitions() {
       },
     },
     {
+      name: "axi_todo_ready_tasks",
+      description: "List pending tasks that are currently schedulable after dependency and resource-lock checks.",
+      inputSchema: {
+        type: "object",
+        properties: { limit: { type: "number" } },
+      },
+    },
+    {
+      name: "axi_todo_schedule_tasks",
+      description: "Preview the deterministic scheduler selection and blocked-task reasons.",
+      inputSchema: {
+        type: "object",
+        properties: { limit: { type: "number" } },
+      },
+    },
+    {
       name: "axi_todo_get_task",
       description: "Get one local axi-todo task by id.",
       inputSchema: {
@@ -140,6 +157,23 @@ export function toolDefinitions() {
       description: "Run one daemon tick: recheck completed tasks, claim one pending task, and execute it with Codex.",
       inputSchema: { type: "object", properties: {} },
     },
+    {
+      name: "axi_todo_split_task",
+      description: "Split a goal or parent task into graph-ready child tasks. Defaults to dry run; pass apply=true to write tasks.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          goal: { type: "string" },
+          from: { type: "string" },
+          cwd: { type: "string" },
+          targetReady: { type: "number" },
+          verifyCommand: { type: "string" },
+          priority: { type: "number" },
+          resourcePrefix: { type: "string" },
+          apply: { type: "boolean" },
+        },
+      },
+    },
   ];
 }
 
@@ -151,6 +185,12 @@ async function callTool(store, params) {
   }
   if (name === "axi_todo_list_tasks") {
     return textResult(await store.listTasks({ status: args.status }));
+  }
+  if (name === "axi_todo_ready_tasks") {
+    return textResult(await store.listReadyTasks({ limit: args.limit }));
+  }
+  if (name === "axi_todo_schedule_tasks") {
+    return textResult(await store.scheduleTasks({ limit: args.limit }));
   }
   if (name === "axi_todo_get_task") {
     const task = await store.getTask(args.id);
@@ -167,6 +207,25 @@ async function callTool(store, params) {
   if (name === "axi_todo_run_once") {
     return textResult(await runOnce({ store }));
   }
+  if (name === "axi_todo_split_task") {
+    const parent = args.from ? await store.getTask(args.from) : null;
+    if (args.from && !parent) throw new Error(`unknown parent task: ${args.from}`);
+    const plan = createSplitPlan({
+      goal: args.goal || parent?.prompt || parent?.title,
+      cwd: args.cwd || parent?.cwd || process.cwd(),
+      targetReady: args.targetReady,
+      verifyCommand: args.verifyCommand || parent?.verifyCommand,
+      priority: args.priority ?? parent?.priority,
+      parentId: parent?.id || args.from,
+      resourcePrefix: args.resourcePrefix,
+    });
+    if (!args.apply) return textResult({ dryRun: true, ...plan });
+    const created = [];
+    for (const taskInput of plan.tasks) {
+      created.push(await store.addTask(taskInput));
+    }
+    return textResult({ dryRun: false, created: created.map((task) => task.id), ...plan });
+  }
   throw new Error(`unknown tool: ${name}`);
 }
 
@@ -179,6 +238,14 @@ function taskInputProperties() {
     maxAttempts: { type: "number" },
     dueAt: { type: "string" },
     verifyCommand: { type: "string" },
+    parentId: { type: "string" },
+    dependsOn: { type: "array", items: { type: "string" } },
+    resourceKeys: { type: "array", items: { type: "string" } },
+    taskKind: { type: "string", enum: ["task", "inspect", "edit", "test", "verify", "doc", "research"] },
+    estimatedCostPercent: { type: "number" },
+    riskLevel: { type: "string", enum: ["low", "medium", "high"] },
+    plannerConfidence: { type: "number" },
+    evidenceContract: { type: "string" },
   };
 }
 

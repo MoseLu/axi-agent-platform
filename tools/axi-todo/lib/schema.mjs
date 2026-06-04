@@ -14,6 +14,8 @@ export const TASK_STATUSES = new Set([
 ]);
 
 export const TERMINAL_STATUSES = new Set(["completed", "failed", "cancelled"]);
+export const TASK_KINDS = new Set(["task", "inspect", "edit", "test", "verify", "doc", "research"]);
+export const RISK_LEVELS = new Set(["low", "medium", "high"]);
 
 export function defaultAxiTodoHome(env = process.env) {
   return path.resolve(env.AXI_TODO_HOME || path.join(os.homedir(), ".axi-todo"));
@@ -54,6 +56,14 @@ export function createTask(input = {}, { now = nowIso(), cwd = process.cwd() } =
     maxAttempts: normalizePositiveInt(input.maxAttempts ?? input.max_attempts, 3),
     dueAt: normalizeOptionalIso(input.dueAt ?? input.due_at) || now,
     verifyCommand: optionalText(input.verifyCommand ?? input.verify_command),
+    parentId: optionalText(input.parentId ?? input.parent_id),
+    dependsOn: normalizeStringList(input.dependsOn ?? input.depends_on),
+    resourceKeys: normalizeStringList(input.resourceKeys ?? input.resource_keys),
+    taskKind: normalizeEnum(input.taskKind ?? input.task_kind, TASK_KINDS, "task"),
+    estimatedCostPercent: normalizeBoundedNumber(input.estimatedCostPercent ?? input.estimated_cost_percent, 0, 100),
+    riskLevel: normalizeEnum(input.riskLevel ?? input.risk_level, RISK_LEVELS, "medium"),
+    plannerConfidence: normalizeBoundedNumber(input.plannerConfidence ?? input.planner_confidence, 0, 1),
+    evidenceContract: optionalText(input.evidenceContract ?? input.evidence_contract),
     summary: optionalText(input.summary),
     error: optionalText(input.error),
     createdAt: normalizeOptionalIso(input.createdAt ?? input.created_at) || now,
@@ -101,6 +111,38 @@ export function normalizePatch(input = {}) {
       case "verify_command":
         patch.verifyCommand = optionalText(value);
         break;
+      case "parentId":
+      case "parent_id":
+        patch.parentId = optionalText(value);
+        break;
+      case "dependsOn":
+      case "depends_on":
+        patch.dependsOn = normalizeStringList(value);
+        break;
+      case "resourceKeys":
+      case "resource_keys":
+        patch.resourceKeys = normalizeStringList(value);
+        break;
+      case "taskKind":
+      case "task_kind":
+        patch.taskKind = normalizeEnum(value, TASK_KINDS, "task");
+        break;
+      case "estimatedCostPercent":
+      case "estimated_cost_percent":
+        patch.estimatedCostPercent = normalizeBoundedNumber(value, 0, 100);
+        break;
+      case "riskLevel":
+      case "risk_level":
+        patch.riskLevel = normalizeEnum(value, RISK_LEVELS, "medium");
+        break;
+      case "plannerConfidence":
+      case "planner_confidence":
+        patch.plannerConfidence = normalizeBoundedNumber(value, 0, 1);
+        break;
+      case "evidenceContract":
+      case "evidence_contract":
+        patch.evidenceContract = optionalText(value);
+        break;
       default:
         break;
     }
@@ -123,6 +165,14 @@ export function normalizeExistingTask(input) {
       maxAttempts: normalizePositiveInt(input.maxAttempts ?? input.max_attempts, 3),
       dueAt: normalizeOptionalIso(input.dueAt ?? input.due_at) || now,
       verifyCommand: optionalText(input.verifyCommand ?? input.verify_command),
+      parentId: optionalText(input.parentId ?? input.parent_id),
+      dependsOn: normalizeStringList(input.dependsOn ?? input.depends_on),
+      resourceKeys: normalizeStringList(input.resourceKeys ?? input.resource_keys),
+      taskKind: normalizeEnum(input.taskKind ?? input.task_kind, TASK_KINDS, "task"),
+      estimatedCostPercent: normalizeBoundedNumber(input.estimatedCostPercent ?? input.estimated_cost_percent, 0, 100),
+      riskLevel: normalizeEnum(input.riskLevel ?? input.risk_level, RISK_LEVELS, "medium"),
+      plannerConfidence: normalizeBoundedNumber(input.plannerConfidence ?? input.planner_confidence, 0, 1),
+      evidenceContract: optionalText(input.evidenceContract ?? input.evidence_contract),
       summary: optionalText(input.summary),
       error: optionalText(input.error),
       createdAt: normalizeOptionalIso(input.createdAt ?? input.created_at) || now,
@@ -197,6 +247,25 @@ function normalizePriority(value) {
 function normalizePositiveInt(value, fallback) {
   const parsed = Number.parseInt(value ?? fallback, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function normalizeStringList(value) {
+  if (value === null || value === undefined) return [];
+  const raw = Array.isArray(value) ? value : String(value).split(",");
+  return Array.from(new Set(raw.map((item) => optionalText(item)).filter(Boolean)));
+}
+
+function normalizeEnum(value, allowed, fallback) {
+  const text = optionalText(value) || fallback;
+  if (!allowed.has(text)) throw new Error(`invalid enum value: ${text}`);
+  return text;
+}
+
+function normalizeBoundedNumber(value, min, max) {
+  if (value === null || value === undefined || value === "") return undefined;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return undefined;
+  return Math.max(min, Math.min(max, parsed));
 }
 
 function normalizeNonNegativeInt(value, fallback) {
