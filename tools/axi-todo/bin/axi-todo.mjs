@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+import path from "node:path";
 import { runDaemon, runOnce } from "../lib/daemon.mjs";
 import { startMcpStdio } from "../lib/mcp-server.mjs";
 import { createSplitPlan } from "../lib/planner.mjs";
 import { createStoreFromEnv } from "../lib/store.mjs";
+import { readVerificationLogEntries } from "../lib/verification-log.mjs";
 
 const store = createStoreFromEnv();
 
@@ -145,6 +147,23 @@ async function main() {
     await startMcpStdio({ store });
     return;
   }
+  if (command === "verify-log") {
+    const projectPath = flags.project || flags.cwd || process.cwd();
+    const limit = parsePositiveInt(flags.limit, 32);
+    const entries = await readVerificationLogEntries({ cwd: projectPath, limit });
+    if (flags.json) {
+      printJson({ project: projectPath, entries });
+    } else {
+      if (entries.length === 0) {
+        process.stdout.write(`No verify-log entries in ${path.join(projectPath, "VERIFICATION.md")}\n`);
+      } else {
+        for (const entry of entries) {
+          process.stdout.write(`${entry.checkedAt}  ${entry.taskId.padEnd(28)}  ${entry.status.padEnd(8)}  exit=${entry.exitCode}  ${entry.title}\n`);
+        }
+      }
+    }
+    return;
+  }
   printHelp();
 }
 
@@ -215,5 +234,6 @@ function printHelp() {
   run-once
   daemon [--interval-ms 300000] [--once]
   mcp
+  verify-log [--project <path>] [--limit 32] [--json]
 `);
 }

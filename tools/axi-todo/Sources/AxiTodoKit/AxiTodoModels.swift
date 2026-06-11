@@ -60,6 +60,7 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
     public var lastRunId: String?
     public var lastOutputPath: String?
     public var verification: AxiTodoVerification
+    public var verifyLoggedAt: String?
     public var history: [AxiTodoHistoryEntry]
 
     public init(
@@ -82,6 +83,7 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         lastRunId: String? = nil,
         lastOutputPath: String? = nil,
         verification: AxiTodoVerification = AxiTodoVerification(),
+        verifyLoggedAt: String? = nil,
         history: [AxiTodoHistoryEntry] = []
     ) {
         self.id = id
@@ -103,6 +105,7 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         self.lastRunId = lastRunId
         self.lastOutputPath = lastOutputPath
         self.verification = verification
+        self.verifyLoggedAt = verifyLoggedAt
         self.history = Array(history.suffix(100))
     }
 
@@ -130,6 +133,7 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         lastRunId = try container.decodeOptionalTrimmedString(forKey: .lastRunId)
         lastOutputPath = try container.decodeOptionalTrimmedString(forKey: .lastOutputPath)
         verification = try container.decodeIfPresent(AxiTodoVerification.self, forKey: .verification) ?? AxiTodoVerification()
+        verifyLoggedAt = try container.decodeOptionalTrimmedString(forKey: .verifyLoggedAt)
         history = Array((try container.decodeIfPresent([AxiTodoHistoryEntry].self, forKey: .history) ?? []).suffix(100))
     }
 

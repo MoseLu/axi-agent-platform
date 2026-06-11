@@ -147,6 +147,7 @@ export function createTask(input = {}, { now = nowIso(), cwd = process.cwd() } =
     lastRunId: optionalText(input.lastRunId ?? input.last_run_id),
     lastOutputPath: optionalText(input.lastOutputPath ?? input.last_output_path),
     verification: normalizeVerification(input.verification),
+    verifyLoggedAt: normalizeOptionalIso(input.verifyLoggedAt ?? input.verify_logged_at),
     history: [],
   };
   appendHistory(task, "created", "Task created", {}, now);
@@ -184,6 +185,10 @@ export function normalizePatch(input = {}) {
       case "verifyCommand":
       case "verify_command":
         patch.verifyCommand = optionalText(value);
+        break;
+      case "verifyLoggedAt":
+      case "verify_logged_at":
+        patch.verifyLoggedAt = normalizeOptionalIso(value);
         break;
       case "charterId":
       case "charter_id":

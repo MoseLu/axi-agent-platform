@@ -14,6 +14,7 @@ It lives under `tools/` rather than `projects/` because it is local developer au
 - Daemon: single-worker loop; default interval is `300000` ms.
 - Executor: local `codex exec --output-last-message ... -C <task.cwd> <prompt>`.
 - Verification: optional `verifyCommand` runs in the task `cwd`. A failed verification moves a completed task back to `pending` when retries remain, otherwise `failed`.
+- Verification writeback: when `verifyCommand` runs, the daemon appends a one-line bullet to an existing `<task.cwd>/VERIFICATION.md` under `## Axi Todo Verify Activity`. Idempotent on `<taskId>@<checkedAt>` so re-runs do not duplicate. Set `AXI_TODO_VERIFY_LOG_CREATE=1` only when first-write creation is intended. Paths under `references/` are skipped. Use `node bin/axi-todo.mjs verify-log --project <path>` to query entries.
 - Task graph: optional `parentId`, `dependsOn`, `resourceKeys`, `taskKind`, `estimatedCostPercent`, `riskLevel`, `plannerConfidence`, `evidenceContract`, and OMO-style routing fields let external loops schedule safe parallel work without losing the local JSON ledger model.
 
 ## Desktop App
@@ -67,7 +68,8 @@ node bin/axi-todo.mjs list
 node bin/axi-todo.mjs ready --limit 16
 node bin/axi-todo.mjs schedule --limit 16
 node bin/axi-todo.mjs run-once
-node bin/axi-todo-daemon.mjs --interval-ms 300000
+node bin/axi-todo.mjs daemon --interval-ms 300000
+node bin/axi-todo.mjs verify-log --project /Volumes/code/workspace/projects/axi-image-preview --limit 16
 ```
 
 ## Task Splitting And Scheduling
@@ -165,4 +167,5 @@ node bin/axi-todo.mjs schedule [--limit 50]
 node bin/axi-todo.mjs run-once
 node bin/axi-todo.mjs daemon --interval-ms 300000
 node bin/axi-todo.mjs mcp
+node bin/axi-todo.mjs verify-log [--project <path>] [--limit 32] [--json]
 ```

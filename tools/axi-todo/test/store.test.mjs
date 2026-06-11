@@ -37,6 +37,7 @@ test("store creates, lists, claims, and completes tasks", async () => {
 test("createStoreFromEnv selects JSON fallback or PostgreSQL fact store", async () => {
   const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-store-env-"));
   assert.equal(createStoreFromEnv({ AXI_TODO_HOME: home, AXI_TODO_STORE: "json" }) instanceof TaskStore, true);
+  assert.equal(createStoreFromEnv({ AXI_TODO_HOME: home }) instanceof TaskStore, true);
   assert.equal(createStoreFromEnv({}) instanceof PostgresTaskStore, true);
   assert.equal(createStoreFromEnv({ AXI_TODO_STORE: "auto", DATABASE_URL: "postgres://user:pass@localhost/db" }) instanceof PostgresTaskStore, true);
 });

@@ -371,6 +371,9 @@ export class TaskStore {
 
 export function createStoreFromEnv(env = process.env) {
   const mode = String(env.AXI_TODO_STORE || "postgres").toLowerCase();
+  if (!env.AXI_TODO_STORE && env.AXI_TODO_HOME && !env.DATABASE_URL && !env.AXI_TODO_DATABASE_URL) {
+    return new TaskStore({ home: defaultAxiTodoHome(env) });
+  }
   if (mode === "postgres" || (mode === "auto" && (env.DATABASE_URL || env.AXI_TODO_DATABASE_URL))) {
     return new PostgresTaskStore({ databaseUrl: env.DATABASE_URL || env.AXI_TODO_DATABASE_URL || DEFAULT_POSTGRES_DATABASE_URL });
   }

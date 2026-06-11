@@ -185,7 +185,8 @@
     "prd": "docs/PRD.md",
     "tdd": "docs/TDD.md",
     "adr": "docs/ADR",
-    "manifest": "docs/project-docs.manifest.json"
+    "manifest": "docs/project-docs.manifest.json",
+    "verification": "VERIFICATION.md"
   },
   "owners": {
     "product": "Axi Core Projects",

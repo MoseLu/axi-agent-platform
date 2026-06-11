@@ -1,6 +1,7 @@
 import { executeTaskWithCodex, runVerificationCommand } from "./codex-runner.mjs";
 import { createStoreFromEnv } from "./store.mjs";
 import { nowIso } from "./schema.mjs";
+import { appendVerificationLogEntry } from "./verification-log.mjs";
 
 const DEFAULT_INTERVAL_MS = 5 * 60 * 1000;
 const DEFAULT_RUNNING_TIMEOUT_MS = 60 * 60 * 1000;
@@ -25,6 +26,11 @@ export async function runOnce({
   const updated = result.success
     ? await store.completeTask(task.id, result, { now: nowIso() })
     : await store.failTask(task.id, result, { now: nowIso(), retryDelayMs });
+  // Writeback: persist verifyCommand results to `<task.cwd>/VERIFICATION.md`
+  // so the contract post-2026-06-11 stays a single source of truth.
+  // The helper is fire-and-forget safe: any failure to write is logged
+  // internally and does not affect task status.
+  await appendVerificationLogEntry({ task, result, now: nowIso() });
   return {
     claimed: task.id,
     status: updated.status,
@@ -42,6 +48,11 @@ export async function recheckCompletedTasks(store, { now = nowIso(), completedRe
     if (!shouldRecheck(task, now, completedRecheckMs)) continue;
     const verification = await runVerificationCommand(task);
     await store.markVerificationResult(task.id, verification, { now });
+    await appendVerificationLogEntry({
+      task,
+      result: { success: verification.status === "passed", verification },
+      now
+    });
     checked.push({ taskId: task.id, status: verification.status });
   }
   return checked;
