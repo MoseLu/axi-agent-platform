@@ -2,11 +2,13 @@ import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
-export const STORE_VERSION = 1;
+export const STORE_VERSION = 2;
 
 export const TASK_STATUSES = new Set([
   "pending",
   "running",
+  "waiting",
+  "awaiting_audit",
   "completed",
   "failed",
   "blocked",
@@ -16,6 +18,15 @@ export const TASK_STATUSES = new Set([
 export const TERMINAL_STATUSES = new Set(["completed", "failed", "cancelled"]);
 export const TASK_KINDS = new Set(["task", "inspect", "edit", "test", "verify", "doc", "research"]);
 export const RISK_LEVELS = new Set(["low", "medium", "high"]);
+export const AUDIT_LEVELS = new Set(["none", "standard", "strict"]);
+export const MEMORY_CARD_TYPES = new Set([
+  "planning_pattern",
+  "execution_lesson",
+  "failure_lesson",
+  "user_preference",
+  "audit_lesson",
+  "completion_fact",
+]);
 export const AGENT_ROLES = new Set([
   "sisyphus",
   "prometheus",
@@ -53,6 +64,15 @@ export function createEmptyState() {
   return {
     version: STORE_VERSION,
     tasks: [],
+    taskCharters: [],
+    planningRecords: [],
+    taskRuns: [],
+    taskEvents: [],
+    failureAnalyses: [],
+    auditReviews: [],
+    userPreferences: [],
+    completionSummaries: [],
+    memoryCards: [],
   };
 }
 
@@ -62,6 +82,15 @@ export function normalizeState(raw) {
   return {
     version: STORE_VERSION,
     tasks,
+    taskCharters: normalizeRecordList(raw.taskCharters ?? raw.task_charters),
+    planningRecords: normalizeRecordList(raw.planningRecords ?? raw.planning_records),
+    taskRuns: normalizeRecordList(raw.taskRuns ?? raw.task_runs),
+    taskEvents: normalizeRecordList(raw.taskEvents ?? raw.task_events),
+    failureAnalyses: normalizeRecordList(raw.failureAnalyses ?? raw.failure_analyses),
+    auditReviews: normalizeRecordList(raw.auditReviews ?? raw.audit_reviews),
+    userPreferences: normalizeRecordList(raw.userPreferences ?? raw.user_preferences),
+    completionSummaries: normalizeRecordList(raw.completionSummaries ?? raw.completion_summaries),
+    memoryCards: normalizeRecordList(raw.memoryCards ?? raw.memory_cards),
   };
 }
 
@@ -80,6 +109,17 @@ export function createTask(input = {}, { now = nowIso(), cwd = process.cwd() } =
     maxAttempts: normalizePositiveInt(input.maxAttempts ?? input.max_attempts, 3),
     dueAt: normalizeOptionalIso(input.dueAt ?? input.due_at) || now,
     verifyCommand: optionalText(input.verifyCommand ?? input.verify_command),
+    charterId: optionalText(input.charterId ?? input.charter_id),
+    expectedResult: optionalText(input.expectedResult ?? input.expected_result),
+    acceptanceChecks: normalizeStringList(input.acceptanceChecks ?? input.acceptance_checks),
+    auditLevel: normalizeEnum(input.auditLevel ?? input.audit_level, AUDIT_LEVELS, "none"),
+    waitState: normalizePlainObject(input.waitState ?? input.wait_state),
+    checkpoint: optionalText(input.checkpoint),
+    heartbeatAt: normalizeOptionalIso(input.heartbeatAt ?? input.heartbeat_at),
+    runManifestPath: optionalResolvedPath(input.runManifestPath ?? input.run_manifest_path),
+    taskGranularity: optionalText(input.taskGranularity ?? input.task_granularity),
+    modelSelectionReason: optionalText(input.modelSelectionReason ?? input.model_selection_reason),
+    rejectedApproaches: normalizeStringList(input.rejectedApproaches ?? input.rejected_approaches),
     parentId: optionalText(input.parentId ?? input.parent_id),
     dependsOn: normalizeStringList(input.dependsOn ?? input.depends_on),
     resourceKeys: normalizeStringList(input.resourceKeys ?? input.resource_keys),
@@ -144,6 +184,49 @@ export function normalizePatch(input = {}) {
       case "verifyCommand":
       case "verify_command":
         patch.verifyCommand = optionalText(value);
+        break;
+      case "charterId":
+      case "charter_id":
+        patch.charterId = optionalText(value);
+        break;
+      case "expectedResult":
+      case "expected_result":
+        patch.expectedResult = optionalText(value);
+        break;
+      case "acceptanceChecks":
+      case "acceptance_checks":
+        patch.acceptanceChecks = normalizeStringList(value);
+        break;
+      case "auditLevel":
+      case "audit_level":
+        patch.auditLevel = normalizeEnum(value, AUDIT_LEVELS, "none");
+        break;
+      case "waitState":
+      case "wait_state":
+        patch.waitState = normalizePlainObject(value);
+        break;
+      case "checkpoint":
+        patch.checkpoint = optionalText(value);
+        break;
+      case "heartbeatAt":
+      case "heartbeat_at":
+        patch.heartbeatAt = normalizeOptionalIso(value);
+        break;
+      case "runManifestPath":
+      case "run_manifest_path":
+        patch.runManifestPath = optionalResolvedPath(value);
+        break;
+      case "taskGranularity":
+      case "task_granularity":
+        patch.taskGranularity = optionalText(value);
+        break;
+      case "modelSelectionReason":
+      case "model_selection_reason":
+        patch.modelSelectionReason = optionalText(value);
+        break;
+      case "rejectedApproaches":
+      case "rejected_approaches":
+        patch.rejectedApproaches = normalizeStringList(value);
         break;
       case "parentId":
       case "parent_id":
@@ -239,6 +322,17 @@ export function normalizeExistingTask(input) {
       maxAttempts: normalizePositiveInt(input.maxAttempts ?? input.max_attempts, 3),
       dueAt: normalizeOptionalIso(input.dueAt ?? input.due_at) || now,
       verifyCommand: optionalText(input.verifyCommand ?? input.verify_command),
+      charterId: optionalText(input.charterId ?? input.charter_id),
+      expectedResult: optionalText(input.expectedResult ?? input.expected_result),
+      acceptanceChecks: normalizeStringList(input.acceptanceChecks ?? input.acceptance_checks),
+      auditLevel: normalizeEnum(input.auditLevel ?? input.audit_level, AUDIT_LEVELS, "none"),
+      waitState: normalizePlainObject(input.waitState ?? input.wait_state),
+      checkpoint: optionalText(input.checkpoint),
+      heartbeatAt: normalizeOptionalIso(input.heartbeatAt ?? input.heartbeat_at),
+      runManifestPath: optionalResolvedPath(input.runManifestPath ?? input.run_manifest_path),
+      taskGranularity: optionalText(input.taskGranularity ?? input.task_granularity),
+      modelSelectionReason: optionalText(input.modelSelectionReason ?? input.model_selection_reason),
+      rejectedApproaches: normalizeStringList(input.rejectedApproaches ?? input.rejected_approaches),
       parentId: optionalText(input.parentId ?? input.parent_id),
       dependsOn: normalizeStringList(input.dependsOn ?? input.depends_on),
       resourceKeys: normalizeStringList(input.resourceKeys ?? input.resource_keys),
@@ -303,6 +397,10 @@ export function canRetry(task) {
   return Number(task.attempts || 0) < Number(task.maxAttempts || 1);
 }
 
+export function normalizeMemoryCardType(value) {
+  return normalizeEnum(value, MEMORY_CARD_TYPES, "execution_lesson");
+}
+
 function requiredText(value, name) {
   const text = optionalText(value);
   if (!text) throw new Error(`${name} is required`);
@@ -344,6 +442,11 @@ function normalizeStringList(value) {
   if (value === null || value === undefined) return [];
   const raw = Array.isArray(value) ? value : String(value).split(",");
   return Array.from(new Set(raw.map((item) => optionalText(item)).filter(Boolean)));
+}
+
+function normalizePlainObject(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  return { ...value };
 }
 
 function normalizeEnum(value, allowed, fallback) {
@@ -392,4 +495,12 @@ function normalizeVerification(value = {}) {
     exitCode: value.exitCode === undefined ? undefined : Number(value.exitCode),
     output: optionalText(value.output),
   };
+}
+
+function normalizeRecordList(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => item && typeof item === "object")
+    .map((item) => ({ ...item }))
+    .slice(-5000);
 }
