@@ -137,7 +137,7 @@ export function toolDefinitions() {
         properties: {
           id: { type: "string" },
           ...taskInputProperties(),
-          status: { type: "string", enum: ["pending", "running", "completed", "failed", "blocked", "cancelled"] },
+          status: { type: "string", enum: ["pending", "running", "waiting", "awaiting_audit", "completed", "failed", "blocked", "cancelled"] },
           note: { type: "string" },
         },
         required: ["id"],
@@ -171,6 +171,17 @@ export function toolDefinitions() {
           priority: { type: "number" },
           resourcePrefix: { type: "string" },
           apply: { type: "boolean" },
+        },
+      },
+    },
+    {
+      name: "axi_todo_search_memory",
+      description: "Search reusable planning, completion, failure, audit, and memory-card records for future task planning.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          limit: { type: "number" },
         },
       },
     },
@@ -226,6 +237,9 @@ async function callTool(store, params) {
     }
     return textResult({ dryRun: false, created: created.map((task) => task.id), ...plan });
   }
+  if (name === "axi_todo_search_memory") {
+    return textResult(await store.searchPlanningMemory({ query: args.query, limit: args.limit }));
+  }
   throw new Error(`unknown tool: ${name}`);
 }
 
@@ -238,6 +252,17 @@ function taskInputProperties() {
     maxAttempts: { type: "number" },
     dueAt: { type: "string" },
     verifyCommand: { type: "string" },
+    charterId: { type: "string" },
+    expectedResult: { type: "string" },
+    acceptanceChecks: { type: "array", items: { type: "string" } },
+    auditLevel: { type: "string", enum: ["none", "standard", "strict"] },
+    waitState: { type: "object" },
+    checkpoint: { type: "string" },
+    heartbeatAt: { type: "string" },
+    runManifestPath: { type: "string" },
+    taskGranularity: { type: "string" },
+    modelSelectionReason: { type: "string" },
+    rejectedApproaches: { type: "array", items: { type: "string" } },
     parentId: { type: "string" },
     dependsOn: { type: "array", items: { type: "string" } },
     resourceKeys: { type: "array", items: { type: "string" } },

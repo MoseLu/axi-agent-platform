@@ -16,6 +16,7 @@ test("tool definitions expose core axi-todo operations", () => {
     "axi_todo_ready_tasks",
     "axi_todo_run_once",
     "axi_todo_schedule_tasks",
+    "axi_todo_search_memory",
     "axi_todo_split_task",
     "axi_todo_update_task",
   ]);
@@ -32,6 +33,8 @@ test("tool definitions expose core axi-todo operations", () => {
   ]);
   assert.equal(addProperties.modelHint.type, "string");
   assert.equal(addProperties.maxParallelGroup.type, "number");
+  assert.deepEqual(addProperties.auditLevel.enum, ["none", "standard", "strict"]);
+  assert.equal(addProperties.expectedResult.type, "string");
 });
 
 test("mcp server can add and list tasks", async () => {
@@ -89,4 +92,27 @@ test("mcp server can split tasks without applying by default", async () => {
   assert.equal(plan.dryRun, true);
   assert.equal(plan.tasks.length, 4);
   assert.equal((await store.listTasks()).length, 0);
+});
+
+test("mcp server can search reusable task memory", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-mcp-memory-"));
+  const store = new TaskStore({ home });
+  const server = createMcpServer({ store });
+  const task = await store.addTask({
+    title: "Remember me",
+    prompt: "Do it",
+    cwd: home,
+  });
+  await store.recordMemoryCard({
+    taskId: task.id,
+    type: "execution_lesson",
+    content: "Use exact verification evidence in future reports.",
+    concepts: ["verification"],
+  });
+
+  const result = await server.handle({
+    method: "tools/call",
+    params: { name: "axi_todo_search_memory", arguments: { query: "verification" } },
+  });
+  assert.match(result.content[0].text, /verification evidence/);
 });
