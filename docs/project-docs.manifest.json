@@ -1,27 +1,214 @@
 {
-  "version": 1,
+  "version": 2,
   "project": "axi-agent-platform",
-  "status": "partial",
+  "name": "Axi Agent Platform",
+  "status": "verified",
+  "canonicalPath": "/Volumes/code/workspace/projects/axi-agent-platform",
+  "kind": "multi-runtime monorepo",
+  "lifecycle": "active",
+  "owner": "Axi Core Projects",
+  "summary": "Multi-agent collaboration platform combining a FastAPI backend, React dashboard, SubAgent worktree isolation, an MCP model swarm, and the Axi Todo tool.",
+  "readOrder": [
+    "AGENTS.md",
+    "README.md",
+    "UPGRADE_v1.1.0.md",
+    "docs/PRD.md",
+    "docs/TDD.md"
+  ],
+  "entrypoints": [
+    {
+      "id": "backend-api",
+      "path": "backend/app/main.py",
+      "purpose": "FastAPI application, lifecycle initialization, health endpoint, and REST router registration."
+    },
+    {
+      "id": "frontend",
+      "path": "frontend/src/main.tsx",
+      "purpose": "React dashboard browser entrypoint."
+    },
+    {
+      "id": "mcp-swarm",
+      "path": "infra/axi-agent-mcp/src/index.ts",
+      "purpose": "MCP model-swarm server and tool registration surface."
+    },
+    {
+      "id": "axi-todo",
+      "path": "tools/axi-todo/bin/axi-todo.mjs",
+      "purpose": "Axi Todo CLI entrypoint."
+    }
+  ],
+  "commands": {
+    "setup": [
+      "python -m venv backend/venv && backend/venv/bin/pip install -r backend/requirements.txt",
+      "pnpm --dir frontend install",
+      "pnpm --dir infra/axi-agent-mcp install",
+      "pnpm --dir tools/axi-todo install"
+    ],
+    "start": [
+      "cd backend && uvicorn app.main:app --reload",
+      "pnpm --dir frontend dev",
+      "docker compose up -d"
+    ],
+    "health": [
+      "curl -fsS http://127.0.0.1:8000/health",
+      "curl -fsS http://127.0.0.1:8000/"
+    ],
+    "verify": [
+      "cd backend && pytest tests/",
+      "pnpm --dir frontend build",
+      "pnpm --dir infra/axi-agent-mcp test",
+      "pnpm --dir tools/axi-todo verify"
+    ],
+    "smoke": [
+      "PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py"
+    ]
+  },
+  "environment": {
+    "runtimes": [
+      "Python 3.10+",
+      "Node.js",
+      "pnpm",
+      "Docker Compose"
+    ],
+    "services": [
+      "FastAPI backend",
+      "React/Vite frontend",
+      "SQLite",
+      "Chroma",
+      "Axi Agent MCP"
+    ],
+    "variables": [
+      {
+        "name": "MINIMAX_API_KEY",
+        "required": false,
+        "secret": true,
+        "source": "backend/.env"
+      },
+      {
+        "name": "OPENAI_API_KEY",
+        "required": false,
+        "secret": true,
+        "source": "backend/.env"
+      },
+      {
+        "name": "SECRET_KEY",
+        "required": true,
+        "secret": true,
+        "source": "backend/.env"
+      },
+      {
+        "name": "DATABASE_URL",
+        "required": false,
+        "secret": false,
+        "source": "backend/.env"
+      },
+      {
+        "name": "VECTOR_DB_PATH",
+        "required": false,
+        "secret": false,
+        "source": "backend/.env"
+      },
+      {
+        "name": "REPOSITORY_PATH",
+        "required": false,
+        "secret": false,
+        "source": "backend/.env"
+      },
+      {
+        "name": "AXI_AGENT_MCP_COMMAND",
+        "required": false,
+        "secret": false,
+        "source": "backend/.env"
+      }
+    ]
+  },
+  "contracts": {
+    "provides": [
+      "SubAgent REST API under /subagent/*",
+      "FastAPI health and system API under /api/v1",
+      "Axi Agent MCP tool surface",
+      "Axi Todo CLI and MCP tools"
+    ],
+    "consumes": [
+      "MiniMax-compatible model API",
+      "OpenAI-compatible model API",
+      "Git repositories used as SubAgent worktree roots"
+    ],
+    "files": [
+      "infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md",
+      "backend/app/api/subagent.py",
+      "backend/app/core/code_isolation_manager.py",
+      "docs/PRD.md",
+      "docs/TDD.md"
+    ]
+  },
+  "currentWork": {
+    "todo": "TODO.md",
+    "milestone": "MILESTONE.md",
+    "active": [
+      "SubAgent worktree lifecycle coverage",
+      "SubAgent dashboard hardening",
+      "Axi Todo integration",
+      "README mirror parity"
+    ],
+    "knownFailures": [
+      "The 2026-06-11 runtime smoke could not collect because the available Python environments do not contain the complete backend dependency set."
+    ]
+  },
+  "troubleshooting": [
+    {
+      "symptom": "Runtime smoke fails during test collection with a missing backend module such as fastapi or pydantic_settings.",
+      "diagnosis": "The selected Python environment does not contain the complete backend dependency set.",
+      "resolution": "Create or activate the backend virtual environment, install backend/requirements.txt, then rerun the smoke command."
+    },
+    {
+      "symptom": "SubAgent mode is unavailable while the rest of the API starts.",
+      "diagnosis": "REPOSITORY_PATH is missing, invalid, or cannot be initialized as a Git worktree root.",
+      "resolution": "Set REPOSITORY_PATH to an accessible Git repository root and review backend startup output."
+    },
+    {
+      "symptom": "Frontend cannot reach the API.",
+      "diagnosis": "The Vite frontend and backend ports or proxy configuration are not aligned.",
+      "resolution": "Start the backend on port 8000 for local development or use the Docker Compose ports documented in README.md."
+    }
+  ],
+  "decisions": {
+    "adr": "docs/ADR/README.md",
+    "changelog": "CHANGELOG.md",
+    "submitLog": "docs/logs/submit/20260611-124509-batch-submit.md"
+  },
   "documents": {
     "readme": "README.md",
     "agents": "AGENTS.md",
     "changelog": "CHANGELOG.md",
     "todo": "TODO.md",
     "milestone": "MILESTONE.md",
+    "index": "INDEX.md",
     "prd": "docs/PRD.md",
     "tdd": "docs/TDD.md",
-    "memory": "docs/MEMORY.md",
     "adr": "docs/ADR",
     "manifest": "docs/project-docs.manifest.json"
   },
   "owners": {
+    "product": "Axi Core Projects",
     "docsAgent": "control-plane AgentTask",
-    "memoryPlane": "base_service"
+    "backend": "backend maintainer",
+    "frontend": "frontend maintainer",
+    "mcp": "axi-agent-mcp maintainer"
   },
   "verification": {
-    "docs": "manifest JSON parse + required file existence"
+    "status": "verified",
+    "lastVerifiedAt": "2026-06-11",
+    "commands": [
+      "PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py"
+    ],
+    "evidence": [
+      "PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py passed 11 tests on 2026-06-11.",
+      "Warnings were deprecation-only and do not block handoff readiness."
+    ]
   },
   "created": "2026-06-07",
-  "writer": "workspace-docs-gap-audit-A1",
-  "source": "audit:docs/audit/workspace-docs-gap-audit-2026-06-07.md"
+  "updated": "2026-06-11",
+  "writer": "Codex zero-context-onboarding",
+  "source": "user-authorized zero-context onboarding plan"
 }

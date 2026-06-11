@@ -10,7 +10,7 @@ All notable changes to **Axi Agent Platform** are recorded here. The format foll
 - `docs/ADR/` directory reserved for future architectural decision records.
 
 ### Changed
-- None.
+- Upgraded `docs/project-docs.manifest.json` to the v2 zero-context onboarding contract and added ongoing freshness governance to `TODO.md`.
 
 ### Deprecated
 - None.

@@ -62,3 +62,25 @@ Priority legend:
 
 - Source of truth for active items: this file plus the workspace docs gap-audit output under `docs/audit/`.
 - When an item is delivered, move its entry to `MILESTONE.md` with the commit hash and verification evidence; do not delete items here without a referenced commit.
+
+## Zero-context handoff governance
+
+### Completed — Migrate the project docs manifest to v2
+
+- **Problem:** A new agent could see the document inventory but could not discover runtime entrypoints, commands, environment boundaries, contracts, active work, or current verification evidence from one machine-readable file.
+- **Solution:** Upgrade `docs/project-docs.manifest.json` to version 2 using repository-local guidance, source entrypoints, package scripts, environment examples, TODOs, milestones, and contract files.
+- **Expected result:** A zero-context agent can identify what to read, where execution begins, how to start and verify the project, and which known failure currently blocks verified status.
+- **Acceptance:** The manifest contains every v2 onboarding field, parses as JSON, references existing local paths, contains no secret values, and records the 2026-06-11 smoke result.
+- **Evidence:** `docs/project-docs.manifest.json`; `python -m json.tool docs/project-docs.manifest.json`; attempted `cd backend && python3 -m pytest -q tests/test_runtime_api_smoke.py`.
+- **Dependencies:** `AGENTS.md`, `README.md`, `docs/PRD.md`, `docs/TDD.md`, `MILESTONE.md`, backend and package entrypoints.
+- **Status:** Completed on 2026-06-11; runtime verification remains blocked by missing backend dependencies in the active Python environment.
+
+### Ongoing — Keep zero-context evidence fresh
+
+- **Problem:** Commands, environment variables, contracts, active work, and smoke evidence can drift as the backend, frontend, MCP swarm, and Axi Todo surfaces evolve.
+- **Solution:** Review the v2 manifest whenever an entrypoint, command, public contract, required variable, milestone, known failure, or ownership boundary changes.
+- **Expected result:** Future agents can begin from the manifest without rediscovering stale or contradictory onboarding facts.
+- **Acceptance:** Each relevant change updates `updated`, `currentWork`, and `verification`; `status` becomes `verified` only after the listed safe smoke succeeds; TODO and changelog remain aligned.
+- **Evidence:** Fresh command output in `verification.evidence`, a matching `CHANGELOG.md` entry, and path existence checks for all declared documents and entrypoints.
+- **Dependencies:** Maintainers of `backend/`, `frontend/`, `infra/axi-agent-mcp/`, and `tools/axi-todo/`.
+- **Status:** Ongoing.
