@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "project": "axi-agent-platform",
+  "status": "partial",
+  "documents": {
+    "readme": "README.md",
+    "agents": "AGENTS.md",
+    "changelog": "CHANGELOG.md",
+    "todo": "TODO.md",
+    "milestone": "MILESTONE.md",
+    "prd": "docs/PRD.md",
+    "tdd": "docs/TDD.md",
+    "memory": "docs/MEMORY.md",
+    "adr": "docs/ADR",
+    "manifest": "docs/project-docs.manifest.json"
+  },
+  "owners": {
+    "docsAgent": "control-plane AgentTask",
+    "memoryPlane": "base_service"
+  },
+  "verification": {
+    "docs": "manifest JSON parse + required file existence"
+  },
+  "created": "2026-06-07",
+  "writer": "workspace-docs-gap-audit-A1",
+  "source": "audit:docs/audit/workspace-docs-gap-audit-2026-06-07.md"
+}
