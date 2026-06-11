@@ -19,6 +19,7 @@
     "desktop:test": "swift run AxiTodoStoreSmokeTests",
     "frontend:build": "vite build",
     "frontend:typecheck": "tsc --noEmit -p tsconfig.json",
+    "migrate:postgres": "node bin/axi-todo-migrate-postgres.mjs",
     "test": "node --test",
     "verify": "pnpm run check && pnpm test && pnpm run desktop:test && pnpm run frontend:typecheck && pnpm run desktop:build"
   },
@@ -26,6 +27,7 @@
     "@vitejs/plugin-react": "^5.2.0",
     "antd": "^6.4.3",
     "dayjs": "^1.11.19",
+    "pg": "^8.21.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "typescript": "^6.0.3",
