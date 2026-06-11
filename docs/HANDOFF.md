@@ -64,13 +64,12 @@
 - Active: SubAgent dashboard hardening
 - Active: Axi Todo integration
 - Active: README mirror parity
-- Known failure: The 2026-06-11 runtime smoke could not collect because the available Python environments do not contain the complete backend dependency set.
 
 ## Troubleshooting
 
-- Symptom: Runtime smoke fails during test collection with a missing backend module such as fastapi or pydantic_settings.
+- Symptom: Bare `cd backend && pytest tests/` fails during collection with a missing backend module such as fastapi or pydantic_settings.
   Diagnosis: The selected Python environment does not contain the complete backend dependency set.
-  Resolution: Create or activate the backend virtual environment, install backend/requirements.txt, then rerun the smoke command.
+  Resolution: Use the manifest smoke command, or create the backend virtual environment, install backend/requirements.txt, and rerun pytest.
 - Symptom: SubAgent mode is unavailable while the rest of the API starts.
   Diagnosis: REPOSITORY_PATH is missing, invalid, or cannot be initialized as a Git worktree root.
   Resolution: Set REPOSITORY_PATH to an accessible Git repository root and review backend startup output.
