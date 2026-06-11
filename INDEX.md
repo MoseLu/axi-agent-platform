@@ -11,7 +11,7 @@ This file is the canonical map of human-authored and machine-authored documents 
 | `AGENTS.md` | project root | Root-level agent rules, project boundaries, authoritative source list, mandatory read order for new agents. | yes |
 | `CHANGELOG.md` | project root | Keep-a-Changelog style release history. | yes |
 | `TODO.md` | project root | P0/P1/P2 tasks with requirement IDs (`AXI-AP-<AREA>-<NN>`) and test cases for P0/P1. | yes |
-| `MILESTONE.md` | project root | Evidence-backed milestones and current status. | yes |
+| `MILESTONE.md` | project root | Evidence-backed milestone and current status. | yes |
 | `INDEX.md` | project root | This document — doc map and ownership registry. | yes |
 | `SECURITY.md` | project root | Security reporting policy. | yes |
 | `BUG_FIXES.md` | project root | Historical bug-fix log. | reference only |

@@ -1,6 +1,6 @@
 # TODO
 
-Requirements, priorities, and test cases for outstanding Axi Agent Platform work. Items carry stable requirement IDs (`AXI-AP-<AREA>-<NN>`) so they can be referenced from PRs, milestones, and bug reports.
+Requirements, priorities, and test cases for outstanding Axi Agent Platform work. Items carry stable requirement IDs (`AXI-AP-<AREA>-<NN>`) so they can be referenced from PRs, milestone, and bug reports.
 
 Priority legend:
 - **P0** — release-blocking; must include at least one verifiable test case.
@@ -68,7 +68,7 @@ Priority legend:
 ### Completed — Migrate the project docs manifest to v2
 
 - **Problem:** A new agent could see the document inventory but could not discover runtime entrypoints, commands, environment boundaries, contracts, active work, or current verification evidence from one machine-readable file.
-- **Solution:** Upgrade `docs/project-docs.manifest.json` to version 2 using repository-local guidance, source entrypoints, package scripts, environment examples, TODOs, milestones, and contract files.
+- **Solution:** Upgrade `docs/project-docs.manifest.json` to version 2 using repository-local guidance, source entrypoints, package scripts, environment examples, TODOs, milestone, and contract files.
 - **Expected result:** A zero-context agent can identify what to read, where execution begins, how to start and verify the project, and which known failure currently blocks verified status.
 - **Acceptance:** The manifest contains every v2 onboarding field, parses as JSON, references existing local paths, contains no secret values, and records the 2026-06-11 smoke result.
 - **Evidence:** `docs/project-docs.manifest.json`; `python -m json.tool docs/project-docs.manifest.json`; attempted `cd backend && python3 -m pytest -q tests/test_runtime_api_smoke.py`.

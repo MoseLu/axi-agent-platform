@@ -1,4 +1,4 @@
-# Milestones
+# Milestone
 
 Evidence-backed milestone log for Axi Agent Platform. Each entry references the verification command used, the date observed, and the deliverable commit or release when known.
 
