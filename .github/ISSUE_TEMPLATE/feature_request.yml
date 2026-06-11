@@ -1,0 +1,50 @@
+name: Feature Request
+description: Propose a new capability, enhancement, or design change.
+title: "[feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What user need or pain point does this address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How should the project solve this? Describe the user-facing change.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches were considered, and why is this one preferred?
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope & non-goals
+      description: What is in scope? What is explicitly out of scope?
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk
+      options:
+        - low
+        - medium
+        - high
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Self-check
+      options:
+        - label: I searched existing issues / RFCs and confirmed this is not a duplicate
+          required: true
+        - label: I described the user-facing change, not just the implementation
+          required: true
+        - label: I considered backward compatibility / migration impact
