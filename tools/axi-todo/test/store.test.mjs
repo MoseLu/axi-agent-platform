@@ -3,7 +3,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { TaskStore } from "../lib/store.mjs";
+import { createStoreFromEnv, TaskStore } from "../lib/store.mjs";
+import { PostgresTaskStore } from "../lib/postgres-store.mjs";
 
 test("store creates, lists, claims, and completes tasks", async () => {
   const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-store-"));
@@ -31,6 +32,13 @@ test("store creates, lists, claims, and completes tasks", async () => {
   });
   assert.equal(completed.status, "completed");
   assert.equal(completed.summary, "done");
+});
+
+test("createStoreFromEnv selects JSON fallback or PostgreSQL fact store", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-store-env-"));
+  assert.equal(createStoreFromEnv({ AXI_TODO_HOME: home, AXI_TODO_STORE: "json" }) instanceof TaskStore, true);
+  assert.equal(createStoreFromEnv({}) instanceof PostgresTaskStore, true);
+  assert.equal(createStoreFromEnv({ AXI_TODO_STORE: "auto", DATABASE_URL: "postgres://user:pass@localhost/db" }) instanceof PostgresTaskStore, true);
 });
 
 test("store skips desktop placeholder tasks until the prompt is filled", async () => {
@@ -200,4 +208,127 @@ test("scheduler respects OMO-style parallel group limits", async () => {
   const schedule = await store.scheduleTasks({ limit: 10, now });
   assert.deepEqual(schedule.tasks.map((task) => task.id), [quick.id]);
   assert.equal(schedule.blocked.some((item) => item.id === third.id && item.reasons.includes("parallel_group_limited:team:deep")), true);
+});
+
+test("completion records summaries and reusable memory cards", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-memory-complete-"));
+  const store = new TaskStore({ home });
+  const task = await store.addTask({
+    title: "Complete with memory",
+    prompt: "Do the work",
+    cwd: home,
+    charterId: "charter-1",
+    expectedResult: "A verified change",
+    acceptanceChecks: ["test passes"],
+    auditLevel: "standard",
+    taskGranularity: "atomic",
+    modelSelectionReason: "quick evidence-backed task",
+  });
+
+  await store.claimNextTask({ now: task.dueAt });
+  await store.completeTask(task.id, {
+    success: true,
+    summary: "Done with evidence",
+    runId: "run-memory-1",
+    completionSummary: {
+      runId: "run-memory-1",
+      summary: "Done with evidence",
+      durationMs: 1234,
+      evidenceRefs: ["/tmp/evidence.txt"],
+      nextTimeNotes: "Reuse the same verification shape.",
+    },
+    memoryCards: [{
+      type: "completion_fact",
+      title: "Complete with memory",
+      content: "Task completed with evidence and reusable verification notes.",
+      concepts: ["completion", "verification"],
+      files: ["/tmp/evidence.txt"],
+    }],
+  });
+
+  const state = await store.readState();
+  assert.equal(state.completionSummaries.length, 1);
+  assert.equal(state.completionSummaries[0].durationMs, 1234);
+  assert.equal(state.memoryCards.length, 1);
+  assert.equal(state.memoryCards[0].type, "completion_fact");
+
+  const found = await store.searchPlanningMemory({ query: "verification", limit: 10 });
+  assert.equal(found.some((item) => item.source === "memory_cards"), true);
+});
+
+test("failure records analysis and does not mark the task completed", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-memory-fail-"));
+  const store = new TaskStore({ home });
+  const task = await store.addTask({
+    title: "Fail with analysis",
+    prompt: "Do the work",
+    cwd: home,
+    maxAttempts: 1,
+  });
+
+  await store.claimNextTask({ now: task.dueAt });
+  const failed = await store.failTask(task.id, {
+    success: false,
+    runId: "run-fail-1",
+    error: "missing completion evidence",
+    failureAnalysis: {
+      runId: "run-fail-1",
+      rootCause: "Worker exited without Evidence section.",
+      failureStage: "evidence_check",
+      recoveryAction: "Ask the worker to rerun verification and include Evidence.",
+      avoidNextTime: "Keep Evidence contract in the prompt.",
+      retryable: false,
+    },
+    memoryCards: [{
+      type: "failure_lesson",
+      content: "Missing Evidence must fail closed and be analyzed.",
+      concepts: ["failure", "evidence"],
+    }],
+  });
+
+  assert.equal(failed.status, "failed");
+  const state = await store.readState();
+  assert.equal(state.failureAnalyses.length, 1);
+  assert.match(state.failureAnalyses[0].rootCause, /Evidence/);
+  assert.equal(state.memoryCards[0].type, "failure_lesson");
+});
+
+test("audit reviews and user preferences are append-only planning memory", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-memory-audit-"));
+  const store = new TaskStore({ home });
+  const task = await store.addTask({
+    title: "Audit task",
+    prompt: "Do the work",
+    cwd: home,
+  });
+
+  await store.recordAuditReview({
+    taskId: task.id,
+    runId: "run-audit-1",
+    auditLevel: "strict",
+    verdict: "fail",
+    reason: "Screenshot evidence missing.",
+    evidenceGaps: ["screenshot"],
+    releaseConditions: ["rerun browser verification"],
+  });
+  await store.recordUserPreference({
+    taskId: task.id,
+    preference: "Report completion with exact verification evidence.",
+    source: "explicit-user-request",
+    confidence: 1,
+  });
+  await store.recordUserPreference({
+    taskId: task.id,
+    preference: "Prefer autonomous continuation for safe local work.",
+    source: "workspace-instructions",
+    confidence: 0.9,
+  });
+
+  const updated = await store.getTask(task.id);
+  assert.equal(updated.status, "awaiting_audit");
+
+  const state = await store.readState();
+  assert.equal(state.auditReviews.length, 1);
+  assert.equal(state.userPreferences.length, 2);
+  assert.equal(state.userPreferences[0].preference.includes("verification"), true);
 });

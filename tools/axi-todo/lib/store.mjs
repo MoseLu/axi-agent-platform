@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import crypto from "node:crypto";
+import { DEFAULT_POSTGRES_DATABASE_URL, PostgresTaskStore } from "./postgres-store.mjs";
 import {
   appendHistory,
   canRetry,
@@ -9,6 +11,7 @@ import {
   isActionableTask,
   isDue,
   normalizePatch,
+  normalizeMemoryCardType,
   normalizeState,
   nowIso,
   taskSort,
@@ -122,6 +125,12 @@ export class TaskStore {
       task.lastOutputPath = result.outputPath || task.lastOutputPath;
       if (result.verification) task.verification = result.verification;
       appendHistory(task, "completed", "Task completed", compactRunResult(result), now);
+      if (result.completionSummary) {
+        state.completionSummaries.push(createCompletionSummaryRecord(task, result.completionSummary, now));
+      }
+      for (const card of normalizeMemoryCards(result.memoryCards, task, now)) {
+        state.memoryCards.push(card);
+      }
       return { state, result: task };
     });
   }
@@ -147,6 +156,12 @@ export class TaskStore {
         compactRunResult(result),
         now,
       );
+      if (result.failureAnalysis) {
+        state.failureAnalyses.push(createFailureAnalysisRecord(task, result.failureAnalysis, now));
+      }
+      for (const card of normalizeMemoryCards(result.memoryCards, task, now)) {
+        state.memoryCards.push(card);
+      }
       return { state, result: task };
     });
   }
@@ -186,6 +201,163 @@ export class TaskStore {
     });
   }
 
+  async recordTaskRun(input = {}, { now = nowIso() } = {}) {
+    const record = {
+      id: input.id || input.runId || crypto.randomUUID(),
+      runId: input.runId || input.id,
+      taskId: input.taskId,
+      status: input.status || "running",
+      model: input.model,
+      cwd: input.cwd,
+      quota: input.quota,
+      startedAt: input.startedAt || now,
+      endedAt: input.endedAt,
+      durationMs: input.durationMs,
+      exitCode: input.exitCode,
+      outputPath: input.outputPath,
+      verification: input.verification,
+      error: input.error,
+      createdAt: now,
+      updatedAt: now,
+    };
+    return this.mutate((state) => {
+      const existing = state.taskRuns.find((item) => item.runId && item.runId === record.runId);
+      if (existing) {
+        Object.assign(existing, { ...record, id: existing.id, createdAt: existing.createdAt, updatedAt: now });
+        return { state, result: existing };
+      }
+      state.taskRuns.push(record);
+      return { state, result: record };
+    });
+  }
+
+  async recordTaskEvent(input = {}, { now = nowIso() } = {}) {
+    return this.appendRecord("taskEvents", {
+      id: input.id || crypto.randomUUID(),
+      taskId: input.taskId,
+      runId: input.runId,
+      eventType: input.eventType || input.type || "event",
+      actor: input.actor || "axi-todo",
+      message: input.message,
+      payload: input.payload && typeof input.payload === "object" ? input.payload : {},
+      createdAt: input.createdAt || now,
+    });
+  }
+
+  async recordFailureAnalysis(input = {}, { now = nowIso() } = {}) {
+    return this.appendRecord("failureAnalyses", {
+      id: input.id || crypto.randomUUID(),
+      taskId: input.taskId,
+      runId: input.runId,
+      rootCause: input.rootCause || input.root_cause || input.error || "unknown",
+      trigger: input.trigger,
+      failureStage: input.failureStage || input.failure_stage,
+      recoveryAction: input.recoveryAction || input.recovery_action,
+      avoidNextTime: input.avoidNextTime || input.avoid_next_time,
+      retryable: Boolean(input.retryable),
+      evidence: input.evidence && typeof input.evidence === "object" ? input.evidence : {},
+      createdAt: input.createdAt || now,
+    });
+  }
+
+  async recordAuditReview(input = {}, { now = nowIso() } = {}) {
+    const record = await this.appendRecord("auditReviews", {
+      id: input.id || crypto.randomUUID(),
+      taskId: input.taskId,
+      runId: input.runId,
+      auditLevel: input.auditLevel || input.audit_level || "standard",
+      verdict: input.verdict || "pending",
+      reason: input.reason,
+      evidenceGaps: normalizeStringArray(input.evidenceGaps || input.evidence_gaps),
+      releaseConditions: normalizeStringArray(input.releaseConditions || input.release_conditions),
+      evidenceRefs: normalizeStringArray(input.evidenceRefs || input.evidence_refs),
+      createdAt: input.createdAt || now,
+    });
+    if (input.taskId && input.verdict && input.verdict !== "pass") {
+      await this.updateTask(input.taskId, { status: "awaiting_audit" }, {
+        event: "audit_waiting",
+        note: input.reason || "Task is waiting for audit approval",
+        now,
+      });
+    }
+    return record;
+  }
+
+  async recordUserPreference(input = {}, { now = nowIso() } = {}) {
+    return this.appendRecord("userPreferences", {
+      id: input.id || crypto.randomUUID(),
+      taskId: input.taskId,
+      preference: input.preference,
+      source: input.source || "task",
+      confidence: clampNumber(input.confidence, 0, 1, 0.8),
+      createdAt: input.createdAt || now,
+    });
+  }
+
+  async recordCompletionSummary(input = {}, { now = nowIso() } = {}) {
+    return this.appendRecord("completionSummaries", {
+      id: input.id || crypto.randomUUID(),
+      taskId: input.taskId,
+      runId: input.runId,
+      status: input.status || "completed",
+      summary: input.summary,
+      durationMs: input.durationMs,
+      verification: input.verification,
+      evidenceRefs: normalizeStringArray(input.evidenceRefs || input.evidence_refs),
+      auditVerdict: input.auditVerdict || input.audit_verdict,
+      nextTimeNotes: input.nextTimeNotes || input.next_time_notes,
+      createdAt: input.createdAt || now,
+    });
+  }
+
+  async recordMemoryCard(input = {}, { now = nowIso() } = {}) {
+    return this.appendRecord("memoryCards", {
+      id: input.id || crypto.randomUUID(),
+      taskId: input.taskId,
+      runId: input.runId,
+      type: normalizeMemoryCardType(input.type),
+      title: input.title,
+      content: input.content,
+      concepts: normalizeStringArray(input.concepts),
+      files: normalizeStringArray(input.files),
+      syncStatus: input.syncStatus || "pending",
+      syncedAt: input.syncedAt,
+      syncError: input.syncError,
+      createdAt: input.createdAt || now,
+      updatedAt: input.updatedAt || now,
+    });
+  }
+
+  async listMemoryCards({ type, syncStatus, limit = 50 } = {}) {
+    const state = await this.readState();
+    return state.memoryCards
+      .filter((card) => !type || card.type === type)
+      .filter((card) => !syncStatus || card.syncStatus === syncStatus)
+      .slice(-limit);
+  }
+
+  async searchPlanningMemory({ query = "", limit = 20 } = {}) {
+    const state = await this.readState();
+    const needle = String(query || "").toLowerCase();
+    const records = [
+      ...state.planningRecords.map((item) => ({ source: "planning_records", ...item })),
+      ...state.failureAnalyses.map((item) => ({ source: "failure_analyses", ...item })),
+      ...state.completionSummaries.map((item) => ({ source: "completion_summaries", ...item })),
+      ...state.memoryCards.map((item) => ({ source: "memory_cards", ...item })),
+    ];
+    return records
+      .filter((item) => !needle || JSON.stringify(item).toLowerCase().includes(needle))
+      .slice(-limit);
+  }
+
+  async appendRecord(collection, record) {
+    return this.mutate((state) => {
+      if (!Array.isArray(state[collection])) state[collection] = [];
+      state[collection].push(record);
+      return { state, result: record };
+    });
+  }
+
   async mutate(mutator) {
     await fs.mkdir(path.dirname(this.filePath), { recursive: true });
     return withFileLock(this.lockPath, async () => {
@@ -198,6 +370,10 @@ export class TaskStore {
 }
 
 export function createStoreFromEnv(env = process.env) {
+  const mode = String(env.AXI_TODO_STORE || "postgres").toLowerCase();
+  if (mode === "postgres" || (mode === "auto" && (env.DATABASE_URL || env.AXI_TODO_DATABASE_URL))) {
+    return new PostgresTaskStore({ databaseUrl: env.DATABASE_URL || env.AXI_TODO_DATABASE_URL || DEFAULT_POSTGRES_DATABASE_URL });
+  }
   return new TaskStore({ home: defaultAxiTodoHome(env) });
 }
 
@@ -247,6 +423,69 @@ function compactRunResult(result = {}) {
     error: result.error,
     verification: result.verification,
   };
+}
+
+function createCompletionSummaryRecord(task, input = {}, now) {
+  return {
+    id: input.id || crypto.randomUUID(),
+    taskId: task.id,
+    runId: input.runId || task.lastRunId,
+    status: input.status || task.status,
+    summary: input.summary || task.summary,
+    durationMs: input.durationMs,
+    verification: input.verification || task.verification,
+    evidenceRefs: normalizeStringArray(input.evidenceRefs),
+    auditVerdict: input.auditVerdict,
+    nextTimeNotes: input.nextTimeNotes,
+    createdAt: input.createdAt || now,
+  };
+}
+
+function createFailureAnalysisRecord(task, input = {}, now) {
+  return {
+    id: input.id || crypto.randomUUID(),
+    taskId: task.id,
+    runId: input.runId || task.lastRunId,
+    rootCause: input.rootCause || task.error || "unknown",
+    trigger: input.trigger,
+    failureStage: input.failureStage,
+    recoveryAction: input.recoveryAction,
+    avoidNextTime: input.avoidNextTime,
+    retryable: Boolean(input.retryable),
+    evidence: input.evidence && typeof input.evidence === "object" ? input.evidence : {},
+    createdAt: input.createdAt || now,
+  };
+}
+
+function normalizeMemoryCards(cards, task, now) {
+  const raw = Array.isArray(cards) ? cards : cards ? [cards] : [];
+  return raw.map((card) => ({
+    id: card.id || crypto.randomUUID(),
+    taskId: card.taskId || task.id,
+    runId: card.runId || task.lastRunId,
+    type: normalizeMemoryCardType(card.type),
+    title: card.title,
+    content: card.content,
+    concepts: normalizeStringArray(card.concepts),
+    files: normalizeStringArray(card.files),
+    syncStatus: card.syncStatus || "pending",
+    syncedAt: card.syncedAt,
+    syncError: card.syncError,
+    createdAt: card.createdAt || now,
+    updatedAt: card.updatedAt || now,
+  }));
+}
+
+function normalizeStringArray(value) {
+  if (value === null || value === undefined) return [];
+  const raw = Array.isArray(value) ? value : String(value).split(",");
+  return Array.from(new Set(raw.map((item) => String(item || "").trim()).filter(Boolean)));
+}
+
+function clampNumber(value, min, max, fallback) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, parsed));
 }
 
 function selectSchedulableTasks(state, { limit, now }) {
