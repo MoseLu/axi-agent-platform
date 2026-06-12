@@ -15,6 +15,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Chat />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/agents" element={<Agents />} />
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/tools" element={<Tools />} />
+        <Route path="/memory" element={<Memory />} />
+        <Route path="/subagent" element={<SubAgent />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </Layout>

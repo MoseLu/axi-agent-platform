@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Save, Key, Database, Server, Shield } from 'lucide-react'
+import { Save, Key, Database, Server, Shield, Paintbrush } from 'lucide-react'
 import { systemApi } from '../services/api'
+import { useUIStore } from '../store'
 
 interface SettingsData {
   minimax_api_key: string
@@ -12,6 +13,7 @@ interface SettingsData {
 }
 
 export default function Settings() {
+  const { backendLabel, glassLevel, setBackendLabel, setGlassLevel } = useUIStore()
   const [settings, setSettings] = useState<SettingsData>({
     minimax_api_key: '',
     minimax_api_url: 'https://api.minimaxi.com/v1',
@@ -46,12 +48,57 @@ export default function Settings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-100">系统设置</h2>
-        <p className="text-slate-400 mt-1">配置API密钥和系统参数</p>
+        <p className="text-xs font-bold text-cyan-300">设置</p>
+        <h2 className="mt-2 font-display text-3xl font-normal text-ink">外观与系统</h2>
+        <p className="mt-1 text-ink-muted/65">配置玻璃界面、API 密钥和系统参数</p>
       </div>
 
       {/* Settings Form */}
-      <div className="glass rounded-xl p-6 space-y-8">
+      <div className="glass rounded-2xl p-6 space-y-8">
+        {/* Appearance Section */}
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <Paintbrush className="w-5 h-5 text-glass-gold" />
+            <h3 className="text-lg font-semibold text-ink">外观</h3>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 rounded-2xl border border-white/10 bg-dark-950/35 p-5">
+            <div>
+              <p className="font-medium text-ink">桌面玻璃</p>
+              <p className="mt-1 text-sm text-ink-muted/60">
+                调整主应用玻璃透明度与当前会话后端。
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[560px]">
+              <label className="glass-pill flex h-10 items-center gap-4 px-4">
+                <span className="text-sm text-ink-muted/70">Backend</span>
+                <select
+                  value={backendLabel}
+                  onChange={(event) => setBackendLabel(event.currentTarget.value)}
+                  className="min-w-0 flex-1 bg-transparent text-sm font-bold text-ink outline-none"
+                >
+                  <option>Moonshot</option>
+                  <option>MiniMax</option>
+                  <option>OpenAI</option>
+                </select>
+              </label>
+              <label className="glass-pill flex h-10 items-center gap-3 px-4">
+                <span className="text-sm text-ink-muted/70">Glass</span>
+                <input
+                  aria-label="Glass opacity"
+                  max="100"
+                  min="0"
+                  type="range"
+                  value={glassLevel}
+                  onChange={(event) => setGlassLevel(Number(event.currentTarget.value))}
+                  className="min-w-0 flex-1 accent-glass-gold"
+                />
+                <strong className="w-10 text-right text-sm text-ink">{glassLevel}%</strong>
+              </label>
+            </div>
+          </div>
+        </div>
+
         {/* API Keys Section */}
         <div>
           <div className="flex items-center gap-3 mb-4">

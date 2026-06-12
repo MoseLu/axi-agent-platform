@@ -1,7 +1,7 @@
 {
   "name": "@axi-agent-platform/desktop-glass-ui",
   "version": "0.1.0",
-  "description": "Glass-style macOS desktop shell prototype for Axi Agent Platform.",
+  "description": "Electron macOS shell for the Axi Agent Platform glass UI.",
   "private": true,
   "type": "module",
   "main": "electron/main.cjs",
@@ -9,7 +9,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "app:mac": "pnpm build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir"
+    "app:mac": "AXI_APP_BASE=./ pnpm --dir ../../frontend build && rm -rf dist && cp -R ../../frontend/dist dist && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dir"
   },
   "dependencies": {
     "lucide-react": "^0.559.0",

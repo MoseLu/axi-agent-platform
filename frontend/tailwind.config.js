@@ -24,6 +24,16 @@ export default {
           pink: '#ff4081',
           cyan: '#00bcd4',
         },
+        ink: {
+          DEFAULT: '#f2ebd3',
+          muted: '#d9d3be',
+        },
+        glass: {
+          teal: '#4a7e79',
+          strong: '#144846',
+          gold: '#f4b84e',
+          cream: '#eddaa6',
+        },
         dark: {
           950: '#000000',
           900: '#15171a', // Cool-admin main bg
@@ -33,7 +43,16 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['SF Pro Text', 'Avenir Next', 'PingFang SC', 'system-ui', 'sans-serif'],
+        display: ['Avenir Next', 'SF Pro Display', 'PingFang SC', 'system-ui', 'sans-serif'],
+      },
+      spacing: {
+        'sidebar': '18.75rem',
+        'sidebar-rail': '5rem',
+      },
+      screens: {
+        'glass-rail': '861px',
+        'glass-wide': '1089px',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

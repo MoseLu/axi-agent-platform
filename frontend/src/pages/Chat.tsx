@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import {
-    Send,
+    ArrowUp,
     Bot,
     User,
     Brain,
@@ -11,14 +11,12 @@ import {
     Sparkles,
     ChevronDown,
     Plus,
-    Trash2,
     Clock,
     Settings2
 } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import {
-    useAgentsStore,
     useTasksStore,
     useToolsStore,
     useMemoryStore
@@ -26,10 +24,9 @@ import {
 import {
     tasksApi,
     memoryApi,
-    toolsApi,
-    agentsApi
+    toolsApi
 } from '../services/api'
-import { Message, TaskType } from '../types'
+import { Message } from '../types'
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
@@ -43,7 +40,7 @@ const COLLABORATION_MODES = [
 ]
 
 export default function Chat() {
-    const { tasks, addTask } = useTasksStore()
+    const { addTask } = useTasksStore()
     const { tools, setTools } = useToolsStore()
     const { sessions, setSessions, addSession } = useMemoryStore()
 
@@ -165,86 +162,26 @@ export default function Chat() {
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-140px)] max-w-5xl mx-auto">
-            {/* Session/Settings Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-700/50 bg-dark-800/50 rounded-t-xl">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary-500/10 rounded-lg text-primary-400">
-                        <Sparkles className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h2 className="text-sm font-semibold text-slate-100">
-                            {sessions.find(s => s.session_id === selectedSessionId)?.context?.title || '新对话'}
-                        </h2>
-                        <p className="text-xs text-slate-500">
-                            {useAutoStrategy ? '自动规划模式' : `${selectedMode} 模式`}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={createNewSession}
-                        className="p-2 hover:bg-dark-700 rounded-lg text-slate-400 transition-colors"
-                        title="New Chat"
-                    >
-                        <Plus className="w-5 h-5" />
-                    </button>
-                    <button
-                        onClick={() => setShowSettings(!showSettings)}
-                        className={cn(
-                            "p-2 rounded-lg transition-colors",
-                            showSettings ? "bg-primary-500/20 text-primary-400" : "hover:bg-dark-700 text-slate-400"
-                        )}
-                    >
-                        <Settings2 className="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto px-1 py-4 md:px-4 md:py-6 space-y-6 scrollbar-thin">
                 {messages.length === 0 && !isTyping && (
-                    <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-in fade-in zoom-in duration-500">
+                    <div className="flex h-full min-h-[320px] flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500">
                         <div className="relative">
-                            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 via-accent-purple to-accent-pink flex items-center justify-center neon-glow animate-pulse">
-                                <Sparkles className="w-10 h-10 text-white" />
+                            <div className="grid h-16 w-16 place-items-center rounded-full border border-white/15 bg-dark-950/45 shadow-2xl">
+                                <Sparkles className="h-8 w-8 text-glass-gold" />
                             </div>
-                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full border-4 border-dark-900 flex items-center justify-center">
-                                <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+                            <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-4 border-dark-900/80 bg-emerald-500">
+                                <div className="h-2 w-2 animate-ping rounded-full bg-white" />
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                                Axi Agent Platform 协作中心
+                        <div className="mt-8 space-y-4">
+                            <h1 className="font-display text-3xl font-normal text-ink md:text-4xl">
+                                我们该做什么？
                             </h1>
-                            <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
-                                描述您的复杂任务，系统将自动规划最优智能体架构进行协作。
+                            <p className="mx-auto max-w-md leading-relaxed text-ink-muted/70">
+                                输入自然语言，生成可交互的 Makepad diagram。
                             </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl px-4">
-                            {[
-                                { title: '全栈开发', desc: '构建一个具备前后端的管理系统', mode: 'hybrid', icon: Zap },
-                                { title: '海量采集', desc: '并行采集 50 个新闻网站的数据', mode: 'cluster', icon: Users },
-                                { title: '代码重构', desc: '深度审查并重构核心后端逻辑流', mode: 'subagent', icon: GitBranch },
-                                { title: '通用咨询', desc: '分析当前项目架构并提供改进建议', mode: 'general', icon: Bot },
-                            ].map((chip) => (
-                                <button
-                                    key={chip.title}
-                                    onClick={() => {
-                                        setSelectedMode(chip.mode)
-                                        setUseAutoStrategy(false)
-                                        setInput(chip.desc)
-                                    }}
-                                    className="glass p-4 rounded-xl text-left glass-hover border-slate-700/30 group"
-                                >
-                                    <chip.icon className="w-5 h-5 text-primary-400 mb-2 group-hover:scale-110 transition-transform" />
-                                    <div className="text-sm font-semibold text-slate-200">{chip.title}</div>
-                                    <div className="text-xs text-slate-500 mt-1">{chip.desc}</div>
-                                </button>
-                            ))}
                         </div>
                     </div>
                 )}
@@ -266,8 +203,8 @@ export default function Chat() {
                         <div className={cn(
                             "rounded-2xl p-4 text-sm leading-relaxed",
                             msg.role === 'user'
-                                ? "bg-primary-500 text-white rounded-tr-none"
-                                : "bg-dark-700 text-slate-200 border border-slate-700/50 rounded-tl-none"
+                                ? "bg-teal-700/70 text-white rounded-tr-none"
+                                : "border border-white/10 bg-dark-950/55 text-ink rounded-tl-none"
                         )}>
                             {msg.content}
                         </div>
@@ -279,27 +216,58 @@ export default function Chat() {
                         <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
                             <Bot className="w-5 h-5" />
                         </div>
-                        <div className="bg-dark-700 rounded-2xl p-4 flex gap-1 items-center">
-                            <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                            <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                            <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" />
+                        <div className="flex items-center gap-1 rounded-2xl bg-dark-950/55 p-4">
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-glass-gold [animation-delay:-0.3s]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-glass-gold [animation-delay:-0.15s]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-glass-gold" />
                         </div>
                     </div>
                 )}
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input / Control Area */}
-            <div className="p-4 bg-dark-800/50 border-t border-slate-700/50 rounded-b-xl space-y-4">
-                {/* Settings Bar */}
-                <div className="flex flex-wrap items-center gap-4">
-                    {/* Mode Selector */}
-                    <div className="relative group">
-                        <button className="flex items-center gap-2 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-xs font-medium text-slate-300 transition-colors">
-                            <GitBranch className="w-3.5 h-3.5 text-primary-400" />
-                            <span>模式: {useAutoStrategy ? '自动' : COLLABORATION_MODES.find(m => m.id === selectedMode)?.name}</span>
-                            <ChevronDown className="w-3 h-3" />
+            <div className="glass-card mb-1 rounded-[1.6rem] p-4 md:p-5">
+                <div className="relative">
+                    <textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                handleSend()
+                            }
+                        }}
+                        placeholder="问任何事。输入 @ 使用插件或提及文件"
+                        className="h-20 w-full resize-none border-0 bg-transparent pb-8 pr-24 text-sm text-ink placeholder-ink-muted/55 outline-none scrollbar-thin md:h-24"
+                    />
+
+                    <div className="flex flex-wrap items-center gap-2 pr-24 text-xs text-ink-muted/70">
+                        <button
+                            onClick={createNewSession}
+                            className="glass-control grid h-8 w-8 place-items-center hover:text-ink"
+                            title="新会话"
+                            type="button"
+                        >
+                            <Plus className="h-4 w-4" />
                         </button>
+                        <button
+                            onClick={() => setShowSettings(!showSettings)}
+                            className={cn(
+                                'glass-control grid h-8 w-8 place-items-center hover:text-ink',
+                                showSettings && 'text-glass-gold',
+                            )}
+                            title="本次会话选项"
+                            type="button"
+                        >
+                            <Settings2 className="h-4 w-4" />
+                        </button>
+
+                        <div className="relative group">
+                            <button className="glass-control flex h-8 items-center gap-2 px-3 text-xs font-medium hover:text-ink">
+                                <GitBranch className="h-3.5 w-3.5 text-glass-gold" />
+                                <span>默认权限</span>
+                                <ChevronDown className="h-3 w-3" />
+                            </button>
                         <div className="absolute bottom-full left-0 mb-2 w-56 bg-dark-800 border border-slate-700 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2">
                             <div
                                 onClick={() => setUseAutoStrategy(!useAutoStrategy)}
@@ -338,12 +306,11 @@ export default function Chat() {
                         </div>
                     </div>
 
-                    {/* Memory Selector */}
                     <div className="relative group">
-                        <button className="flex items-center gap-2 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-xs font-medium text-slate-300 transition-colors">
-                            <Brain className="w-3.5 h-3.5 text-accent-cyan" />
+                        <button className="glass-control flex h-8 items-center gap-2 px-3 text-xs font-medium hover:text-ink">
+                            <Brain className="h-3.5 w-3.5 text-accent-cyan" />
                             <span>记忆会话</span>
-                            <ChevronDown className="w-3 h-3" />
+                            <ChevronDown className="h-3 w-3" />
                         </button>
                         <div className="absolute bottom-full left-0 mb-2 w-64 bg-dark-800 border border-slate-700 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 overflow-y-auto max-h-60">
                             {sessions.map((s) => (
@@ -368,12 +335,11 @@ export default function Chat() {
                         </div>
                     </div>
 
-                    {/* Tools Toggle */}
                     <div className="relative group">
-                        <button className="flex items-center gap-2 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-xs font-medium text-slate-300 transition-colors">
-                            <Wrench className="w-3.5 h-3.5 text-accent-purple" />
+                        <button className="glass-control flex h-8 items-center gap-2 px-3 text-xs font-medium hover:text-ink">
+                            <Wrench className="h-3.5 w-3.5 text-accent-purple" />
                             <span>工具: {selectedTools.length > 0 ? `${selectedTools.length}个` : '自动'}</span>
-                            <ChevronDown className="w-3 h-3" />
+                            <ChevronDown className="h-3 w-3" />
                         </button>
                         <div className="absolute bottom-full left-0 mb-2 w-56 bg-dark-800 border border-slate-700 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2 overflow-y-auto max-h-60">
                             <div className="px-2 py-1 mb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">可用工具</div>
@@ -400,34 +366,30 @@ export default function Chat() {
                             {tools.length === 0 && <div className="p-2 text-xs text-slate-500">暂无启用工具</div>}
                         </div>
                     </div>
-                </div>
+                        <span>Thinking</span>
+                    </div>
 
-                {/* Input Box */}
-                <div className="relative">
-                    <textarea
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSend()
-                            }
-                        }}
-                        placeholder="输入任务描述，按 Enter 发送..."
-                        className="w-full bg-dark-900 border border-slate-700 rounded-xl py-4 pl-4 pr-14 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 min-h-[100px] resize-none scrollbar-thin transition-all"
-                    />
+                    <div className="absolute bottom-0 right-0 flex items-center gap-3">
+                        <button
+                            onClick={() => setInput('')}
+                            className="glass-control h-8 px-4 text-sm font-semibold hover:text-ink"
+                            type="button"
+                        >
+                            Clear
+                        </button>
                     <button
                         onClick={handleSend}
                         disabled={!input.trim() || isTyping}
                         className={cn(
-                            "absolute right-3 bottom-3 p-2 rounded-lg transition-all",
+                            "grid h-11 w-11 place-items-center rounded-full transition-all",
                             input.trim() && !isTyping
-                                ? "bg-primary-500 text-white shadow-lg hover:translate-y-[-1px] active:translate-y-[1px]"
+                                ? "bg-glass-gold text-dark-950 shadow-lg hover:translate-y-[-1px] active:translate-y-[1px]"
                                 : "bg-dark-700 text-slate-500 cursor-not-allowed"
                         )}
                     >
-                        <Send className="w-5 h-5" />
+                        <ArrowUp className="w-5 h-5" />
                     </button>
+                    </div>
                 </div>
             </div>
         </div>

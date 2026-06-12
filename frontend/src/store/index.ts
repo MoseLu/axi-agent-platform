@@ -154,10 +154,14 @@ interface UIState {
   rightSidebarOpen: boolean
   currentPage: string
   theme: 'dark' | 'light'
+  glassLevel: number
+  backendLabel: string
   setSidebarOpen: (open: boolean) => void
   setRightSidebarOpen: (open: boolean) => void
   setCurrentPage: (page: string) => void
   setTheme: (theme: 'dark' | 'light') => void
+  setGlassLevel: (level: number) => void
+  setBackendLabel: (label: string) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -165,8 +169,12 @@ export const useUIStore = create<UIState>((set) => ({
   rightSidebarOpen: true,
   currentPage: 'dashboard',
   theme: 'dark',
+  glassLevel: 10,
+  backendLabel: 'Moonshot',
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   setRightSidebarOpen: (open) => set({ rightSidebarOpen: open }),
   setCurrentPage: (page) => set({ currentPage: page }),
   setTheme: (theme) => set({ theme }),
+  setGlassLevel: (level) => set({ glassLevel: Math.max(0, Math.min(100, level)) }),
+  setBackendLabel: (label) => set({ backendLabel: label }),
 }))
