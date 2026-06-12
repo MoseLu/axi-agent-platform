@@ -19,10 +19,6 @@ const createWindow = () => {
     },
   });
 
-  if (process.platform === "darwin") {
-    mainWindow.setVibrancy("under-window");
-  }
-
   mainWindow.loadFile(path.join(__dirname, "../dist/index.html"), {
     query: { shell: "mac" },
   });
