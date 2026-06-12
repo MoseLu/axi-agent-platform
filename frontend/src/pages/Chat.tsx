@@ -229,7 +229,7 @@ export default function Chat() {
             </div>
 
             <div className="glass-card -mx-2.5 mb-1 shrink-0 rounded-[1.6rem] p-2.5 md:-mx-[22px]">
-                <div className="relative">
+                <div>
                     <textarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
@@ -240,10 +240,11 @@ export default function Chat() {
                             }
                         }}
                         placeholder="问任何事。输入 @ 使用插件或提及文件"
-                        className="h-20 w-full resize-none border-0 bg-transparent pb-8 pr-24 text-sm text-ink placeholder-ink-muted/55 outline-none scrollbar-thin md:h-24"
+                        className="h-20 w-full resize-none border-0 bg-transparent text-sm text-ink placeholder-ink-muted/55 outline-none scrollbar-thin md:h-24"
                     />
 
-                    <div className="flex flex-wrap items-center gap-2 pr-24 text-xs text-ink-muted/70">
+                    <div className="flex items-end gap-2">
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs text-ink-muted/70">
                         <button
                             onClick={createNewSession}
                             className="glass-control grid h-8 w-8 place-items-center hover:text-ink"
@@ -371,10 +372,10 @@ export default function Chat() {
                         <span>Thinking</span>
                     </div>
 
-                    <div className="absolute bottom-0 right-0 flex items-center gap-3">
+                    <div className="flex shrink-0 items-center gap-2">
                         <button
                             onClick={() => setInput('')}
-                            className="glass-control h-8 px-4 text-sm font-semibold hover:text-ink"
+                            className="glass-control h-8 px-3 text-xs font-semibold hover:text-ink"
                             type="button"
                         >
                             Clear
@@ -391,6 +392,7 @@ export default function Chat() {
                     >
                         <ArrowUp className="w-5 h-5" />
                     </button>
+                    </div>
                     </div>
                 </div>
             </div>
