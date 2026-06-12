@@ -108,9 +108,9 @@ export default function SubAgent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">SubAgent 协作模式</h1>
-        <p className="text-purple-100">
+      <div className="glass-card rounded-lg p-4 text-white">
+        <p className="text-sm font-semibold text-ink">SubAgent 协作模式</p>
+        <p className="mt-1 text-xs text-ink-muted/70">
           代码开发专用智能体协作 - 支持 Git worktrees 隔离和多智能体并行开发
         </p>
       </div>

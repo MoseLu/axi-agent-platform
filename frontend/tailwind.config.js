@@ -47,8 +47,8 @@ export default {
         display: ['Avenir Next', 'SF Pro Display', 'PingFang SC', 'system-ui', 'sans-serif'],
       },
       spacing: {
-        'sidebar': '18.75rem',
-        'sidebar-rail': '5rem',
+        'sidebar': '15rem',
+        'sidebar-rail': '3.75rem',
       },
       screens: {
         'glass-rail': '861px',

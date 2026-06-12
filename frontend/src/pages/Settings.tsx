@@ -45,14 +45,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <p className="text-xs font-bold text-cyan-300">设置</p>
-        <h2 className="mt-2 font-display text-3xl font-normal text-ink">外观与系统</h2>
-        <p className="mt-1 text-ink-muted/65">配置玻璃界面、API 密钥和系统参数</p>
-      </div>
-
+    <div>
       {/* Settings Form */}
       <div className="glass rounded-2xl p-6 space-y-8">
         {/* Appearance Section */}
