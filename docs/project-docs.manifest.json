@@ -186,23 +186,24 @@
   ],
   "decisions": {
     "adr": "docs/ADR/README.md",
-    "changelog": "CHANGELOG.md",
+    "changelog": "docs/state/CHANGELOG.md",
     "submitLog": "docs/logs/submit/20260611-124509-batch-submit.md"
   },
   "documents": {
     "readme": "README.md",
     "agents": "AGENTS.md",
-    "changelog": "CHANGELOG.md",
-    "todo": "TODO.md",
-    "milestone": "MILESTONE.md",
+    "changelog": "docs/state/CHANGELOG.md",
+    "todo": "docs/state/TODO.md",
+    "milestone": "docs/state/MILESTONE.md",
     "index": "INDEX.md",
-    "prd": "docs/PRD.md",
-    "tdd": "docs/TDD.md",
+    "prd": "docs/state/PRD.md",
+    "tdd": "docs/state/TDD.md",
     "axiTodoPrdContinuity": "docs/axi-todo-prd-continuity-design.md",
     "desktopGlassUi": "apps/desktop-glass-ui/README.md",
     "adr": "docs/ADR",
     "manifest": "docs/project-docs.manifest.json",
-    "verification": "VERIFICATION.md"
+    "security": "docs/governance/SECURITY.md",
+    "verification": "docs/state/VERIFICATION.md"
   },
   "owners": {
     "product": "Axi Core Projects",

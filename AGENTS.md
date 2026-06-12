@@ -10,7 +10,7 @@
 
 - **适用对象**：所有 agent（包括 Codex、Cursor、自动化扫描器、文档巡检子代理）首次接触本仓库时。
 - **不适用对象**：`backend/chroma_db/`、`backend/axi_agent_platform.db`、`backend/projects/`、`frontend/dist/`、`backend/__pycache__/` 等运行时 / 构建产物目录。
-- **阅读顺序**：本文件 → `README.zh-CN.md`（产品门面）→ `UPGRADE_v1.1.0.zh-CN.md`（SubAgent 升级说明）→ `infra/axi-agent-mcp/README.zh-CN.md`（MCP 蜂群）→ `upgrade-plan.zh-CN.md`（仅按需查阅「与 subAgent 结合」可行性分析）。
+- **阅读顺序**：本文件 → `README.zh-CN.md`（产品门面）→ `docs/state/UPGRADE_v1.1.0.zh-CN.md`（SubAgent 升级说明）→ `infra/axi-agent-mcp/README.zh-CN.md`（MCP 蜂群）→ `docs/state/upgrade-plan.zh-CN.md`（仅按需查阅「与 subAgent 结合」可行性分析）。
 
 ---
 
@@ -31,9 +31,9 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 | `apps/desktop-glass-ui/` | 是 | macOS 玻璃态桌面壳原型；React + Vite + TypeScript + Electron，作为独立子 app 维护 |
 | `infra/axi-agent-mcp/` | 是 | MCP 蜂群服务（独立 Node.js 子项目），规则在 `infra/axi-agent-mcp/README.zh-CN.md` |
 | `tools/axi-todo/` | 是 | 内部 CLI 工具 |
-| `docs/project-docs.manifest.json`、`docs/PRD.md`、`docs/TDD.md`、`docs/MEMORY.md`、`docs/ADR/` | 是 | 项目门面与决策档案 |
-| `README.zh-CN.md`、`UPGRADE_v1.1.0.zh-CN.md`、`upgrade-plan.zh-CN.md` | 是 | 根级文档的简体中文身份镜像（i18n mirror） |
-| `README.md`、`UPGRADE_v1.1.0.md`、`升级方案.md`、`参考.md` | 是 | 源语言（中文）文档；本仓库 i18n 的「源」 |
+| `docs/project-docs.manifest.json`、`docs/state/PRD.md`、`docs/state/TDD.md`、`docs/MEMORY.md`、`docs/ADR/` | 是 | 项目门面与决策档案 |
+| `README.zh-CN.md`、`docs/state/UPGRADE_v1.1.0.zh-CN.md`、`docs/state/upgrade-plan.zh-CN.md` | 是 | 根级文档的简体中文身份镜像（i18n mirror） |
+| `README.md`、`docs/state/UPGRADE_v1.1.0.md`、`docs/state/升级方案.md`、`docs/state/参考.md` | 是 | 源语言（中文）文档；本仓库 i18n 的「源」 |
 | `infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md` | 是 | MCP 蜂群服务契约，跨项目边界前必读 |
 | `references/*`（工作区级） | 否 | 由 `infra/axi-workspace-governance/` 治理，本项目不翻译、不编辑 |
 | `backend/chroma_db/`、`backend/axi_agent_platform.db` | 否 | 运行时数据目录，不入版本控制 |
@@ -48,17 +48,17 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 | 议题 | 权威来源 |
 |------|----------|
 | 产品门面（用户可见的产品说明、角色、API、配置） | [`README.zh-CN.md`](README.zh-CN.md) |
-| SubAgent 模式升级说明（v1.1.0 新增角色、worktree、API、配置） | [`UPGRADE_v1.1.0.zh-CN.md`](UPGRADE_v1.1.0.zh-CN.md) |
-| SubAgent API 环境变量（`REPOSITORY_PATH` / `MAX_WORKTREES` / `MAX_PARALLEL_AGENTS` / `DEFAULT_BASE_BRANCH` / `WORKTREES_CLEANUP_HOURS`） | `UPGRADE_v1.1.0.zh-CN.md` §「环境变量配置」与 [`README.zh-CN.md`](README.zh-CN.md) §「SubAgent 模式配置」 |
+| SubAgent 模式升级说明（v1.1.0 新增角色、worktree、API、配置） | [`docs/state/UPGRADE_v1.1.0.zh-CN.md`](docs/state/UPGRADE_v1.1.0.zh-CN.md) |
+| SubAgent API 环境变量（`REPOSITORY_PATH` / `MAX_WORKTREES` / `MAX_PARALLEL_AGENTS` / `DEFAULT_BASE_BRANCH` / `WORKTREES_CLEANUP_HOURS`） | `docs/state/UPGRADE_v1.1.0.zh-CN.md` §「环境变量配置」与 [`README.zh-CN.md`](README.zh-CN.md) §「SubAgent 模式配置」 |
 | MCP 模型蜂群（模型路由、工具分组、服务契约） | [`infra/axi-agent-mcp/README.zh-CN.md`](infra/axi-agent-mcp/README.zh-CN.md)、[`infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md`](infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md) |
 | 与 Cursor subAgent 结合的可行性分析 | [`upgrade-plan.zh-CN.md`](upgrade-plan.zh-CN.md)（B6c 已建，请直接跳转，**不要照抄正文**） |
-| 安全策略 | [`SECURITY.md`](SECURITY.md) |
-| 项目待办与路线图 | `TODO.md`（仓库根级） |
+| 安全策略 | [`docs/governance/SECURITY.md`](docs/governance/SECURITY.md) |
+| 项目待办与路线图 | `docs/state/TODO.md`（仓库根级） |
 | 文档清单与责任归属 | [`docs/project-docs.manifest.json`](docs/project-docs.manifest.json) |
-| 变更历史 | `CHANGELOG.md`（仓库根级） |
+| 变更历史 | `docs/state/CHANGELOG.md`（仓库根级） |
 | 工作区治理镜像 | 工作区级 `infra/axi-workspace-governance/`（只读，权威源在本仓库外） |
 
-> **优先级冲突时**：根级 `AGENTS.md` > `README.zh-CN.md` / `UPGRADE_v1.1.0.zh-CN.md` > 子模块内部 AGENTS / 契约文档 > 治理镜像 > 个人记忆。
+> **优先级冲突时**：根级 `AGENTS.md` > `README.zh-CN.md` / `docs/state/UPGRADE_v1.1.0.zh-CN.md` > 子模块内部 AGENTS / 契约文档 > 治理镜像 > 个人记忆。
 
 ---
 
@@ -74,7 +74,7 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 
 ## SubAgent API 速查（环境变量）
 
-以下变量在 `UPGRADE_v1.1.0.zh-CN.md` 与 `README.zh-CN.md` 均有完整说明，**实际取值与默认值以源文档为权威**：
+以下变量在 `docs/state/UPGRADE_v1.1.0.zh-CN.md` 与 `README.zh-CN.md` 均有完整说明，**实际取值与默认值以源文档为权威**：
 
 | 变量 | 含义 | 默认 |
 |------|------|------|
@@ -84,7 +84,7 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 | `DEFAULT_BASE_BRANCH` | 默认基础分支 | `main` |
 | `WORKTREES_CLEANUP_HOURS` | worktree 自动清理时间（小时） | `24` |
 
-> 修改这些变量前先读 `UPGRADE_v1.1.0.zh-CN.md` §「环境变量配置」与 `backend/app/core/code_isolation_manager.py` 实际消费点。
+> 修改这些变量前先读 `docs/state/UPGRADE_v1.1.0.zh-CN.md` §「环境变量配置」与 `backend/app/core/code_isolation_manager.py` 实际消费点。
 
 ---
 
@@ -120,7 +120,7 @@ python infra/axi-workspace-governance/scripts/verify_doc_i18n.py projects/axi-ag
 - 修改 `backend/app/core/code_isolation_manager.py` 或 `backend/app/api/subagent.py` → 至少 `pytest backend/tests/` 通过。
 - 修改 `infra/axi-agent-mcp/**` → 至少 `pnpm --dir infra/axi-agent-mcp build` + 启动后 MCP 协议冒烟。
 - 修改 `*.zh-CN.md` → 跑 `verify_doc_i18n` 校验 token multiset 不变量。
-- 修改本文件 / `CHANGELOG.md` / `TODO.md` / `SECURITY.md` / `docs/project-docs.manifest.json` → 不需构建，但需保持文件存在性。
+- 修改本文件 / `docs/state/CHANGELOG.md` / `docs/state/TODO.md` / `docs/governance/SECURITY.md` / `docs/project-docs.manifest.json` → 不需构建，但需保持文件存在性。
 
 ---
 
@@ -135,7 +135,7 @@ python infra/axi-workspace-governance/scripts/verify_doc_i18n.py projects/axi-ag
 - **不要**改写 i18n 镜像中的 Windows 路径（`\` 保留、`C:\` 保留），避免触发 `verify_doc_i18n` 的 token multiset 误报。
 - **要**保持根级 `AGENTS.md` 与子模块文档的分层：根级谈边界与门面，子模块文件谈实现与契约。
 - **要**在改动跨项目契约（如 MCP 蜂群工具签名、SubAgent REST 路由）前先查 `workspace-project consumers axi-agent-platform`。
-- **要**在 `CHANGELOG.md` 记录对仓库结构、依赖、SubAgent API、镜像策略的可见变更。
+- **要**在 `docs/state/CHANGELOG.md` 记录对仓库结构、依赖、SubAgent API、镜像策略的可见变更。
 
 ---
 
