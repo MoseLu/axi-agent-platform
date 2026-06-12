@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { PanelLeft } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import { useUIStore } from '@/store'
 import { cn } from '@/utils/cn'
@@ -9,8 +10,10 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const location = useLocation()
   const { backendLabel, glassLevel, sidebarOpen, setSidebarOpen } = useUIStore()
   const isDesktopShell = new URLSearchParams(window.location.search).get('shell') === 'mac'
+  const isChatPage = location.pathname === '/'
 
   const glassStyle = {
     '--glass-alpha': (
@@ -59,7 +62,10 @@ export default function Layout({ children }: LayoutProps) {
           </header>
 
           <main
-            className="h-full min-h-0 overflow-auto px-5 pb-6 pt-14 md:px-8 scrollbar-thin"
+            className={cn(
+              'h-full min-h-0 px-5 pb-6 pt-14 md:px-8 scrollbar-thin',
+              isChatPage ? 'overflow-hidden' : 'overflow-auto',
+            )}
             data-no-drag="true"
           >
             {children}

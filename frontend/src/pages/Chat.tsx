@@ -162,10 +162,15 @@ export default function Chat() {
     }
 
     return (
-        <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col">
-            <div className="min-h-0 flex-1 overflow-y-auto px-1 py-4 md:px-4 md:py-6 space-y-6 scrollbar-thin">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden">
+            <div
+                className={cn(
+                    'min-h-0 flex-1 px-1 py-4 md:px-4 md:py-6 space-y-6 scrollbar-thin',
+                    messages.length > 0 || isTyping ? 'overflow-y-auto' : 'overflow-hidden',
+                )}
+            >
                 {messages.length === 0 && !isTyping && (
-                    <div className="flex h-full min-h-[320px] flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500">
+                    <div className="flex h-full min-h-0 flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500">
                         <div className="relative">
                             <div className="grid h-16 w-16 place-items-center rounded-full border border-white/15 bg-dark-950/45 shadow-2xl">
                                 <Sparkles className="h-8 w-8 text-glass-gold" />
@@ -226,7 +231,7 @@ export default function Chat() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="glass-card mb-1 rounded-[1.6rem] p-4 md:p-5">
+            <div className="glass-card mb-1 shrink-0 rounded-[1.6rem] p-4 md:p-5">
                 <div className="relative">
                     <textarea
                         value={input}
