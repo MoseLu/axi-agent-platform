@@ -46,7 +46,7 @@ export default function Sidebar() {
         <p className="sidebar-label mt-2 text-xs text-ink-muted/60">Chat workspace</p>
       )}
 
-      <nav className="mt-5 grid w-full gap-1">
+      <nav className="mt-4 grid w-full auto-rows-max content-start gap-0.5">
         {menuItems.map((item) => (
           <NavLink
             key={item.path}
@@ -55,14 +55,14 @@ export default function Sidebar() {
             title={item.label}
             className={({ isActive }) =>
               cn(
-                'flex h-[34px] items-center gap-2.5 rounded-full px-3 text-[13px] text-ink-muted/75 transition-all duration-200 hover:bg-white/10 hover:text-ink',
+                'flex h-7 items-center gap-2 rounded-full px-2.5 text-xs text-ink-muted/75 transition-all duration-200 hover:bg-white/10 hover:text-ink',
                 isActive &&
                   'bg-gradient-to-r from-teal-600/80 to-teal-700/45 text-ink shadow-inner',
-                !sidebarOpen && 'mx-auto h-9 w-9 justify-center px-0',
+                !sidebarOpen && 'mx-auto h-8 w-8 justify-center px-0',
               )
             }
           >
-            <item.icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+            <item.icon className="h-3 w-3 shrink-0" strokeWidth={1.8} />
             {sidebarOpen && <span className="sidebar-label font-medium">{item.label}</span>}
           </NavLink>
         ))}
@@ -74,13 +74,13 @@ export default function Sidebar() {
         title="设置"
         className={({ isActive }) =>
           cn(
-            'flex h-[34px] items-center gap-2.5 rounded-full px-3 text-[13px] text-ink-muted/80 transition-all hover:bg-white/10 hover:text-ink',
+            'flex h-7 items-center gap-2 rounded-full px-2.5 text-xs text-ink-muted/80 transition-all hover:bg-white/10 hover:text-ink',
             isActive && 'bg-white/10 text-ink',
-            !sidebarOpen && 'h-9 w-9 justify-center px-0',
+            !sidebarOpen && 'h-8 w-8 justify-center px-0',
           )
         }
       >
-        <Settings className="h-3.5 w-3.5" />
+        <Settings className="h-3 w-3" />
         {sidebarOpen && <span className="sidebar-label">设置</span>}
       </NavLink>
 
