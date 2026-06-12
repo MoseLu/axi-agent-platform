@@ -38,6 +38,7 @@ This file is the canonical map of human-authored and machine-authored documents 
 |------|-------|---------|------------------|
 | `backend/` | backend maintainer | Python FastAPI source. Sub-module AGENTS lives under `backend/app/AGENTS.md` (if present). | yes |
 | `frontend/` | frontend maintainer | React + TypeScript source. | yes |
+| `apps/desktop-glass-ui/README.md` | desktop app maintainer | macOS glass desktop shell prototype, local Vite preview, and Electron packaging notes. | yes |
 | `infra/axi-agent-mcp/README.md` | MCP swarm owner | MCP service overview. | yes |
 | `infra/axi-agent-mcp/README.zh-CN.md` | MCP swarm owner | Identity mirror. | mirror |
 | `infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md` | MCP swarm owner | Runtime groups, tool surface, integration rules — cross-project boundary contract. | yes |

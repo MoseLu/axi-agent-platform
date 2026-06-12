@@ -28,6 +28,7 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 |------|------------|------|
 | `backend/app/core/`、`backend/app/api/`、`backend/app/schemas/`、`backend/app/models/`、`backend/app/tools/` | 是 | 主体 Python 实现，包含 `code_isolation_manager.py`（SubAgent 核心）、`subagent.py`（SubAgent API 路由）、`swarm_orchestrator.py`（蜂群编排） |
 | `frontend/src/` | 是 | React 18 + TypeScript + Tailwind + Zustand + Recharts；含 `pages/SubAgent.tsx` 管理页面 |
+| `apps/desktop-glass-ui/` | 是 | macOS 玻璃态桌面壳原型；React + Vite + TypeScript + Electron，作为独立子 app 维护 |
 | `infra/axi-agent-mcp/` | 是 | MCP 蜂群服务（独立 Node.js 子项目），规则在 `infra/axi-agent-mcp/README.zh-CN.md` |
 | `tools/axi-todo/` | 是 | 内部 CLI 工具 |
 | `docs/project-docs.manifest.json`、`docs/PRD.md`、`docs/TDD.md`、`docs/MEMORY.md`、`docs/ADR/` | 是 | 项目门面与决策档案 |

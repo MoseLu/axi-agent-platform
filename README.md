@@ -125,9 +125,12 @@ axi-agent-platform/
 │   │   └── types/       # TypeScript类型
 │   ├── package.json
 │   └── Dockerfile
+├── apps/
+│   └── desktop-glass-ui/ # macOS 玻璃态桌面壳原型
 ├── docker-compose.yml
 ├── .env.example        # 环境变量示例
 └── README.md
+```
 
 ## SubAgent 模式架构
 

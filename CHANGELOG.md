@@ -5,6 +5,7 @@ All notable changes to **Axi Agent Platform** are recorded here. The format foll
 ## [Unreleased]
 
 ### Added
+- `apps/desktop-glass-ui` as the migrated macOS glass desktop shell prototype for Axi Agent Platform.
 - Initial `docs/INDEX.md`, `docs/PRD.md`, and `docs/TDD.md` produced by the workspace docs deep-init rollout (2026-06-08).
 - Root-level `MILESTONE.md` and `TODO.md` for cross-module progress and requirement tracking.
 - `docs/ADR/` directory reserved for future architectural decision records.

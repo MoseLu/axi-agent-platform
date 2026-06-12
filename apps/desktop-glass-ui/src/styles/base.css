@@ -1,0 +1,35 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: transparent;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  color: rgb(var(--color-ink));
+  font-family: var(--font-body);
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgb(var(--color-gold) / 0.9);
+  outline-offset: 3px;
+}

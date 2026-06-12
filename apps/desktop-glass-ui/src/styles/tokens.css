@@ -1,0 +1,45 @@
+:root {
+  color-scheme: dark;
+
+  --font-display: "Avenir Next", "SF Pro Display", "PingFang SC", sans-serif;
+  --font-body: "SF Pro Text", "Avenir Next", "PingFang SC", sans-serif;
+
+  --color-ink: 242 235 211;
+  --color-ink-muted: 217 211 190;
+  --color-teal-950: 2 26 27;
+  --color-teal-900: 5 45 47;
+  --color-teal-800: 11 73 76;
+  --color-teal-700: 22 104 104;
+  --color-glass: 74 126 121;
+  --color-glass-strong: 20 72 70;
+  --color-coral: 225 80 36;
+  --color-gold: 244 184 78;
+  --color-cream: 237 218 166;
+  --color-shadow: 0 13 16;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-pill: 999px;
+  --radius-window: 2rem;
+
+  --blur-glass: 28px;
+  --blur-panel: 18px;
+  --shadow-window: 0 26px 80px rgb(var(--color-shadow) / 0.48);
+  --shadow-inner: inset 0 1px 0 rgb(255 255 255 / 0.23),
+    inset 0 -1px 0 rgb(0 0 0 / 0.18);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 160ms;
+  --duration-base: 280ms;
+}
