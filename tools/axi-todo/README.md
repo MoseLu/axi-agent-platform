@@ -16,6 +16,7 @@ It lives under `tools/` rather than `projects/` because it is local developer au
 - Verification: optional `verifyCommand` runs in the task `cwd`. A failed verification moves a completed task back to `pending` when retries remain, otherwise `failed`.
 - Verification writeback: when `verifyCommand` runs, the daemon appends a one-line bullet to an existing `<task.cwd>/VERIFICATION.md` under `## Axi Todo Verify Activity`. Idempotent on `<taskId>@<checkedAt>` so re-runs do not duplicate. Set `AXI_TODO_VERIFY_LOG_CREATE=1` only when first-write creation is intended. Paths under `references/` are skipped. Use `node bin/axi-todo.mjs verify-log --project <path>` to query entries.
 - Task graph: optional `parentId`, `dependsOn`, `resourceKeys`, `taskKind`, `estimatedCostPercent`, `riskLevel`, `plannerConfidence`, `evidenceContract`, and OMO-style routing fields let external loops schedule safe parallel work without losing the local JSON ledger model.
+- PRD continuity design: long-running PRD discussions should resume from local evidence packs instead of model memory. See `../../docs/axi-todo-prd-continuity-design.md` for the planned `prd` ledger, claim provenance, checkpoint, audit, resume, and export model.
 
 ## Desktop App
 

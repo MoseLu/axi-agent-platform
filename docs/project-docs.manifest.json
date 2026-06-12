@@ -13,7 +13,8 @@
     "README.md",
     "UPGRADE_v1.1.0.md",
     "docs/PRD.md",
-    "docs/TDD.md"
+    "docs/TDD.md",
+    "docs/axi-todo-prd-continuity-design.md"
   ],
   "entrypoints": [
     {
@@ -138,6 +139,7 @@
       "infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md",
       "backend/app/api/subagent.py",
       "backend/app/core/code_isolation_manager.py",
+      "docs/axi-todo-prd-continuity-design.md",
       "docs/PRD.md",
       "docs/TDD.md"
     ]
@@ -149,6 +151,7 @@
       "SubAgent worktree lifecycle coverage",
       "SubAgent dashboard hardening",
       "Axi Todo integration",
+      "Axi Todo PRD continuity mode",
       "README mirror parity"
     ],
     "knownFailures": []
@@ -184,6 +187,7 @@
     "index": "INDEX.md",
     "prd": "docs/PRD.md",
     "tdd": "docs/TDD.md",
+    "axiTodoPrdContinuity": "docs/axi-todo-prd-continuity-design.md",
     "adr": "docs/ADR",
     "manifest": "docs/project-docs.manifest.json",
     "verification": "VERIFICATION.md"
@@ -207,7 +211,7 @@
     ]
   },
   "created": "2026-06-07",
-  "updated": "2026-06-11",
+  "updated": "2026-06-12",
   "writer": "Codex zero-context-onboarding",
   "source": "user-authorized zero-context onboarding plan"
 }

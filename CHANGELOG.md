@@ -8,6 +8,7 @@ All notable changes to **Axi Agent Platform** are recorded here. The format foll
 - Initial `docs/INDEX.md`, `docs/PRD.md`, and `docs/TDD.md` produced by the workspace docs deep-init rollout (2026-06-08).
 - Root-level `MILESTONE.md` and `TODO.md` for cross-module progress and requirement tracking.
 - `docs/ADR/` directory reserved for future architectural decision records.
+- `docs/axi-todo-prd-continuity-design.md` defining the planned Axi Todo PRD continuity ledger, provenance, checkpoint, audit, resume, and export model.
 
 ### Changed
 - Upgraded `docs/project-docs.manifest.json` to the v2 zero-context onboarding contract and added ongoing freshness governance to `TODO.md`.

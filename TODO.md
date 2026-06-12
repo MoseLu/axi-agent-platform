@@ -36,6 +36,11 @@ Priority legend:
 - Acceptance: `tools/axi-todo` CLI can list/schedule Axi Todo tasks that mirror platform SubAgent tasks; MCP tool `axi-todo` exposes at least status, schedule, and complete.
 - Test case: `pnpm --dir tools/axi-todo verify` passes and `tools/axi-todo/test/mcp-server.test.mjs` asserts that the three tools register and respond to a smoke request.
 
+### AXI-AP-AT-012 — Axi Todo PRD continuity mode
+- Owner: tools maintainer.
+- Acceptance: `axi-todo` can initialize a PRD project, append sourced discussion events, extract cited claims, generate an audited resume context pack, and export a canonical PRD that rejects uncited requirements.
+- Test case: `pnpm --dir tools/axi-todo verify` passes with tests for PRD store normalization, append-only event capture, context-pack generation, and audit failure on uncited canonical claims.
+
 ### AXI-AP-DOC-006 — Keep README mirror parity with source
 - Owner: docs-agent.
 - Acceptance: `README.md` and `README.zh-CN.md` remain byte-aligned in body content (with allowed i18n note header); structural drift triggers CI failure.
