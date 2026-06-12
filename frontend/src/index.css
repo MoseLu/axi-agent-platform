@@ -111,7 +111,25 @@
     @apply rounded-full border border-white/10 bg-dark-950/80 text-ink shadow-inner transition-all;
   }
 
+  .window-drag-region {
+    app-region: drag;
+    -webkit-app-region: drag;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .desktop-shell .window-drag-handle {
+    cursor: grab;
+    app-region: drag !important;
+    -webkit-app-region: drag !important;
+  }
+
+  .desktop-shell .window-drag-handle:active {
+    cursor: grabbing;
+  }
+
   .glass-window :where(button, input, textarea, select, a, [data-no-drag='true']) {
+    app-region: no-drag;
     -webkit-app-region: no-drag;
   }
 

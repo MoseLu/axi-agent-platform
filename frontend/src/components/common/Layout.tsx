@@ -34,11 +34,15 @@ export default function Layout({ children }: LayoutProps) {
         <Sidebar />
 
         <div className="relative z-10 min-w-0 overflow-hidden">
-          <header className="pointer-events-none absolute left-4 right-6 top-4 z-30 flex h-9 items-center justify-between md:left-6">
+          <div
+            className="window-drag-region window-drag-handle absolute right-0 top-0 z-40 h-16 w-[min(46vw,34rem)]"
+            aria-hidden="true"
+          />
+          <header className="window-drag-region absolute inset-x-0 top-0 z-30 flex h-14 items-center justify-between px-4 md:px-6">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               data-no-drag="true"
-              className="glass-control pointer-events-auto grid h-9 w-9 place-items-center text-ink-muted hover:text-ink"
+              className="glass-control grid h-9 w-9 place-items-center text-ink-muted hover:text-ink"
               title={sidebarOpen ? '折叠侧边栏' : '展开侧边栏'}
               type="button"
             >
@@ -49,7 +53,7 @@ export default function Layout({ children }: LayoutProps) {
                 )}
               />
             </button>
-            <div className="text-xs text-ink-muted/60">
+            <div className="pointer-events-none select-none text-xs text-ink-muted/60">
               Active: {backendLabel} · Thinking off
             </div>
           </header>

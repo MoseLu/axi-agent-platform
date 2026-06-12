@@ -27,7 +27,7 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        'glass-sidebar relative z-10 grid grid-rows-[auto_auto_1fr_auto] border-r border-white/10 px-7 py-6 transition-all duration-300',
+        'glass-sidebar window-drag-region relative z-10 grid grid-rows-[auto_auto_1fr_auto] border-r border-white/10 px-7 py-6 transition-all duration-300',
         sidebarOpen ? 'w-sidebar' : 'w-sidebar-rail justify-items-center px-3',
       )}
       aria-label="Axi Agent Platform workspace"
