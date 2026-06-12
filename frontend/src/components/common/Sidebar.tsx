@@ -68,13 +68,6 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {sidebarOpen && (
-        <div className="sidebar-faded self-end pb-6 text-xs text-ink-muted/35">
-          <p>对话</p>
-          <p className="mt-3">暂无聊天</p>
-        </div>
-      )}
-
       <NavLink
         to="/settings"
         onClick={() => setCurrentPage('设置')}
