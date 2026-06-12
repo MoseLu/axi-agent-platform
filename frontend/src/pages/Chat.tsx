@@ -228,7 +228,7 @@ export default function Chat() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="glass-card -mx-2.5 mb-1 shrink-0 rounded-[1.6rem] p-4 md:-mx-[22px] md:p-5">
+            <div className="glass-card -mx-2.5 mb-1 shrink-0 rounded-[1.6rem] p-2.5 md:-mx-[22px]">
                 <div className="relative">
                     <textarea
                         value={input}
