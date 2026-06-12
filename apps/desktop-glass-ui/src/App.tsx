@@ -14,13 +14,15 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { label: "会话", icon: Circle, active: true },
-  { label: "App 生成", icon: Diamond },
-  { label: "搜索", icon: Search },
-  { label: "插件", icon: Command },
-  { label: "自动化", icon: ChevronRight },
-  { label: "项目", icon: Hash },
+  { id: "chat", label: "会话", icon: Circle },
+  { id: "generate", label: "App 生成", icon: Diamond },
+  { id: "search", label: "搜索", icon: Search },
+  { id: "plugins", label: "插件", icon: Command },
+  { id: "automation", label: "自动化", icon: ChevronRight },
+  { id: "projects", label: "项目", icon: Hash },
 ];
+
+type ViewId = (typeof navItems)[number]["id"] | "settings";
 
 type WindowOffset = {
   x: number;
@@ -43,6 +45,16 @@ const isDragExcluded = (target: EventTarget | null) =>
     ),
   );
 
+const getInitialView = (): ViewId => {
+  if (typeof window === "undefined") {
+    return "chat";
+  }
+
+  return new URLSearchParams(window.location.search).get("view") === "settings"
+    ? "settings"
+    : "chat";
+};
+
 function Wallpaper() {
   return (
     <div className="wallpaper" aria-hidden="true">
@@ -56,7 +68,13 @@ function Wallpaper() {
   );
 }
 
-function Sidebar() {
+function Sidebar({
+  activeView,
+  onSelectView,
+}: {
+  activeView: ViewId;
+  onSelectView: (view: ViewId) => void;
+}) {
   return (
     <aside className="sidebar" aria-label="Chat workspace">
       <div className="brand-row">
@@ -68,10 +86,13 @@ function Sidebar() {
       <nav className="nav-list">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const isActive = activeView === item.id;
           return (
             <button
-              className={item.active ? "nav-item nav-item-active" : "nav-item"}
+              aria-current={isActive ? "page" : undefined}
+              className={isActive ? "nav-item nav-item-active" : "nav-item"}
               key={item.label}
+              onClick={() => onSelectView(item.id)}
               type="button"
             >
               <Icon size={15} strokeWidth={1.8} />
@@ -86,7 +107,16 @@ function Sidebar() {
         <span>暂无聊天</span>
       </div>
 
-      <button className="settings-link" type="button">
+      <button
+        aria-current={activeView === "settings" ? "page" : undefined}
+        className={
+          activeView === "settings"
+            ? "settings-link settings-link-active"
+            : "settings-link"
+        }
+        onClick={() => onSelectView("settings")}
+        type="button"
+      >
         <Settings size={15} />
         <span>设置</span>
       </button>
@@ -94,7 +124,7 @@ function Sidebar() {
   );
 }
 
-function TopControls({
+function AppearanceControls({
   glass,
   onGlassChange,
 }: {
@@ -102,7 +132,7 @@ function TopControls({
   onGlassChange: (value: number) => void;
 }) {
   return (
-    <div className="top-controls" aria-label="Session controls">
+    <div className="appearance-controls" aria-label="Appearance controls">
       <div className="segmented-control">
         <span>Backend</span>
         <strong>Moonshot</strong>
@@ -120,6 +150,45 @@ function TopControls({
         <strong>{glass}%</strong>
       </label>
     </div>
+  );
+}
+
+function SettingsPanel({
+  glass,
+  onGlassChange,
+}: {
+  glass: number;
+  onGlassChange: (value: number) => void;
+}) {
+  return (
+    <section className="settings-panel" aria-label="Settings panel">
+      <header className="settings-header">
+        <div>
+          <p className="settings-kicker">设置</p>
+          <h2>外观</h2>
+        </div>
+      </header>
+
+      <div className="settings-tabs" aria-label="Settings sections">
+        <button className="settings-tab settings-tab-active" type="button">
+          外观
+        </button>
+        <button className="settings-tab" type="button">
+          模型
+        </button>
+        <button className="settings-tab" type="button">
+          权限
+        </button>
+      </div>
+
+      <div className="settings-card">
+        <div className="settings-card-copy">
+          <h3>桌面玻璃</h3>
+          <p>调整桌面壳透明度与当前会话后端。</p>
+        </div>
+        <AppearanceControls glass={glass} onGlassChange={onGlassChange} />
+      </div>
+    </section>
   );
 }
 
@@ -160,6 +229,7 @@ function App() {
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("shell") === "mac";
   const [glass, setGlass] = useState(10);
+  const [activeView, setActiveView] = useState<ViewId>(getInitialView);
   const [windowOffset, setWindowOffset] = useState<WindowOffset>({
     x: 0,
     y: 0,
@@ -255,20 +325,29 @@ function App() {
         onPointerUp={isMacShell ? undefined : stopWindowDrag}
         style={glassStyle}
       >
-        <Sidebar />
-        <div className="main-pane">
-          <header className="pane-header">
-            <h1>AI Chat</h1>
-            <TopControls glass={glass} onGlassChange={setGlass} />
-          </header>
+        <Sidebar activeView={activeView} onSelectView={setActiveView} />
+        <div
+          className={
+            activeView === "settings"
+              ? "main-pane main-pane-settings"
+              : "main-pane"
+          }
+        >
+          {activeView === "settings" ? (
+            <SettingsPanel glass={glass} onGlassChange={setGlass} />
+          ) : (
+            <>
+              <section className="hero-copy" aria-live="polite">
+                <p className="question">我们该做什么？</p>
+                <p className="hint">输入自然语言，生成可交互的 Makepad diagram。</p>
+              </section>
 
-          <section className="hero-copy" aria-live="polite">
-            <p className="question">我们该做什么？</p>
-            <p className="hint">输入自然语言，生成可交互的 Makepad diagram。</p>
-          </section>
-
-          <Composer />
-          <footer className="status-line">Active: Moonshot · Thinking off</footer>
+              <Composer />
+              <footer className="status-line">
+                Active: Moonshot · Thinking off
+              </footer>
+            </>
+          )}
         </div>
       </section>
     </main>

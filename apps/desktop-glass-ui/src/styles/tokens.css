@@ -27,6 +27,11 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
+  --screen-sidebar-collapse: 68rem;
+  --screen-compact: 48rem;
+  --sidebar-expanded: 18.75rem;
+  --sidebar-collapsed: 5rem;
+
   --radius-xs: 0.25rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
