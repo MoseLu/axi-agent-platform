@@ -36,11 +36,7 @@ export default function Layout({ children }: LayoutProps) {
       >
         <Sidebar />
 
-        <div className="relative z-10 min-w-0 overflow-hidden">
-          <div
-            className="window-drag-region window-drag-handle absolute right-0 top-0 z-40 h-16 w-[min(46vw,34rem)]"
-            aria-hidden="true"
-          />
+        <div className="relative z-10 h-full min-w-0 overflow-hidden">
           <header className="window-drag-region absolute inset-x-0 top-0 z-30 flex h-14 items-center justify-between px-4 md:px-6">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -63,10 +59,9 @@ export default function Layout({ children }: LayoutProps) {
 
           <main
             className={cn(
-              'h-full min-h-0 px-5 pb-6 pt-14 md:px-8 scrollbar-thin',
+              'absolute inset-x-0 bottom-0 top-14 min-h-0 px-5 pb-6 md:px-8 scrollbar-thin',
               isChatPage ? 'overflow-hidden' : 'overflow-auto',
             )}
-            data-no-drag="true"
           >
             {children}
           </main>
