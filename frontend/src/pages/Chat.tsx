@@ -162,7 +162,7 @@ export default function Chat() {
     }
 
     return (
-        <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden">
+        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
             <div
                 className={cn(
                     'min-h-0 flex-1 px-1 py-4 md:px-4 md:py-6 space-y-6 scrollbar-thin',
@@ -228,7 +228,7 @@ export default function Chat() {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="glass-card mb-1 shrink-0 rounded-[1.6rem] p-4 md:p-5">
+            <div className="glass-card -mx-2.5 mb-1 shrink-0 rounded-[1.6rem] p-4 md:-mx-[22px] md:p-5">
                 <div className="relative">
                     <textarea
                         value={input}
