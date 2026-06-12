@@ -52,7 +52,7 @@
     @apply relative grid w-full max-w-[1380px] overflow-hidden border-0 shadow-2xl;
     height: min(82dvh, 812px);
     min-height: 620px;
-    grid-template-columns: 18.75rem minmax(0, 1fr);
+    grid-template-columns: 15rem minmax(0, 1fr);
     border-radius: 2px;
     background:
       linear-gradient(90deg, rgb(44 102 99 / var(--glass-alpha, 0.074)), rgb(92 142 132 / var(--glass-soft-alpha, 0.06))),
@@ -67,7 +67,7 @@
   }
 
   .glass-window-rail {
-    grid-template-columns: 5rem minmax(0, 1fr);
+    grid-template-columns: 3.75rem minmax(0, 1fr);
   }
 
   .glass-window::before {
@@ -261,19 +261,19 @@
 
   @media (min-width: 861px) and (max-width: 1088px) {
     .glass-window {
-      grid-template-columns: 5rem minmax(0, 1fr);
+      grid-template-columns: 3.75rem minmax(0, 1fr);
     }
 
     .glass-sidebar {
-      width: 5rem !important;
+      width: 3.75rem !important;
       justify-items: center;
-      padding-left: 0.75rem;
-      padding-right: 0.75rem;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
     }
 
     .glass-sidebar nav a,
     .glass-sidebar > a {
-      width: 2.875rem;
+      width: 2.25rem;
       justify-content: center;
       padding-left: 0;
       padding-right: 0;

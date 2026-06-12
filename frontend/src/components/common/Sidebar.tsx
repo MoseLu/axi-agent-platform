@@ -27,26 +27,26 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        'glass-sidebar window-drag-region relative z-10 grid grid-rows-[auto_auto_1fr_auto] border-r border-white/10 px-7 py-6 transition-all duration-300',
-        sidebarOpen ? 'w-sidebar' : 'w-sidebar-rail justify-items-center px-3',
+        'glass-sidebar window-drag-region relative z-10 grid grid-rows-[auto_auto_1fr_auto] border-r border-white/10 px-5 py-4 transition-all duration-300',
+        sidebarOpen ? 'w-sidebar' : 'w-sidebar-rail justify-items-center px-2',
       )}
       aria-label="Axi Agent Platform workspace"
     >
       <div
         className={cn(
-          'flex min-h-9 items-center gap-4 font-display font-bold',
+          'flex min-h-8 items-center gap-3 font-display font-bold',
           !sidebarOpen && 'justify-center gap-0',
         )}
       >
-        <span className="text-lg text-cyan-300">AI</span>
-        {sidebarOpen && <span className="sidebar-label text-lg text-ink">AI Chat</span>}
+        <span className="text-base text-cyan-300">AI</span>
+        {sidebarOpen && <span className="sidebar-label text-base text-ink">AI Chat</span>}
       </div>
 
       {sidebarOpen && (
-        <p className="sidebar-label mt-4 text-sm text-ink-muted/70">Chat workspace</p>
+        <p className="sidebar-label mt-2 text-xs text-ink-muted/60">Chat workspace</p>
       )}
 
-      <nav className="mt-8 grid w-full gap-2">
+      <nav className="mt-5 grid w-full gap-1">
         {menuItems.map((item) => (
           <NavLink
             key={item.path}
@@ -55,23 +55,23 @@ export default function Sidebar() {
             title={item.label}
             className={({ isActive }) =>
               cn(
-                'flex min-h-[42px] items-center gap-3 rounded-full px-4 text-sm text-ink-muted/75 transition-all duration-200 hover:bg-white/10 hover:text-ink',
+                'flex h-[34px] items-center gap-2.5 rounded-full px-3 text-[13px] text-ink-muted/75 transition-all duration-200 hover:bg-white/10 hover:text-ink',
                 isActive &&
                   'bg-gradient-to-r from-teal-600/80 to-teal-700/45 text-ink shadow-inner',
-                !sidebarOpen && 'mx-auto h-[46px] w-[46px] justify-center px-0',
+                !sidebarOpen && 'mx-auto h-9 w-9 justify-center px-0',
               )
             }
           >
-            <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+            <item.icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
             {sidebarOpen && <span className="sidebar-label font-medium">{item.label}</span>}
           </NavLink>
         ))}
       </nav>
 
       {sidebarOpen && (
-        <div className="sidebar-faded self-end pb-10 text-sm text-ink-muted/35">
+        <div className="sidebar-faded self-end pb-6 text-xs text-ink-muted/35">
           <p>对话</p>
-          <p className="mt-4">暂无聊天</p>
+          <p className="mt-3">暂无聊天</p>
         </div>
       )}
 
@@ -81,13 +81,13 @@ export default function Sidebar() {
         title="设置"
         className={({ isActive }) =>
           cn(
-            'flex min-h-[42px] items-center gap-3 rounded-full px-3 text-sm text-ink-muted/80 transition-all hover:bg-white/10 hover:text-ink',
+            'flex h-[34px] items-center gap-2.5 rounded-full px-3 text-[13px] text-ink-muted/80 transition-all hover:bg-white/10 hover:text-ink',
             isActive && 'bg-white/10 text-ink',
-            !sidebarOpen && 'h-[46px] w-[46px] justify-center px-0',
+            !sidebarOpen && 'h-9 w-9 justify-center px-0',
           )
         }
       >
-        <Settings className="h-4 w-4" />
+        <Settings className="h-3.5 w-3.5" />
         {sidebarOpen && <span className="sidebar-label">设置</span>}
       </NavLink>
 

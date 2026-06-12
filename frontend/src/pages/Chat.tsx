@@ -180,11 +180,8 @@ export default function Chat() {
                             </div>
                         </div>
 
-                        <div className="mt-8 space-y-4">
-                            <h1 className="font-display text-3xl font-normal text-ink md:text-4xl">
-                                我们该做什么？
-                            </h1>
-                            <p className="mx-auto max-w-md leading-relaxed text-ink-muted/70">
+                        <div className="mt-5">
+                            <p className="mx-auto max-w-md text-sm leading-relaxed text-ink-muted/70">
                                 输入自然语言，生成可交互的 Makepad diagram。
                             </p>
                         </div>
