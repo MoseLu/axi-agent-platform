@@ -1,0 +1,5 @@
+#!/bin/sh
+# Generated-by: axi-workspace-git-hooks
+set -eu
+
+node "/Volumes/code/workspace/infra/axi-workspace-governance/scripts/git-hooks/axi-commit-msg-lore-trailer.mjs" "$1"
