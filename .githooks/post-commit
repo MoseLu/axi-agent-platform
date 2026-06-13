@@ -1,0 +1,6 @@
+#!/bin/sh
+# Generated-by: axi-workspace-git-hooks
+set -eu
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+node "/Volumes/code/workspace/infra/axi-workspace-governance/scripts/git-hooks/axi-submit-log-post-commit.mjs" "$repo_root" || true
