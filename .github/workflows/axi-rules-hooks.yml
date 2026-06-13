@@ -1,0 +1,94 @@
+# axi-rules-hooks.yml
+# Server-side gate for AR-GIT-005 / AR-GIT-006.
+#
+# The local commit-msg hook blocks missing Lore trailers
+# on every axiom-owned commit. This workflow is the
+# server-side safety net: it re-installs the hook and runs
+# the workspace-git-hooks verify step in self-only mode, so
+# any push that bypasses the local hook (e.g. via
+# `git push --no-verify` or a hand-rolled commit pipeline)
+# is rejected here with a clear actionable error.
+#
+# Path filter limits the trigger to changes that actually
+# affect the gate. Pull requests that do not touch
+# .githooks/, the governance scripts, or this file are
+# ignored.
+name: axi-rules-hooks
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - '.githooks/**'
+      - 'infra/axi-workspace-governance/scripts/git-hooks/**'
+      - 'infra/axi-workspace-governance/scripts/workspace-git-hooks.mjs'
+      - 'infra/axi-workspace-governance/scripts/workspace-git-hooks.test.mjs'
+      - '.github/workflows/axi-rules-hooks.yml'
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - '.githooks/**'
+      - 'infra/axi-workspace-governance/scripts/git-hooks/**'
+      - 'infra/axi-workspace-governance/scripts/workspace-git-hooks.mjs'
+      - 'infra/axi-workspace-governance/scripts/workspace-git-hooks.test.mjs'
+      - '.github/workflows/axi-rules-hooks.yml'
+  workflow_dispatch:
+
+# Cancel in-flight runs of the same branch when a new
+# commit lands.
+concurrency:
+  group: axi-rules-hooks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  hooks:
+    name: install + git-hooks:test + verify (self-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout owning repository
+        uses: actions/checkout@v4
+
+      - name: Checkout governance repo (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: axiomaticworld/axi-workspace-governance
+          path: infra/axi-workspace-governance
+          ref: dev
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install governance dependencies
+        working-directory: infra/axi-workspace-governance
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Run hook unit tests
+        working-directory: infra/axi-workspace-governance
+        run: pnpm git-hooks:test
+
+      - name: Install hooks into the owning repository
+        working-directory: infra/axi-workspace-governance
+        env:
+          AXI_HOOKS_SELF_ONLY: '1'
+        run: pnpm workspace:git:hooks:install
+
+      - name: Verify the owning repository (self-only)
+        working-directory: infra/axi-workspace-governance
+        env:
+          AXI_HOOKS_SELF_ONLY: '1'
+        run: pnpm workspace:git:hooks:verify
