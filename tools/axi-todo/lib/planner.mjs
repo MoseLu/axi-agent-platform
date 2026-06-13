@@ -69,7 +69,72 @@ export function createSplitPlan({
   priority = 0,
   parentId = "",
   resourcePrefix = "",
+  store = null,
+  memoryLimit = 5,
 } = {}) {
+  return planAndAttachMemory({
+    goal,
+    cwd,
+    targetReady,
+    verifyCommand,
+    priority,
+    parentId,
+    resourcePrefix,
+    store,
+    memoryLimit,
+  });
+}
+
+/**
+ * Async variant of `createSplitPlan` that, when `store` is supplied, queries
+ * planning memory up front and prepends a `## Prior Memory` block to every
+ * slice's prompt. Always returns a fully-formed plan; the memory call is
+ * best-effort and never throws.
+ */
+export async function createSplitPlanAsync({
+  goal,
+  cwd = process.cwd(),
+  targetReady = DEFAULT_TARGET_READY,
+  verifyCommand = "",
+  priority = 0,
+  parentId = "",
+  resourcePrefix = "",
+  store = null,
+  memoryLimit = 5,
+} = {}) {
+  const memoryContext = await collectMemoryContext(store, goal, memoryLimit);
+  return planAndAttachMemory({
+    goal,
+    cwd,
+    targetReady,
+    verifyCommand,
+    priority,
+    parentId,
+    resourcePrefix,
+    memoryContext,
+  });
+}
+
+function planAndAttachMemory({
+  goal,
+  cwd,
+  targetReady,
+  verifyCommand,
+  priority,
+  parentId,
+  resourcePrefix,
+  memoryContext = "",
+  store = null,
+  memoryLimit = 5,
+}) {
+  // Legacy sync path: if no store was passed AND no prebuilt context exists,
+  // we still want a fully synchronous plan (the original API). When the
+  // caller wants memory, they should reach for `createSplitPlanAsync`.
+  if (!memoryContext && store) {
+    // The sync variant cannot wait for the store; emit a plan with an
+    // empty memory block and let the caller fall back to the async API.
+    memoryContext = "";
+  }
   const text = requiredText(goal, "goal");
   const root = path.resolve(String(cwd || process.cwd()));
   const count = Math.max(1, Math.min(MAX_TARGET_READY, Number.parseInt(targetReady, 10) || DEFAULT_TARGET_READY));
@@ -81,7 +146,7 @@ export function createSplitPlan({
     const title = `${template.title} (${slice})`;
     tasks.push({
       title,
-      prompt: buildPrompt({ goal: text, template, index, count }),
+      prompt: buildPrompt({ goal: text, template, index, count, memoryContext }),
       cwd: root,
       priority: normalizePriority(priority),
       maxAttempts: 2,
@@ -110,10 +175,13 @@ export function createSplitPlan({
   };
 }
 
-function buildPrompt({ goal, template, index, count }) {
+function buildPrompt({ goal, template, index, count, memoryContext = "" }) {
+  const memoryBlock = memoryContext
+    ? `\n## Prior Memory (from earlier axi-todo runs on this project)\nRead this BEFORE starting. Do not repeat approaches listed under "Avoid" and prefer the pattern under "Prefer".\n${memoryContext}\n`
+    : "";
   return `Goal:
 ${goal}
-
+${memoryBlock}
 Slice ${index + 1} of ${count}: ${template.prompt}
 
 Constraints:
@@ -124,6 +192,70 @@ Constraints:
 
 Evidence contract:
 ${template.evidenceContract}`;
+}
+
+/**
+ * Pull planning memory out of the store and render it as a compact block
+ * we can prepend to each slice's prompt. We pick the most recent N records
+ * that mention the goal, then bucket them into "Prefer" (memoryCards) and
+ * "Avoid" (failureAnalyses with `avoidNextTime`). The result is always a
+ * plain string suitable for inline insertion into the prompt body.
+ *
+ * @param {{ searchPlanningMemory: Function }} store
+ * @param {string} goal
+ * @param {number} limit
+ * @returns {Promise<string>}
+ */
+export async function collectMemoryContext(store, goal, limit = 5) {
+  if (!store || typeof store.searchPlanningMemory !== "function") return "";
+  if (typeof goal !== "string" || goal.trim() === "") return "";
+  let records;
+  try {
+    records = await store.searchPlanningMemory({ query: goal, limit });
+  } catch {
+    // A failing memory read must never block planning.
+    return "";
+  }
+  if (!Array.isArray(records) || records.length === 0) return "";
+  const prefer = [];
+  const avoid = [];
+  for (const record of records) {
+    const source = String(record?.source || "");
+    if (source === "memory_cards") {
+      const cardType = String(record?.cardType || record?.type || "");
+      const summary = compactRecordSummary(record);
+      if (cardType === "execution_lesson" || cardType === "planning_pattern") {
+        prefer.push(summary);
+      }
+    } else if (source === "failure_analyses") {
+      const avoidNote = String(record?.avoidNextTime || "").trim();
+      const root = String(record?.rootCause || "").trim();
+      if (avoidNote || root) {
+        avoid.push(`- ${root ? root + " — " : ""}${avoidNote || "(see rootCause)"}`.trim());
+      }
+    }
+  }
+  const blocks = [];
+  if (prefer.length > 0) {
+    blocks.push(`Prefer (proven patterns):\n${prefer.slice(0, 3).map((line) => `- ${line}`).join("\n")}`);
+  }
+  if (avoid.length > 0) {
+    blocks.push(`Avoid (already tried, see failure_analyses):\n${avoid.slice(0, 3).map((line) => `- ${line}`).join("\n")}`);
+  }
+  if (blocks.length === 0) return "";
+  return blocks.join("\n\n");
+}
+
+function compactRecordSummary(record) {
+  const summary = String(record?.summary || record?.body || "").trim();
+  if (summary) return summary.slice(0, 240);
+  // Fall back to the first useful field we can find.
+  for (const key of ["title", "name", "cardType", "rootCause", "lesson"]) {
+    if (record && typeof record[key] === "string" && record[key].trim()) {
+      return record[key].trim().slice(0, 240);
+    }
+  }
+  return JSON.stringify(record).slice(0, 240);
 }
 
 function defaultVerifyCommand(taskKind) {

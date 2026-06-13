@@ -114,24 +114,107 @@ export class TaskStore {
   }
 
   async completeTask(id, result, { now = nowIso() } = {}) {
+    // A2: evidence + claim-file guardrails.
+    // The runner hands us `evidenceMissing` (did the model omit the machine-
+    // parseable `## Evidence` block?) and `claimFiles` (paths the model
+    // claimed to have changed). When a task has declared an `evidenceContract`
+    // we treat a missing block as a hard failure: do not flip the task to
+    // `completed`, instead move it to `awaiting_audit` and let the audit
+    // queue pick it up. `claimFiles` that don't exist on disk are a soft
+    // warning that we surface in the task summary and history; they never
+    // block completion on their own.
+    const claimFiles = Array.isArray(result?.claimFiles) ? result.claimFiles : [];
+    const claimFileMismatches = claimFiles.length > 0
+      ? await findMissingClaimFiles(claimFiles, result?.cwd)
+      : [];
+    const evidenceContract = typeof result?.evidenceContract === "string"
+      ? result.evidenceContract
+      : undefined;
+    const auditLevel = result?.auditLevel || "none";
+    const evidenceMissing = Boolean(result?.evidenceMissing);
+    const needsAudit = Boolean(
+      evidenceContract
+      && evidenceContract.trim()
+      && evidenceMissing
+      && (auditLevel === "standard" || auditLevel === "strict"),
+    );
+    const warnings = Array.isArray(result?.warnings) ? result.warnings.slice() : [];
+    if (claimFileMismatches.length > 0) {
+      warnings.push(`claimed-files-missing:${claimFileMismatches.length}`);
+    }
+    // When the runner reports the Evidence block is missing but the task is
+    // not strict/standard enough to be held for audit, we still surface the
+    // gap as a soft warning so the operator can see what the model omitted.
+    if (evidenceMissing && evidenceContract && !needsAudit) {
+      warnings.push("evidence-section-missing-in-last-message");
+    }
+    const truncatedOutput = result?.truncated;
+
     return this.mutate((state) => {
       const task = findTaskOrThrow(state, id);
-      task.status = "completed";
-      task.summary = result.summary || task.summary;
-      task.error = undefined;
-      task.completedAt = now;
+      const finalStatus = needsAudit ? "awaiting_audit" : "completed";
+      task.status = finalStatus;
+      if (needsAudit) {
+        // Mark the audit lane: a follow-up audit review will be appended
+        // after this mutate commits (recordAuditReview acquires the same
+        // file lock and cannot be nested inside the mutate).
+        task.evidenceMissing = true;
+        task.evidenceContractSeen = evidenceContract;
+      } else {
+        task.evidenceMissing = false;
+        task.evidenceContractSeen = evidenceContract || task.evidenceContractSeen;
+      }
+      const baseSummary = result.summary || task.summary || "";
+      const warningBlock = formatWarningBlock(warnings, claimFileMismatches, truncatedOutput);
+      task.summary = warningBlock ? appendSummaryWarning(baseSummary, warningBlock) : baseSummary;
+      task.error = needsAudit ? "Evidence section missing in runner output" : undefined;
+      task.completedAt = needsAudit ? undefined : now;
       task.updatedAt = now;
       task.lastRunId = result.runId || task.lastRunId;
       task.lastOutputPath = result.outputPath || task.lastOutputPath;
       if (result.verification) task.verification = result.verification;
-      appendHistory(task, "completed", "Task completed", compactRunResult(result), now);
-      if (result.completionSummary) {
+      const historyData = compactRunResult(result);
+      historyData.warnings = warnings;
+      if (claimFileMismatches.length > 0) {
+        historyData.claimedFileMismatches = claimFileMismatches;
+      }
+      appendHistory(
+        task,
+        needsAudit ? "audit_waiting" : "completed",
+        needsAudit
+          ? "Task held for audit: evidence section missing in runner output"
+          : "Task completed",
+        historyData,
+        now,
+      );
+      if (!needsAudit && result.completionSummary) {
         state.completionSummaries.push(createCompletionSummaryRecord(task, result.completionSummary, now));
       }
       for (const card of normalizeMemoryCards(result.memoryCards, task, now)) {
         state.memoryCards.push(card);
       }
-      return { state, result: task };
+      return { state, result: { task, needsAudit, evidenceContract } };
+    }).then(async (mutateResult) => {
+      if (!mutateResult?.needsAudit) return mutateResult.task;
+      // Append the audit review record in a second mutation so the file
+      // lock isn't re-entered. We use `appendRecord` directly rather than
+      // `recordAuditReview` because the task is already in `awaiting_audit`
+      // (set by the mutate above) and `recordAuditReview` would add a
+      // duplicate `audit_waiting` history event on top of the one we
+      // already wrote inside the mutate.
+      await this.appendRecord("auditReviews", {
+        id: crypto.randomUUID(),
+        taskId: id,
+        runId: result.runId,
+        auditLevel,
+        verdict: "pending",
+        reason: "Evidence section missing in runner output (evidenceContract declared).",
+        evidenceGaps: ["evidence-section-missing"],
+        releaseConditions: ["Provide a `## Evidence` section with `claim` and `files:` in the next run."],
+        evidenceRefs: result?.outputPath ? [result.outputPath] : [],
+        createdAt: now,
+      });
+      return mutateResult.task;
     });
   }
 
@@ -409,6 +492,61 @@ async function writeJsonAtomic(filePath, value) {
   const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   await fs.writeFile(tmpPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
   await fs.rename(tmpPath, filePath);
+}
+
+/**
+ * A2 helper: stat each path the model claimed to have changed. Anything
+ * missing is returned in the order it was claimed. `cwd` is the task's
+ * working directory; relative paths are resolved against it. We do not
+ * fail the call if a single stat errors — we just record the path as
+ * missing so the caller can warn. Returns [] for empty input.
+ */
+async function findMissingClaimFiles(claimFiles, cwd) {
+  if (!Array.isArray(claimFiles) || claimFiles.length === 0) return [];
+  const base = cwd ? path.resolve(cwd) : process.cwd();
+  const missing = [];
+  for (const raw of claimFiles) {
+    if (typeof raw !== "string" || raw.trim() === "") continue;
+    const candidate = path.isAbsolute(raw) ? raw : path.resolve(base, raw);
+    try {
+      await fs.stat(candidate);
+    } catch (error) {
+      if (error?.code === "ENOENT") missing.push(raw);
+      else missing.push(`${raw} (stat-error: ${error?.code || "unknown"})`);
+    }
+  }
+  return missing;
+}
+
+/**
+ * A2 + A4b helper: turn the assorted warning signals we have collected
+ * (model-claim mismatches, runProcess truncation, missing evidence) into
+ * a stable, machine-parseable block we can append to the task summary.
+ * Returns "" when there is nothing to report.
+ */
+function formatWarningBlock(warnings = [], claimFileMismatches = [], truncated) {
+  const lines = [];
+  for (const warning of warnings) {
+    if (typeof warning === "string" && warning) lines.push(`- ${warning}`);
+  }
+  for (const mismatch of claimFileMismatches) {
+    lines.push(`- claimed-file-not-found: ${mismatch}`);
+  }
+  if (truncated && typeof truncated === "object") {
+    for (const stream of ["stdout", "stderr"]) {
+      if (truncated[stream]) {
+        const bytes = truncated.droppedBytes?.[stream] ?? 0;
+        lines.push(`- runner-${stream}-truncated-dropped-${bytes}b`);
+      }
+    }
+  }
+  return lines.length > 0 ? ["⚠️ axi-todo warnings:", ...lines].join("\n") : "";
+}
+
+function appendSummaryWarning(base, warningBlock) {
+  if (!warningBlock) return base;
+  if (!base) return warningBlock;
+  return `${base.replace(/\s*$/, "")}\n\n${warningBlock}`;
 }
 
 function findTaskOrThrow(state, id) {

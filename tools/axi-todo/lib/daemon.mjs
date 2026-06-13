@@ -18,9 +18,10 @@ export async function runOnce({
 } = {}) {
   const stale = await store.reconcileStaleRunning({ now, timeoutMs: runningTimeoutMs });
   const verification = await recheckCompletedTasks(store, { now, completedRecheckMs });
+  const awaitingAudit = await listAwaitingAuditTasks(store, { now });
   const task = await store.claimNextTask({ now });
   if (!task) {
-    return { claimed: null, stale, verification };
+    return { claimed: null, stale, verification, awaitingAudit };
   }
   const result = await executor(task, executorOptions);
   const updated = result.success
@@ -36,6 +37,7 @@ export async function runOnce({
     status: updated.status,
     stale,
     verification,
+    awaitingAudit,
     result,
   };
 }
@@ -77,4 +79,27 @@ function shouldRecheck(task, now, completedRecheckMs) {
   const checkedAt = task.verification?.checkedAt;
   if (!checkedAt) return true;
   return Date.parse(now) - Date.parse(checkedAt) >= completedRecheckMs;
+}
+
+/**
+ * B1: surface tasks that completeTask held for audit. We do NOT auto-resolve
+ * them — a human or a follow-up agent has to either patch the runner output
+ * (i.e. call completeTask again with `evidenceMissing: false`) or escalate
+ * the audit verdict via `recordAuditReview({ verdict: "pass" | "fail" })`.
+ * Returning them in the daemon tick payload gives operators a heartbeat
+ * they can grep for, without inventing a side channel.
+ */
+export async function listAwaitingAuditTasks(store, { now = nowIso() } = {}) {
+  if (!store || typeof store.listTasks !== "function") return [];
+  const held = await store.listTasks({ status: "awaiting_audit" });
+  const ageMs = (task) => {
+    const anchor = task.updatedAt || task.errorUpdatedAt || now;
+    return Date.parse(now) - Date.parse(anchor);
+  };
+  return held.map((task) => ({
+    taskId: task.id,
+    auditLevel: task.auditLevel,
+    evidenceContractSeen: task.evidenceContractSeen,
+    ageMs: Number.isFinite(ageMs(task)) ? ageMs(task) : null,
+  }));
 }
