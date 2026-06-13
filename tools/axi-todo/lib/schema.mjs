@@ -127,7 +127,31 @@ export function createTask(input = {}, { now = nowIso(), cwd = process.cwd() } =
     estimatedCostPercent: normalizeBoundedNumber(input.estimatedCostPercent ?? input.estimated_cost_percent, 0, 100),
     riskLevel: normalizeEnum(input.riskLevel ?? input.risk_level, RISK_LEVELS, "medium"),
     plannerConfidence: normalizeBoundedNumber(input.plannerConfidence ?? input.planner_confidence, 0, 1),
+    // evidenceContract (hard contract — see lib/codex-runner.mjs buildCodexPrompt
+    // and lib/store.mjs completeTask): when non-empty, the runner MUST append
+    // a `## Evidence` section to its final message in this exact shape, or
+    // completeTask will refuse to flip the task to `completed` and will
+    // instead move it to `awaiting_audit`:
+    //   ## Evidence
+    //   - claim: <one-sentence conclusion>
+    //   - files:
+    //     - <path relative to the working directory>
+    //   - checks:
+    //     - <check name>: <result>
+    //   - warnings:
+    //     - <anything the next agent should know>
+    // `claim` OR a non-empty `files:` list is required; `checks` and
+    // `warnings` are optional. The string stored here is also forwarded
+    // verbatim into the prompt the runner sends to Codex.
     evidenceContract: optionalText(input.evidenceContract ?? input.evidence_contract),
+    // See the long block on `evidenceContract` above; `evidenceMissing` is
+    // the per-run marker that completeTask sets when the gate fires, so
+    // downstream agents can see at a glance that this task is being held
+    // because its `## Evidence` block did not parse.
+    evidenceMissing: normalizeOptionalBoolean(input.evidenceMissing ?? input.evidence_missing),
+    // Echoes the last evidenceContract the runner actually enforced; useful
+    // for audit trail and for "what was the contract this task was held on".
+    evidenceContractSeen: optionalText(input.evidenceContractSeen ?? input.evidence_contract_seen),
     agentRole: normalizeOptionalEnum(input.agentRole ?? input.agent_role, AGENT_ROLES),
     agentCategory: normalizeOptionalEnum(input.agentCategory ?? input.agent_category, AGENT_CATEGORIES),
     executionMode: normalizeOptionalEnum(input.executionMode ?? input.execution_mode, EXECUTION_MODES),
@@ -265,6 +289,14 @@ export function normalizePatch(input = {}) {
       case "evidence_contract":
         patch.evidenceContract = optionalText(value);
         break;
+      case "evidenceMissing":
+      case "evidence_missing":
+        patch.evidenceMissing = normalizeOptionalBoolean(value);
+        break;
+      case "evidenceContractSeen":
+      case "evidence_contract_seen":
+        patch.evidenceContractSeen = optionalText(value);
+        break;
       case "agentRole":
       case "agent_role":
         patch.agentRole = normalizeOptionalEnum(value, AGENT_ROLES);
@@ -346,7 +378,15 @@ export function normalizeExistingTask(input) {
       riskLevel: normalizeEnum(input.riskLevel ?? input.risk_level, RISK_LEVELS, "medium"),
       plannerConfidence: normalizeBoundedNumber(input.plannerConfidence ?? input.planner_confidence, 0, 1),
       evidenceContract: optionalText(input.evidenceContract ?? input.evidence_contract),
-      agentRole: normalizeOptionalEnum(input.agentRole ?? input.agent_role, AGENT_ROLES),
+      // See the long block on `evidenceContract` above; `evidenceMissing` is
+    // the per-run marker that completeTask sets when the gate fires, so
+    // downstream agents can see at a glance that this task is being held
+    // because its `## Evidence` block did not parse.
+    evidenceMissing: normalizeOptionalBoolean(input.evidenceMissing ?? input.evidence_missing),
+    // Echoes the last evidenceContract the runner actually enforced; useful
+    // for audit trail and for "what was the contract this task was held on".
+    evidenceContractSeen: optionalText(input.evidenceContractSeen ?? input.evidence_contract_seen),
+    agentRole: normalizeOptionalEnum(input.agentRole ?? input.agent_role, AGENT_ROLES),
       agentCategory: normalizeOptionalEnum(input.agentCategory ?? input.agent_category, AGENT_CATEGORIES),
       executionMode: normalizeOptionalEnum(input.executionMode ?? input.execution_mode, EXECUTION_MODES),
       modelHint: optionalText(input.modelHint ?? input.model_hint),
@@ -482,6 +522,15 @@ function normalizeBoundedNumber(value, min, max) {
 function normalizeNonNegativeInt(value, fallback) {
   const parsed = Number.parseInt(value ?? fallback, 10);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function normalizeOptionalBoolean(value) {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value === "boolean") return value;
+  const text = String(value).trim().toLowerCase();
+  if (text === "true" || text === "1" || text === "yes") return true;
+  if (text === "false" || text === "0" || text === "no") return false;
+  return undefined;
 }
 
 function normalizeOptionalIso(value) {

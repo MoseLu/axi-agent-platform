@@ -118,7 +118,14 @@ function formatEntryLine({ task, result, verification, checkedAt }) {
   const exit = verification.exitCode ?? "?";
   const command = String(task.verifyCommand).replace(/`/g, "\\`");
   const title = String(task.title || task.id).replace(/\|/g, "\\|").slice(0, 80);
-  return `- ${checkedAt} | \`${task.id}\` | ${status} | exit=${exit} | ${title} | \`${command}\``;
+  // Surface runner warnings (e.g. `codex-stdout-truncated-dropped-12kb`) as a
+  // tail annotation on the entry. We only render when the warnings are
+  // non-empty so the line shape is identical to before for healthy runs.
+  const warningList = Array.isArray(verification.warnings) ? verification.warnings : [];
+  const warningTail = warningList.length > 0
+    ? ` | ⚠ ${warningList.length} warning${warningList.length === 1 ? "" : "s"}: ${warningList.join("; ")}`
+    : "";
+  return `- ${checkedAt} | \`${task.id}\` | ${status} | exit=${exit} | ${title} | \`${command}\`${warningTail}`;
 }
 
 function appendUnderHeading(text, entry) {
@@ -171,20 +178,27 @@ export async function readVerificationLogEntries({ cwd, limit = 32 } = {}) {
   const headingIndex = lines.findIndex((line) => line.trim() === SECTION_HEADING);
   if (headingIndex === -1) return [];
 
-  const entryPattern = /^-\s+(\S+)\s+\|\s+`([^`]+)`\s+\|\s+(\S+)\s+\|\s+exit=([^\s|]+)\s+\|\s+([^|]+?)\s+\|\s+`([^`]+)`\s*$/;
+  // New entries may carry a trailing `| ⚠ N warning(s): <text>` segment;
+  // older entries do not. We make the tail optional so legacy lines still
+  // parse cleanly.
+  const entryPattern = /^-\s+(\S+)\s+\|\s+`([^`]+)`\s+\|\s+(\S+)\s+\|\s+exit=([^\s|]+)\s+\|\s+([^|]+?)\s+\|\s+`([^`]+)`(?:\s+\|\s+⚠\s+(\d+)\s+warning(?:s)?:\s+(.+))?\s*$/;
   const entries = [];
   for (let i = headingIndex + 1; i < lines.length; i += 1) {
     const line = lines[i];
     if (/^#{1,6}\s+/.test(line)) break;
     const match = line.match(entryPattern);
     if (!match) continue;
+    const warnings = match[7]
+      ? match[8].split(";").map((entry) => entry.trim()).filter(Boolean)
+      : [];
     entries.push({
       checkedAt: match[1],
       taskId: match[2],
       status: match[3],
       exitCode: match[4] === "?" ? null : Number.parseInt(match[4], 10),
       title: match[5].trim(),
-      command: match[6]
+      command: match[6],
+      warnings,
     });
   }
   entries.sort((left, right) => right.checkedAt.localeCompare(left.checkedAt));
