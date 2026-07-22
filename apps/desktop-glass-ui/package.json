@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Electron macOS shell for the Axi Agent Platform glass UI.",
   "private": true,
+  "packageManager": "pnpm@10.33.2",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
