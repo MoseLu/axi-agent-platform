@@ -5,6 +5,10 @@ All notable changes to **Axi Agent Platform** are recorded here. The format foll
 ## [Unreleased]
 
 ### Added
+- Added a `task-execution-routing/v1` boundary: the legacy Agent APIs now
+  consume only signed, read-only `bounded_agent` routes, emit authenticated
+  minimal lifecycle events, and turn all direct command/write/effect paths
+  into workflow or approval requirements.
 - `apps/desktop-glass-ui` as the migrated macOS glass desktop shell prototype for Axi Agent Platform.
 - Initial `docs/INDEX.md`, `docs/PRD.md`, and `docs/TDD.md` produced by the workspace docs deep-init rollout (2026-06-08).
 - Root-level `MILESTONE.md` and `TODO.md` for cross-module progress and requirement tracking.

@@ -2,9 +2,9 @@
 任务数据模型
 """
 from enum import Enum
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TaskStatus(str, Enum):
@@ -29,6 +29,75 @@ class TaskType(str, Enum):
     DOC_GENERATION = "doc_generation"     # 文档生成任务
     CLUSTER = "cluster"                   # 并行集群任务
     HYBRID = "hybrid"                     # 混合/组合任务
+
+
+class TaskRoute(str, Enum):
+    """task-execution-routing/v1 的控制流归属。"""
+    WORKFLOW = "workflow"
+    BOUNDED_AGENT = "bounded_agent"
+    ESCALATE = "escalate"
+
+
+class TaskExecutionLimits(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    max_steps: int = Field(..., alias="maxSteps", ge=0, le=100)
+    max_wall_time_ms: int = Field(..., alias="maxWallTimeMs", ge=0, le=3_600_000)
+    max_model_tokens: int = Field(..., alias="maxModelTokens", ge=0, le=1_000_000)
+    max_estimated_cost: float = Field(..., alias="maxEstimatedCost", ge=0, le=10_000)
+
+
+class TaskContextReference(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str = Field(..., min_length=1)
+    version: str = Field(..., min_length=1)
+    uri: Optional[str] = Field(None, max_length=2048)
+
+
+class TaskRouteDecision(BaseModel):
+    """工作流签发的权威路由决定；历史策略字段不能替代它。"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_version: Literal["task-execution-routing/v1"] = Field(
+        "task-execution-routing/v1", alias="schemaVersion"
+    )
+    route: TaskRoute
+    reason_code: str = Field(..., alias="reasonCode", min_length=1)
+    policy_version: str = Field(..., alias="policyVersion", min_length=1)
+    trace_id: str = Field(..., alias="traceId", min_length=8, max_length=128)
+    idempotency_key: str = Field(..., alias="idempotencyKey", min_length=8, max_length=256)
+    context_refs: List[TaskContextReference] = Field(default_factory=list, alias="contextRefs")
+    tool_allowlist: List[str] = Field(default_factory=list, alias="toolAllowlist")
+    sandbox: Literal["none", "read_only"]
+    limits: TaskExecutionLimits
+
+
+class TaskRouteCredential(BaseModel):
+    """短期路由凭证；签名由工作流和运行时共享的内部密钥校验。"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    credential_id: str = Field(..., alias="credentialId", min_length=8)
+    subject: str = Field(..., min_length=1)
+    decision_digest: str = Field(..., alias="decisionDigest", pattern=r"^[a-f0-9]{64}$")
+    issued_at: str = Field(..., alias="issuedAt", min_length=20)
+    expires_at: str = Field(..., alias="expiresAt", min_length=20)
+    signature: str = Field(..., min_length=32)
+
+
+class EffectProposal(BaseModel):
+    """受限 Agent 可以提出、但绝不能直接执行的副作用。"""
+    model_config = ConfigDict(populate_by_name=True)
+
+    schema_version: Literal["task-execution-routing/v1"] = Field(
+        "task-execution-routing/v1", alias="schemaVersion"
+    )
+    proposal_id: str = Field(..., alias="proposalId", min_length=8)
+    trace_id: str = Field(..., alias="traceId", min_length=8, max_length=128)
+    idempotency_key: str = Field(..., alias="idempotencyKey", min_length=8, max_length=256)
+    summary: str = Field(..., min_length=1, max_length=4000)
+    action: Dict[str, Any]
+    action_digest: str = Field(..., alias="actionDigest", pattern=r"^[a-f0-9]{64}$")
 
 
 class TaskPriority(int, Enum):
@@ -65,9 +134,11 @@ class TaskBase(BaseModel):
     task_type: TaskType = Field(default=TaskType.GENERAL, description="任务类型")
     input_data: Dict[str, Any] = Field(default={}, description="输入数据")
     tags: List[str] = Field(default=[], description="标签")
-    use_subagent_mode: bool = Field(default=False, description="是否使用subAgent模式")
-    strategy_mode: str = Field(default="auto", description="协作策略选择模式: auto, manual")
+    use_subagent_mode: bool = Field(default=False, description="历史兼容建议；不能授权子 Agent 或执行路径")
+    strategy_mode: str = Field(default="auto", description="历史兼容建议；工作流路由不会按该字段选择策略")
     repository_path: Optional[str] = Field(None, description="代码仓库路径(代码开发任务)")
+    route_decision: Optional[TaskRouteDecision] = Field(None, alias="routeDecision")
+    route_credential: Optional[TaskRouteCredential] = Field(None, alias="routeCredential")
 
 
 class TaskCreate(TaskBase):
@@ -106,8 +177,16 @@ class Task(TaskBase):
 
 class TaskExecutionEvent(BaseModel):
     """任务执行事件"""
+    model_config = ConfigDict(populate_by_name=True)
+
     task_id: str
     event_type: str = Field(..., description="事件类型: started, progress, agent_switch, completed, failed")
     message: str
     data: Dict[str, Any] = Field(default={})
+    schema_version: str = Field(default="task-execution-routing/v1", alias="schemaVersion")
+    producer: str = Field(default="agent-platform")
+    trace_id: Optional[str] = Field(None, alias="traceId")
+    idempotency_key: Optional[str] = Field(None, alias="idempotencyKey")
+    route: Optional[TaskRoute] = None
+    policy_version: Optional[str] = Field(None, alias="policyVersion")
     timestamp: datetime = Field(default_factory=datetime.now)

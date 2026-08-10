@@ -9,8 +9,14 @@ from pydantic import BaseModel, Field
 
 from app.core.code_isolation_manager import CodeIsolationManager
 from app.config import settings
+from app.core.task_routing import legacy_direct_execution_detail
 
 router = APIRouter(prefix="/subagent", tags=["subagent"])
+
+
+def require_approved_effect() -> None:
+    """Worktree commands are effects and may only run through APPROVED_EFFECT."""
+    raise HTTPException(status_code=409, detail=legacy_direct_execution_detail("approval_required"))
 
 
 class CreateWorktreeRequest(BaseModel):
@@ -96,6 +102,7 @@ async def create_worktree(
     Returns:
         worktree 路径和相关信息
     """
+    require_approved_effect()
     try:
         # 验证仓库
         if not manager.validate_repository():
@@ -176,6 +183,7 @@ async def sync_worktree(
     Returns:
         同步结果
     """
+    require_approved_effect()
     try:
         await asyncio.to_thread(
             manager.sync_worktree,
@@ -237,6 +245,7 @@ async def commit_worktree(
     Returns:
         commit hash
     """
+    require_approved_effect()
     try:
         commit_hash = await asyncio.to_thread(
             manager.commit_worktree_changes,
@@ -272,6 +281,7 @@ async def merge_worktree(
     Returns:
         合并结果
     """
+    require_approved_effect()
     try:
         merge_success = await asyncio.to_thread(
             manager.merge_worktree,
@@ -323,6 +333,7 @@ async def remove_worktree(
     Returns:
         删除结果
     """
+    require_approved_effect()
     try:
         result = await asyncio.to_thread(
             manager.remove_worktree,
@@ -365,6 +376,7 @@ async def cleanup_old_worktrees(
     Returns:
         被清理的 agent_id 列表
     """
+    require_approved_effect()
     try:
         removed_ids = manager.cleanup_old_worktrees(
             older_than_hours,
