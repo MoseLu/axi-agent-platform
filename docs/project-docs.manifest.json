@@ -129,6 +129,30 @@
         "required": false,
         "secret": false,
         "source": "backend/.env"
+      },
+      {
+        "name": "WORKFLOW_ROUTE_CREDENTIAL_SECRET",
+        "required": true,
+        "secret": true,
+        "source": "backend/.env"
+      },
+      {
+        "name": "WORKFLOW_INTERNAL_EVENT_TOKEN",
+        "required": true,
+        "secret": true,
+        "source": "backend/.env"
+      },
+      {
+        "name": "WORKFLOW_EVENT_SINK_URL",
+        "required": false,
+        "secret": false,
+        "source": "backend/.env"
+      },
+      {
+        "name": "WORKFLOW_EVENT_SINK_TOKEN",
+        "required": false,
+        "secret": true,
+        "source": "backend/.env"
       }
     ]
   },
@@ -138,17 +162,21 @@
       "FastAPI health and system API under /api/v1",
       "macOS glass desktop shell prototype under apps/desktop-glass-ui",
       "Axi Agent MCP tool surface",
-      "Axi Todo CLI and MCP tools"
+      "Axi Todo CLI and MCP tools",
+      "Workflow-only bounded read-only Agent runtime and lifecycle events"
     ],
     "consumes": [
       "MiniMax-compatible model API",
       "OpenAI-compatible model API",
-      "Git repositories used as SubAgent worktree roots"
+      "Git repositories used as SubAgent worktree roots",
+      "task-execution-routing/v1 from Axi workspace governance"
     ],
     "files": [
       "infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md",
       "backend/app/api/subagent.py",
       "backend/app/core/code_isolation_manager.py",
+      "backend/app/core/task_routing.py",
+      "backend/app/core/workflow_event_client.py",
       "docs/axi-todo-prd-continuity-design.md",
       "apps/desktop-glass-ui/README.md",
       "docs/PRD.md",

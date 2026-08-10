@@ -39,6 +39,18 @@ class Settings(BaseSettings):
     # 安全配置
     SECRET_KEY: str = "your-secret-key-here"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # Workflow-first internal boundary. Empty values fail closed for bounded runs.
+    WORKFLOW_ROUTE_CREDENTIAL_SECRET: str = ""
+    WORKFLOW_INTERNAL_EVENT_TOKEN: str = ""
+    # Complete Workbench internal-event endpoint. When this is absent local
+    # development keeps the event publisher inert; when configured, delivery
+    # failures are surfaced to the calling bounded runtime.
+    WORKFLOW_EVENT_SINK_URL: str = ""
+    # Credential used only when publishing outbound lifecycle events to the
+    # Workbench internal-event endpoint. Keep it separate from the inbound
+    # workflow token so the two authenticated directions cannot be confused.
+    WORKFLOW_EVENT_SINK_TOKEN: str = ""
+    WORKFLOW_EVENT_SINK_TIMEOUT_SECONDS: float = 5.0
     
     # 智能体配置
     MAX_AGENTS: int = 10

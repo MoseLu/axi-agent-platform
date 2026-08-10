@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.tool import Tool, ToolCreate, ToolUpdate, ToolExecutionResult, ToolCategory, ToolType
 from app.database import get_db
 from app.tools import ToolManager
+from app.core.task_routing import legacy_direct_execution_detail
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -103,14 +104,8 @@ async def execute_tool(
     task_id: Optional[str] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    """执行工具"""
-    result = await tool_manager.execute_tool(
-        tool_id=tool_id,
-        parameters=parameters,
-        agent_id=agent_id,
-        task_id=task_id
-    )
-    return result
+    """Legacy direct tool endpoint: workflow routing is now mandatory."""
+    raise HTTPException(status_code=409, detail=legacy_direct_execution_detail())
 
 
 @router.post("/{tool_id}/enable")

@@ -62,6 +62,26 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 
 ---
 
+## Workflow-first 执行边界
+
+`task-execution-routing/v1` 是本项目参与跨项目受限执行时的唯一控制面契约：
+
+- 工作流引擎决定 `workflow`、`bounded_agent` 或 `escalate`；本项目仅消费
+  带有效短期路由凭证的 `bounded_agent` 只读运行。
+- `TaskType`、`strategy_mode` 和 `use_subagent_mode` 为历史兼容输入，不能选择
+  工具、循环、子 Agent 或执行路径；无有效路由凭证的直接执行必须返回
+  `workflow_required`。
+- 命令、写入、外部副作用、权限提升、未知输入以及工具/沙箱/预算越界一律升级。
+  受限运行只能输出结构化副作用提案；实际效果由 Workbench durable approval 的
+  `APPROVED_EFFECT` 单次授权执行。
+- Workbench 调度使用 `WORKFLOW_INTERNAL_EVENT_TOKEN`；回传生命周期事件使用独立的
+  `WORKFLOW_EVENT_SINK_TOKEN`。两者均不得暴露给浏览器、普通 MCP 调用方或人工会话。
+
+实现和 Schema 位于工作区治理仓
+`contracts/task-execution-routing/v1/`；不得通过相邻项目源码导入替代该契约。
+
+---
+
 ## Cross-Project Boundary
 
 - **不翻译**：`references/*`、`references/archives/*`、`infra/axi-workspace-governance/references/*`、`infra/axi-workspace-governance/temp/*`。

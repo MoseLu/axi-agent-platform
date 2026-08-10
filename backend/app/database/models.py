@@ -83,6 +83,23 @@ class TaskModel(Base):
     parent = relationship("TaskModel", remote_side=[id], backref="children")
 
 
+class TaskRouteDecisionRecord(Base):
+    """Durable, credential-free audit record for task-execution-routing/v1."""
+
+    __tablename__ = "task_route_decisions"
+
+    task_id = Column(String(36), primary_key=True)
+    schema_version = Column(String(64), nullable=False)
+    route = Column(String(32), nullable=False)
+    reason_code = Column(String(128), nullable=False)
+    policy_version = Column(String(128), nullable=False)
+    trace_id = Column(String(128), nullable=False)
+    idempotency_key = Column(String(256), nullable=False)
+    decision_json = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+
 class ToolModel(Base):
     """工具数据库模型"""
     __tablename__ = "tools"

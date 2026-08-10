@@ -7,10 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.task import (
     Task, TaskCreate, TaskUpdate, TaskStatus,
-    TaskExecutionEvent
+    TaskExecutionEvent, TaskRoute
 )
 from app.database import get_db
 from app.core import TaskScheduler, SwarmOrchestrator
+from app.core.task_route_ledger import persist_task_route_decision
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -37,6 +38,25 @@ async def create_task(
 ):
     """创建任务"""
     task = await task_scheduler.create_task(task_data)
+    try:
+        await persist_task_route_decision(db, task)
+    except Exception as exc:
+        await db.rollback()
+        await task_scheduler.cancel_task(task.id)
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "route_persistence_failed", "message": "Task route decision could not be persisted."},
+        ) from exc
+    if task.route_decision and task.route_decision.route != TaskRoute.BOUNDED_AGENT:
+        code = task.error_message or "workflow_required"
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": code,
+                "taskId": task.id,
+                "routeDecision": task.route_decision.model_dump(by_alias=True, mode="json"),
+            },
+        )
     return task
 
 

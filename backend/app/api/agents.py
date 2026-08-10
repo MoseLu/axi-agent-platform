@@ -10,6 +10,7 @@ from app.database import get_db
 from app.core import AgentManager
 from app.models import MiniMaxConnector, OpenAIConnector
 from app.config import settings
+from app.core.task_routing import legacy_direct_execution_detail
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -155,13 +156,8 @@ async def execute_task(
     context: Optional[dict] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    """分配任务给智能体"""
-    result = await agent_manager.execute_task(
-        agent_id=agent_id,
-        task_input=task_input,
-        context=context or {}
-    )
-    return result
+    """Legacy direct execution endpoint: workflow routing is now mandatory."""
+    raise HTTPException(status_code=409, detail=legacy_direct_execution_detail())
 
 
 @router.get("/by-capability/{capability}", response_model=List[Agent])

@@ -9,12 +9,13 @@ from enum import Enum
 
 from app.schemas.task import (
     Task, TaskCreate, TaskUpdate, TaskStatus, 
-    TaskPriority, SubTask, TaskExecutionEvent, TaskType
+    TaskPriority, SubTask, TaskExecutionEvent, TaskType, TaskRoute
 )
 from app.schemas.agent import AgentRole
 from app.config import settings
-from app.core.strategy_planner import StrategyPlanner
 from app.core.axi_agent_mcp_client import AxiAgentMcpClient, AxiAgentMcpClientError
+from app.core.task_routing import TaskRoutingError, TaskRoutingGuard
+from app.core.workflow_event_client import WorkflowLifecycleEventPublisher
 
 
 class TaskScheduler:
@@ -31,7 +32,8 @@ class TaskScheduler:
         self._memory_manager = None
         self._code_isolation_manager = None
         self._axi_agent_mcp_client = None
-        self._strategy_planner = StrategyPlanner()
+        self._task_routing_guard = TaskRoutingGuard()
+        self._workflow_event_publisher = WorkflowLifecycleEventPublisher()
         self._max_parallel_agents = 8  # subAgent 最大并行数
     
     def set_dependencies(
@@ -40,7 +42,9 @@ class TaskScheduler:
         tool_manager,
         memory_manager,
         code_isolation_manager=None,
-        axi_agent_mcp_client=None
+        axi_agent_mcp_client=None,
+        task_routing_guard=None,
+        workflow_event_publisher=None,
     ):
         """设置依赖组件"""
         self._agent_manager = agent_manager
@@ -48,6 +52,10 @@ class TaskScheduler:
         self._memory_manager = memory_manager
         self._code_isolation_manager = code_isolation_manager
         self._axi_agent_mcp_client = axi_agent_mcp_client
+        if task_routing_guard is not None:
+            self._task_routing_guard = task_routing_guard
+        if workflow_event_publisher is not None:
+            self._workflow_event_publisher = workflow_event_publisher
     
     def add_event_handler(self, handler: Callable):
         """添加事件处理器"""
@@ -63,6 +71,7 @@ class TaskScheduler:
                     handler(event)
             except Exception as e:
                 print(f"Event handler error: {e}")
+        await self._workflow_event_publisher.publish(event)
     
     async def create_task(self, task_data: TaskCreate) -> Task:
         """创建任务"""
@@ -75,38 +84,40 @@ class TaskScheduler:
             created_at=datetime.now(),
             updated_at=datetime.now()
         )
+        task.route_decision = self._task_routing_guard.route_for_creation(task_data)
         
         self._tasks[task_id] = task
         
-        # 如果是自动策略模式，进行分析 (异步，不阻塞创建返回)
-        if task.strategy_mode == "auto":
-            asyncio.create_task(self._apply_auto_strategy(task))
-        
-        # 添加到队列
-        await self._task_queue.put((
-            -task.priority.value,  # 优先级高的先执行
-            task.created_at.timestamp(),
-            task_id
+        await self._emit_event(TaskExecutionEvent(
+            task_id=task.id,
+            event_type="route_decided",
+            message="Task route was decided by the workflow-first policy.",
+            data={
+                "strategy_mode_advisory": task.strategy_mode,
+                "use_subagent_mode_advisory": task.use_subagent_mode,
+                "reasonCode": task.route_decision.reason_code,
+            },
+            **self._route_event_fields(task),
         ))
+
+        # 只有带签名凭证的只读受限路线可被本运行时排队。工作流和升级路线
+        # 保留决定供外层编排/审批消费，绝不在此处绕过工作流直接执行。
+        if task.route_decision.route == TaskRoute.BOUNDED_AGENT:
+            await self._task_queue.put((
+                -task.priority.value,  # 优先级高的先执行
+                task.created_at.timestamp(),
+                task_id
+            ))
+        else:
+            task.status = TaskStatus.PAUSED
+            task.error_message = (
+                "approval_required"
+                if task.route_decision.reason_code not in {"workflow_required", "enumerable_path"}
+                else "workflow_required"
+            )
         
         return task
 
-    async def _apply_auto_strategy(self, task: Task):
-        """应用自动策略方案"""
-        analysis = await self._strategy_planner.analyze_task(
-            task.title, task.description, task.input_data
-        )
-        task.task_type = TaskType(analysis["recommended_type"])
-        if task.task_type != TaskType.GENERAL:
-            task.use_subagent_mode = True
-        
-        await self._emit_event(TaskExecutionEvent(
-            task_id=task.id,
-            event_type="strategy_selected",
-            message=f"Auto-selected strategy: {task.task_type.value}",
-            data=analysis
-        ))
-    
     async def get_task(self, task_id: str) -> Optional[Task]:
         """获取任务"""
         return self._tasks.get(task_id)
@@ -167,7 +178,8 @@ class TaskScheduler:
             task_id=task_id,
             event_type="cancelled",
             message="Task cancelled by user",
-            data={"status": TaskStatus.CANCELLED}
+            data={"status": TaskStatus.CANCELLED},
+            **self._route_event_fields(task),
         ))
         
         return True
@@ -255,6 +267,7 @@ class TaskScheduler:
             return
         
         try:
+            self._task_routing_guard.before_model_call(task)
             # 更新状态
             task.status = TaskStatus.PLANNING
             task.started_at = datetime.now()
@@ -264,7 +277,8 @@ class TaskScheduler:
                 task_id=task_id,
                 event_type="started",
                 message="Task execution started",
-                data={"status": TaskStatus.PLANNING}
+                data={"status": TaskStatus.PLANNING},
+                **self._route_event_fields(task),
             ))
             
             # 1. 任务拆解
@@ -290,7 +304,8 @@ class TaskScheduler:
                 data={
                     "status": TaskStatus.COMPLETED,
                     "output": task.output_data
-                }
+                },
+                **self._route_event_fields(task),
             ))
             
         except asyncio.CancelledError:
@@ -298,37 +313,30 @@ class TaskScheduler:
             raise
         except Exception as e:
             task.status = TaskStatus.FAILED
-            task.error_message = str(e)
+            task.error_message = e.code if isinstance(e, TaskRoutingError) else str(e)
             
             await self._emit_event(TaskExecutionEvent(
                 task_id=task_id,
                 event_type="failed",
-                message=f"Task execution failed: {str(e)}",
-                data={"error": str(e)}
+                message="Task execution failed.",
+                data={"error": task.error_message},
+                **self._route_event_fields(task),
             ))
         finally:
             task.updated_at = datetime.now()
     
     async def _decompose_task(self, task: Task):
         """拆解任务 - 支持通用模式和 subAgent 代码开发模式"""
+        if task.route_decision is None or task.route_decision.route != TaskRoute.BOUNDED_AGENT:
+            raise TaskRoutingError("workflow_required", "Only bounded workflow routes may reach Agent decomposition.", task.route_decision)
+        if task.use_subagent_mode or task.task_type in {TaskType.CODE_DEVELOPMENT, TaskType.CLUSTER, TaskType.HYBRID, TaskType.TEST_WRITING}:
+            raise TaskRoutingError("approval_required", "Bounded Agent cannot create subagents or code-changing task topologies.", task.route_decision)
         if not self._agent_manager:
             # 简单任务，不拆解
             return
         
-        # 检查是否使用 subAgent 模式（代码开发任务）
-        if task.use_subagent_mode or task.task_type == TaskType.CODE_DEVELOPMENT:
-            if task.task_type == TaskType.CODE_DEVELOPMENT:
-                await self._decompose_code_development_task(task)
-            elif task.task_type == TaskType.CLUSTER:
-                await self._decompose_cluster_task(task)
-            elif task.task_type == TaskType.HYBRID:
-                await self._decompose_hybrid_task(task)
-            else:
-                # 默认 subagent 逻辑
-                await self._decompose_code_development_task(task)
-        else:
-            # 通用模式任务拆解
-            await self._decompose_general_task(task)
+        # 受限路线只允许单一、固定的通用子步骤；方向盘仍在外层工作流。
+        await self._decompose_general_task(task)
 
     async def _decompose_cluster_task(self, task: Task):
         """分解集群任务 - 无依赖并行执行"""
@@ -496,7 +504,8 @@ class TaskScheduler:
                     "subtask_id": subtask.id,
                     "subtask_name": subtask.name,
                     "progress": (completed / total) * 100
-                }
+                },
+                **self._route_event_fields(task),
             ))
             
             try:
@@ -546,10 +555,13 @@ class TaskScheduler:
         subtask.agent_id = agent_id
         parent_task.current_agent_id = agent_id
         
-        # 2. 准备工具
+        # 2. 准备工具（只公开工作流签发的只读白名单）
         tools = None
         if self._tool_manager:
-            tools = self._tool_manager.get_tool_definitions()
+            tools = self._task_routing_guard.filter_tool_definitions(
+                parent_task.route_decision,
+                self._tool_manager.get_tool_definitions(),
+            )
         
         # 3. 构建上下文
         context = {
@@ -563,6 +575,7 @@ class TaskScheduler:
         
         # 4. 执行任务
         if self._agent_manager:
+            self._task_routing_guard.before_model_call(parent_task)
             result = await self._agent_manager.execute_task(
                 agent_id=agent_id,
                 task_input=subtask.description,
@@ -572,12 +585,40 @@ class TaskScheduler:
             
             if not result.get("success"):
                 raise Exception(result.get("error", "Execution failed"))
+
+            usage = result.get("usage") if isinstance(result.get("usage"), dict) else {}
+            self._task_routing_guard.record_usage(
+                parent_task.route_decision,
+                model_tokens=int(usage.get("total_tokens", 0) or 0),
+                estimated_cost=float(usage.get("estimated_cost", 0) or 0),
+            )
+
+            if result.get("effect_proposal"):
+                proposal = self._task_routing_guard.validate_effect_proposal(
+                    result["effect_proposal"], parent_task.route_decision
+                )
+                parent_task.output_data.setdefault("effect_proposals", []).append(
+                    proposal.model_dump(by_alias=True, mode="json")
+                )
+                await self._emit_event(TaskExecutionEvent(
+                    task_id=parent_task.id,
+                    event_type="effect_proposed",
+                    message="Bounded Agent proposed an effect; no effect was executed.",
+                    data={"proposalId": proposal.proposal_id, "actionDigest": proposal.action_digest},
+                    **self._route_event_fields(parent_task),
+                ))
             
             # 5. 处理工具调用
             if result.get("tool_calls") and self._tool_manager:
                 for tool_call in result["tool_calls"]:
+                    tool_id = tool_call.get("function", {}).get("name")
+                    self._task_routing_guard.before_tool_call(
+                        parent_task.route_decision,
+                        tool_id,
+                        parent_task.route_credential,
+                    )
                     tool_result = await self._tool_manager.execute_tool(
-                        tool_id=tool_call.get("function", {}).get("name"),
+                        tool_id=tool_id,
                         parameters=tool_call.get("function", {}).get("arguments", {}),
                         agent_id=agent_id,
                         task_id=parent_task.id,
@@ -594,6 +635,18 @@ class TaskScheduler:
             # 模拟执行
             await asyncio.sleep(1)
             return {"content": f"Executed: {subtask.description}"}
+
+    @staticmethod
+    def _route_event_fields(task: Task) -> Dict[str, Any]:
+        decision = task.route_decision
+        if decision is None:
+            return {}
+        return {
+            "traceId": decision.trace_id,
+            "idempotencyKey": decision.idempotency_key,
+            "route": decision.route,
+            "policyVersion": decision.policy_version,
+        }
     
     async def _merge_code_changes(self, task: Task):
         """
@@ -742,8 +795,15 @@ class TaskScheduler:
         
         if task.status != TaskStatus.PAUSED:
             return False
+
+        try:
+            self._task_routing_guard.validate_queued_bounded_task(task)
+        except TaskRoutingError:
+            # Escalated/legacy tasks are consumed by the workflow approval
+            # path, never revived by this historical direct-task endpoint.
+            return False
         
-        task.status = TaskStatus.RUNNING
+        task.status = TaskStatus.PENDING
         task.updated_at = datetime.now()
         
         # 恢复相关子任务
