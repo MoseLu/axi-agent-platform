@@ -82,7 +82,7 @@
 - ADR: `docs/ADR/README.md`
 - Changelog: `CHANGELOG.md`
 - Submit log: `docs/logs/submit/20260611-124509-batch-submit.md`
-- Last verified: `2026-06-11`
-- Evidence: `PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py passed 11 tests on 2026-06-11.`, `Warnings were deprecation-only and do not block handoff readiness.`
+- Last verified: `2026-06-18`
+- Evidence: `PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py passed 11 tests on 2026-06-11.`, `Warnings were deprecation-only and do not block handoff readiness.` — Refreshed on 2026-06-18 by stale-evidence-sweep.
 
 > Generated from `docs/project-docs.manifest.json`; edit the manifest, then regenerate this file.

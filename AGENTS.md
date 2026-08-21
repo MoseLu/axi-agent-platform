@@ -92,6 +92,12 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 
 ---
 
+## Change Log
+
+The canonical change log for this project lives at [`docs/state/CHANGELOG.md`](docs/state/CHANGELOG.md). A root-level [`CHANGE.md`](CHANGE.md) pointer file is also maintained per AR-BOOTSTRAP-002.1; new entries should be added to `docs/state/CHANGELOG.md`.
+
+---
+
 ## SubAgent API 速查（环境变量）
 
 以下变量在 `docs/state/UPGRADE_v1.1.0.zh-CN.md` 与 `README.zh-CN.md` 均有完整说明，**实际取值与默认值以源文档为权威**：

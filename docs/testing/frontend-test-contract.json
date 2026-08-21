@@ -1,0 +1,22 @@
+{
+  "schema_version": "axi-rules.frontend-test-contract.v1",
+  "project": "axi-agent-platform",
+  "surfaces": [
+    {
+      "id": "agent-platform-frontend",
+      "path": "frontend",
+      "framework": "react-vite",
+      "runtime": "browser",
+      "risk_tier": "B",
+      "test_runner": "vitest",
+      "commands": {"typecheck": "pnpm --dir frontend exec tsc --noEmit", "lint": "pnpm --dir frontend lint", "test": "pnpm --dir frontend test", "coverage": "pnpm --dir frontend test -- --coverage", "build": "pnpm --dir frontend build", "e2e": null},
+      "required_layers": ["L0", "L2"],
+      "critical_flows": ["agent dashboard load", "task submission", "task status and error state"],
+      "critical_flow_tests": {"agent dashboard load": ["src/pages/Tasks.test.tsx"], "task submission": ["src/pages/Tasks.test.tsx"], "task status and error state": ["src/pages/Tasks.test.tsx"]},
+      "test_globs": ["src/**/*.test.tsx"],
+      "e2e_globs": [],
+      "coverage": {"lines": 70, "branches": 60},
+      "known_exceptions": []
+    }
+  ]
+}
