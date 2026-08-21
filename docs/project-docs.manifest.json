@@ -11,10 +11,9 @@
   "readOrder": [
     "AGENTS.md",
     "README.md",
-    "UPGRADE_v1.1.0.md",
-    "docs/PRD.md",
-    "docs/TDD.md",
-    "docs/axi-todo-prd-continuity-design.md"
+    "docs/state/UPGRADE_v1.1.0.md",
+    "docs/state/PRD.md",
+    "docs/state/TDD.md"
   ],
   "entrypoints": [
     {
@@ -184,8 +183,8 @@
     ]
   },
   "currentWork": {
-    "todo": "TODO.md",
-    "milestone": "MILESTONE.md",
+    "todo": "docs/state/TODO.md",
+    "milestone": "docs/state/MILESTONE.md",
     "active": [
       "SubAgent worktree lifecycle coverage",
       "SubAgent dashboard hardening",
@@ -243,7 +242,7 @@
   },
   "verification": {
     "status": "verified",
-    "lastVerifiedAt": "2026-06-11",
+    "lastVerifiedAt": "2026-06-18",
     "commands": [
       "PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py"
     ],
@@ -252,8 +251,25 @@
       "Warnings were deprecation-only and do not block handoff readiness."
     ]
   },
+  "startup_profile": {
+    "startup": "python -m venv backend/venv && backend/venv/bin/pip install -r backend/requirements.txt",
+    "build": "pnpm --dir frontend build",
+    "test": "PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py",
+    "lint": null,
+    "typecheck": null,
+    "clean": null
+  },
+  "consumers": [],
+  "shared_packages_exposed": [],
+  "docs_entrypoints": [
+    "AGENTS.md",
+    "README.md",
+    "INDEX.md",
+    "CHANGE.md",
+    "docs/HANDOFF.md"
+  ],
   "created": "2026-06-07",
-  "updated": "2026-06-12",
+  "updated": "2026-06-18",
   "writer": "Codex zero-context-onboarding",
   "source": "user-authorized zero-context onboarding plan"
 }
