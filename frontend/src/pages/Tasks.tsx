@@ -329,8 +329,9 @@ export default function Tasks() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">标题</label>
+                <label htmlFor="task-title" className="block text-sm font-medium text-slate-300 mb-2">标题</label>
                 <input
+                  id="task-title"
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -340,8 +341,9 @@ export default function Tasks() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">描述</label>
+                <label htmlFor="task-description" className="block text-sm font-medium text-slate-300 mb-2">描述</label>
                 <textarea
+                  id="task-description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="input-field h-24 resize-none"
@@ -349,8 +351,9 @@ export default function Tasks() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">优先级</label>
+                <label htmlFor="task-priority" className="block text-sm font-medium text-slate-300 mb-2">优先级</label>
                 <select
+                  id="task-priority"
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) })}
                   className="input-field"
@@ -411,10 +414,11 @@ export default function Tasks() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label htmlFor="task-tags" className="block text-sm font-medium text-slate-300 mb-2">
                   标签 (用逗号分隔)
                 </label>
                 <input
+                  id="task-tags"
                   type="text"
                   value={formData.tags?.join(', ')}
                   onChange={(e) => setFormData({
