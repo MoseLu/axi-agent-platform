@@ -64,6 +64,41 @@ test("store skips desktop placeholder tasks until the prompt is filled", async (
   assert.equal(unclaimed.attempts, 0);
 });
 
+test("personal tasks use the personal lifecycle and never enter the agent scheduler", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-personal-"));
+  const store = new TaskStore({ home });
+  const personal = await store.addTask({
+    title: "买牛奶",
+    body: "下班路上带一瓶",
+    cwd: home,
+    taskDomain: "personal",
+    remindAt: "2030-01-01T08:00:00.000Z",
+  });
+
+  assert.equal(personal.taskDomain, "personal");
+  assert.equal(personal.prompt, "买牛奶");
+  assert.equal(personal.dueAt, undefined);
+  assert.equal(personal.lifecycleStatus, "open");
+  assert.equal(personal.executionStatus, "idle");
+  assert.equal(personal.reminderState, "scheduled");
+  assert.equal(personal.history[0].actor, "user");
+  assert.equal(typeof personal.history[0].id, "string");
+  assert.equal(await store.claimNextTask({ now: "2030-01-01T00:00:00.000Z" }), null);
+
+  const completed = await store.updateTask(personal.id, { lifecycleStatus: "completed" }, { event: "completed", note: "Todo completed", now: "2030-01-01T09:00:00.000Z" });
+  assert.equal(completed.status, "completed");
+  assert.equal(completed.completedAt, "2030-01-01T09:00:00.000Z");
+  assert.equal(completed.reminderState, "cancelled");
+  assert.equal(completed.history.at(-1).actor, "user");
+
+  const reopened = await store.updateTask(personal.id, { status: "pending" }, { event: "reopened", note: "Todo reopened", now: "2030-01-01T10:00:00.000Z" });
+  assert.equal(reopened.lifecycleStatus, "open");
+  assert.equal(reopened.completedAt, undefined);
+  const snoozed = await store.snoozeTask(personal.id, { minutes: 15, now: "2030-01-01T10:00:00.000Z" });
+  assert.equal(snoozed.reminderState, "snoozed");
+  assert.equal(snoozed.remindAt, "2030-01-01T10:15:00.000Z");
+});
+
 test("verification failure can move completed tasks back to pending", async () => {
   const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-verify-"));
   const store = new TaskStore({ home });

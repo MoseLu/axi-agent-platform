@@ -10,6 +10,7 @@ import { createTodoDraftItem, formatTodoItemsAsJson, formatTodoItemsAsMarkdown, 
 import { DashboardBreadcrumbActions } from "./DashboardActions";
 import { TaskEditor } from "./TaskEditor";
 import { TaskListPage } from "./TaskListPage";
+import { PersonalTodoPage } from "./PersonalTodoPage";
 import { TodoSettingsPanel } from "./TodoSettingsPanel";
 import { formatTime, projectKey, projectLabel } from "./taskUtils";
 import { useTaskColumns } from "./useTaskColumns";
@@ -22,6 +23,7 @@ export function TodoDashboard() {
   const [openRoutes, setOpenRoutes] = useState<RouteKey[]>(["tasks"]);
   const {
     closeEditor,
+    createPersonalTask,
     createTask: createLedgerTask,
     deleteTask,
     draftTask,
@@ -32,7 +34,9 @@ export function TodoDashboard() {
     refresh,
     setEditingId,
     submitDraftTask,
+    snoozeTask,
     tasks,
+    updateStatus,
     workspaceProjects,
   } = useTaskLedger();
   const [projectFilter, setProjectFilter] = useState("all");
@@ -44,6 +48,7 @@ export function TodoDashboard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [personalAddSignal, setPersonalAddSignal] = useState(0);
   const [tableToolbarContainer, setTableToolbarContainer] = useState<HTMLDivElement | null>(null);
   const todoItems = useMemo(() => getTodoItems(todoDrafts), [todoDrafts]);
   const openRoute = useCallback((route: RouteKey) => {
@@ -71,6 +76,11 @@ export function TodoDashboard() {
     createLedgerTask();
   }, [createLedgerTask, openRoute]);
 
+  const requestPersonalAdd = useCallback(() => {
+    openRoute("personal");
+    setPersonalAddSignal((current) => current + 1);
+  }, [openRoute]);
+
   const copyTodoItems = useCallback(async () => {
     if (!todoItems.length) {
       message.error("请先填写待办事项");
@@ -94,7 +104,7 @@ export function TodoDashboard() {
 
   const projectOptions = useMemo(() => {
     const projects = new Map<string, string>();
-    tasks.forEach((task) => projects.set(projectKey(task.cwd), projectLabel(task.cwd)));
+    tasks.filter((task) => task.taskDomain !== "personal").forEach((task) => projects.set(projectKey(task.cwd), projectLabel(task.cwd)));
     return [
       { label: "全部项目", value: "all" },
       ...Array.from(projects, ([value, label]) => ({ label, value })).sort((left, right) => left.label.localeCompare(right.label)),
@@ -115,7 +125,7 @@ export function TodoDashboard() {
     };
 
     workspaceProjects.forEach((project) => addProject(project.path, project.label));
-    tasks.forEach((task) => addProject(task.cwd));
+    tasks.filter((task) => task.taskDomain !== "personal").forEach((task) => addProject(task.cwd));
 
     return Array.from(byPath.values()).sort((left, right) => {
       if (left.value === workspaceRoot) return -1;
@@ -132,7 +142,7 @@ export function TodoDashboard() {
 
   const visibleTasks = useMemo(() => {
     const query = searchText.trim().toLowerCase();
-    return tasks.filter((task) => {
+    return tasks.filter((task) => task.taskDomain !== "personal").filter((task) => {
       if (projectFilter !== "all" && projectKey(task.cwd) !== projectFilter) return false;
       if (statusFilter !== "all" && task.status !== statusFilter) return false;
       if (!query) return true;
@@ -168,7 +178,7 @@ export function TodoDashboard() {
   const columns = useTaskColumns({ deleteTask, markDoubted, setEditingId });
   return (
     <AxiDashboardShell
-      activeNavKey={activeRoute === "items" ? "route:items" : "route:tasks"}
+      activeNavKey={activeRoute === "items" ? "route:items" : activeRoute === "personal" ? "route:personal" : "route:tasks"}
       activeTabKey={activeRoute}
       brand={{
         className: "todo-sidebar-brand",
@@ -187,7 +197,7 @@ export function TodoDashboard() {
           todoItemsCount={todoItems.length}
           onClearItems={clearTodoItems}
           onCopyItems={() => void copyTodoItems()}
-          onCreateTask={createTask}
+          onCreateTask={activeRoute === "personal" ? requestPersonalAdd : createTask}
           onExportFormatChange={setExportFormat}
           onProjectFilterChange={setProjectFilter}
           onStatusFilterChange={setStatusFilter}
@@ -197,6 +207,9 @@ export function TodoDashboard() {
       breadcrumbs={activeRoute === "items" ? [
         { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: "Axi 应用" },
         { current: true, icon: <AxiSvgIcon name="list" size={14} />, key: "todo-items", label: "待办事项" },
+      ] : activeRoute === "personal" ? [
+        { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: "Axi 应用" },
+        { current: true, icon: <AxiSvgIcon name="list" size={14} />, key: "personal-todo", label: "个人待办" },
       ] : [
         { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: "Axi 应用" },
         { current: true, icon: <AxiSvgIcon name="task" size={14} />, key: "todo", label: "Todo" },
@@ -224,14 +237,23 @@ export function TodoDashboard() {
             setStatusFilter("all");
           }} />
         </div>
+      ) : activeRoute === "personal" ? (
+        <div className="todo-tabbar-actions">
+          <AxiIconButton icon={<AxiSvgIcon name="refresh" size={14} />} title="刷新个人待办" onClick={() => void refresh()} />
+        </div>
       ) : null}
       tabs={openRoutes.map((route) => route === "items"
         ? { closable: true, key: route, label: "待办事项" }
-        : { key: route, label: "Todo" })}
+        : route === "personal" ? { key: route, label: "个人待办" }
+        : { key: route, label: "执行任务" })}
       topbarActions={topbarActions}
       onNavSelect={(key) => {
         if (key === "route:tasks") {
           openRoute("tasks");
+          return;
+        }
+        if (key === "route:personal") {
+          openRoute("personal");
           return;
         }
         if (key === "route:items") {
@@ -241,7 +263,7 @@ export function TodoDashboard() {
       onSidebarSearchChange={setSearchText}
       onSidebarToggle={() => setSidebarCollapsed((current) => !current)}
       onTabSelect={(key) => {
-        if (key === "tasks" || key === "items") setActiveRoute(key);
+        if (key === "tasks" || key === "personal" || key === "items") setActiveRoute(key);
       }}
       onTabClose={closeRoute}
     >
@@ -252,6 +274,16 @@ export function TodoDashboard() {
             exportFormat={exportFormat}
             parsedItems={todoItems}
             onDraftsChange={setTodoDrafts}
+          />
+        ) : activeRoute === "personal" ? (
+          <PersonalTodoPage
+            addSignal={personalAddSignal}
+            loading={loading}
+            tasks={tasks}
+            onCreate={createPersonalTask}
+            onRefresh={refresh}
+            onSnooze={snoozeTask}
+            onUpdateStatus={updateStatus}
           />
         ) : (
           <>

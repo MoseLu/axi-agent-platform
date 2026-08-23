@@ -30,28 +30,39 @@ public final class AxiTodoStore {
         return try decoder.decode(AxiTodoState.self, from: data)
     }
 
-    public func listTasks() throws -> [AxiTodoTask] {
-        try readState().tasks.sorted(by: taskSort)
+    public func listTasks(taskDomain: AxiTaskDomain? = nil) throws -> [AxiTodoTask] {
+        try readState().tasks
+            .filter { taskDomain == nil || $0.taskDomain == taskDomain }
+            .sorted(by: taskSort)
     }
 
     @discardableResult
     public func addTask(
         title: String,
-        prompt: String,
+        prompt: String? = nil,
+        body: String? = nil,
+        taskDomain: AxiTaskDomain = .agent,
         cwd: String,
         priority: Int = 0,
         maxAttempts: Int = 3,
-        dueAt: Date = Date(),
+        dueDate: String? = nil,
+        dueAt: Date? = nil,
+        remindAt: Date? = nil,
         verifyCommand: String? = nil
     ) throws -> AxiTodoTask {
         try mutate { state in
+            let resolvedDueAt = dueAt ?? (taskDomain == .agent ? Date() : nil)
             let task = AxiTodoTask.create(
                 title: title,
                 prompt: prompt,
+                body: body,
+                taskDomain: taskDomain,
                 cwd: cwd,
                 priority: priority,
                 maxAttempts: maxAttempts,
-                dueAt: dueAt,
+                dueDate: dueDate,
+                dueAt: resolvedDueAt,
+                remindAt: remindAt,
                 verifyCommand: verifyCommand
             )
             state.tasks.append(task)
@@ -70,18 +81,38 @@ public final class AxiTodoStore {
             let now = AxiTodoDate.isoString()
             task.title = task.title.trimmedNonEmpty ?? "Untitled"
             task.prompt = task.prompt.trimmedNonEmpty ?? task.title
+            task.body = task.body?.trimmedNonEmpty
             task.cwd = URL(fileURLWithPath: task.cwd).standardizedFileURL.path
             task.verifyCommand = task.verifyCommand?.trimmedNonEmpty
             task.priority = min(100, max(-100, task.priority))
             task.maxAttempts = max(1, task.maxAttempts)
+            if let dueDate = task.dueDate, !dueDate.matchesDateOnlyFormat {
+                task.dueDate = nil
+            }
+            task.dueAt = AxiTodoDate.normalizedIsoString(task.dueAt)
+            task.remindAt = AxiTodoDate.normalizedIsoString(task.remindAt)
             task.updatedAt = now
 
-            if task.status == .completed {
+            if task.taskDomain == .personal && (task.status == .completed || task.lifecycleStatus == .completed) {
+                task.status = .completed
+                task.lifecycleStatus = .completed
+                task.executionStatus = .idle
+                task.completedAt = task.completedAt ?? now
+                task.reminderState = .cancelled
+                task.error = nil
+            } else if task.taskDomain == .personal && (task.status == .pending || task.lifecycleStatus == .open) {
+                task.status = .pending
+                task.lifecycleStatus = .open
+                task.executionStatus = .idle
+                task.completedAt = nil
+                task.reminderState = task.remindAt == nil ? .none : .scheduled
+            } else if task.status == .completed {
                 task.completedAt = task.completedAt ?? now
                 task.error = nil
-            }
-            if task.status != .completed {
+                task.executionStatus = .succeeded
+            } else {
                 task.completedAt = nil
+                task.executionStatus = .from(status: task.status, domain: task.taskDomain)
             }
 
             task.appendHistory(event: "updated", message: note, at: now)
@@ -118,12 +149,70 @@ public final class AxiTodoStore {
             state.tasks[index].status = status
             state.tasks[index].updatedAt = now
             state.tasks[index].error = [.pending, .completed].contains(status) ? nil : state.tasks[index].error
+            if state.tasks[index].taskDomain == .personal {
+                let wasCompleted = state.tasks[index].lifecycleStatus == .completed
+                state.tasks[index].lifecycleStatus = status == .completed ? .completed : status == .cancelled ? .cancelled : .open
+                state.tasks[index].executionStatus = .idle
+                state.tasks[index].completedAt = status == .completed ? (state.tasks[index].completedAt ?? now) : nil
+                state.tasks[index].reminderState = status == .completed ? .cancelled : state.tasks[index].remindAt == nil ? .none : .scheduled
+                state.tasks[index].appendHistory(
+                    event: status == .completed ? "completed" : wasCompleted && status == .pending ? "reopened" : "status_updated",
+                    message: status == .completed ? "Todo completed" : wasCompleted && status == .pending ? "Todo reopened" : "Todo status updated",
+                    data: ["status": .string(status.rawValue)],
+                    actor: "user",
+                    at: now
+                )
+                return state.tasks[index]
+            }
             state.tasks[index].completedAt = status == .completed ? (state.tasks[index].completedAt ?? now) : nil
+            state.tasks[index].executionStatus = .from(status: status, domain: .agent)
             state.tasks[index].appendHistory(
                 event: "status_updated",
                 message: "Task status updated",
                 data: ["status": .string(status.rawValue)],
                 at: now
+            )
+            return state.tasks[index]
+        }
+    }
+
+    @discardableResult
+    public func completePersonalTask(taskID: String) throws -> AxiTodoTask {
+        guard try listTasks().first(where: { $0.id == taskID })?.taskDomain == .personal else {
+            throw AxiTodoStoreError.invalidPersonalTask(taskID)
+        }
+        return try updateStatus(taskID: taskID, status: .completed)
+    }
+
+    @discardableResult
+    public func reopenPersonalTask(taskID: String) throws -> AxiTodoTask {
+        guard try listTasks().first(where: { $0.id == taskID })?.taskDomain == .personal else {
+            throw AxiTodoStoreError.invalidPersonalTask(taskID)
+        }
+        return try updateStatus(taskID: taskID, status: .pending)
+    }
+
+    @discardableResult
+    public func snoozeTask(taskID: String, minutes: Int = 15) throws -> AxiTodoTask {
+        try mutate { state in
+            guard let index = state.tasks.firstIndex(where: { $0.id == taskID }) else {
+                throw AxiTodoStoreError.unknownTask(taskID)
+            }
+            guard state.tasks[index].taskDomain == .personal else {
+                throw AxiTodoStoreError.invalidPersonalTask(taskID)
+            }
+            let now = Date()
+            let remindAt = now.addingTimeInterval(TimeInterval(max(1, minutes) * 60))
+            let nowText = AxiTodoDate.isoString(from: now)
+            state.tasks[index].remindAt = AxiTodoDate.isoString(from: remindAt)
+            state.tasks[index].reminderState = .snoozed
+            state.tasks[index].updatedAt = nowText
+            state.tasks[index].appendHistory(
+                event: "reminder_snoozed",
+                message: "Reminder snoozed",
+                data: ["minutes": .number(Double(max(1, minutes))), "remindAt": .string(state.tasks[index].remindAt ?? "")],
+                actor: "user",
+                at: nowText
             )
             return state.tasks[index]
         }
@@ -180,6 +269,7 @@ public enum AxiTodoStoreError: LocalizedError, Equatable {
     case lockTimeout(String)
     case unknownTask(String)
     case runningTaskCannotBeDeleted(String)
+    case invalidPersonalTask(String)
 
     public var errorDescription: String? {
         switch self {
@@ -189,6 +279,8 @@ public enum AxiTodoStoreError: LocalizedError, Equatable {
             "Unknown task: \(id)"
         case .runningTaskCannotBeDeleted(let id):
             "Cannot delete running task: \(id)"
+        case .invalidPersonalTask(let id):
+            "Task is not a personal Todo: \(id)"
         }
     }
 }

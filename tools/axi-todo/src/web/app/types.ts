@@ -1,7 +1,7 @@
 import type { AxiTaskStatus } from "../native";
 
 export type ExportFormat = "markdown" | "json";
-export type RouteKey = "tasks" | "items";
+export type RouteKey = "tasks" | "personal" | "items";
 export type StatusFilter = AxiTaskStatus | "all";
 
 export type ProjectSelectOption = {

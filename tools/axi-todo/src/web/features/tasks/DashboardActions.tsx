@@ -62,6 +62,14 @@ export function DashboardBreadcrumbActions({
     );
   }
 
+  if (activeRoute === "personal") {
+    return (
+      <div className="todo-breadcrumb-actions">
+        <AxiIconButton icon={<AxiSvgIcon name="plus" size={14} />} title="添加个人待办" variant="primary" onClick={onCreateTask} />
+      </div>
+    );
+  }
+
   return (
     <div className="todo-breadcrumb-actions">
       <AxiSelect className="status-filter" options={statusFilterOptions} size="small" value={statusFilter} onChange={onStatusFilterChange} />

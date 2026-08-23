@@ -12,7 +12,12 @@ const navGroups: AxiDashboardNavGroup[] = [
       {
         iconName: "task",
         key: "route:tasks",
-        label: "Todo",
+        label: "执行任务",
+      },
+      {
+        iconName: "list",
+        key: "route:personal",
+        label: "个人待办",
       },
       {
         iconName: "list",
@@ -139,7 +144,7 @@ export function useTodoShellConfig({
     key: task.id,
     label: task.title,
     title: task.title,
-    onClick: () => {
+        onClick: () => {
       onRouteChange("tasks");
       closeEditor();
       onEditingIdChange(task.id);

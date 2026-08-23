@@ -14,6 +14,7 @@ import {
   normalizeMemoryCardType,
   normalizeState,
   nowIso,
+  synchronizeTaskState,
   taskSort,
 } from "./schema.mjs";
 
@@ -37,10 +38,11 @@ export class TaskStore {
     }
   }
 
-  async listTasks({ status } = {}) {
+  async listTasks({ status, taskDomain } = {}) {
     const state = await this.readState();
     return state.tasks
       .filter((task) => !status || task.status === status)
+      .filter((task) => !taskDomain || task.taskDomain === taskDomain)
       .sort(taskSort);
   }
 
@@ -77,11 +79,53 @@ export class TaskStore {
     return this.mutate((state) => {
       const task = findTaskOrThrow(state, id);
       Object.assign(task, patch);
+      synchronizeTaskState(task, { patch, now });
       task.updatedAt = now;
-      if (patch.status === "completed" && !task.completedAt) task.completedAt = now;
-      appendHistory(task, event, note || "Task updated", { patch }, now);
+      appendHistory(task, event, note || "Task updated", { patch }, now, task.taskDomain === "personal" ? "user" : "system");
       return { state, result: task };
     });
+  }
+
+  async snoozeTask(id, { minutes = 15, now = nowIso() } = {}) {
+    const task = await this.getTask(id);
+    if (!task || task.taskDomain !== "personal") throw new Error(`task is not personal: ${id}`);
+    if (task.lifecycleStatus !== "open") throw new Error(`cannot snooze closed personal task: ${id}`);
+    const remindAt = new Date(Date.parse(now) + Math.max(1, Number(minutes) || 15) * 60_000).toISOString();
+    return this.updateTask(id, {
+      remindAt,
+      reminderState: "snoozed",
+    }, {
+      event: "reminder_snoozed",
+      note: `Reminder snoozed for ${minutes} minutes`,
+      now,
+    });
+  }
+
+  async completePersonalTask(id, { now = nowIso() } = {}) {
+    const task = await this.getTask(id);
+    if (!task || task.taskDomain !== "personal") throw new Error(`task is not personal: ${id}`);
+    if (task.lifecycleStatus !== "open") throw new Error(`cannot complete closed personal task: ${id}`);
+    return this.updateTask(id, { status: "completed", lifecycleStatus: "completed" }, {
+      event: "completed",
+      note: "Todo completed",
+      now,
+    });
+  }
+
+  async reopenPersonalTask(id, { now = nowIso() } = {}) {
+    const task = await this.getTask(id);
+    if (!task || task.taskDomain !== "personal") throw new Error(`task is not personal: ${id}`);
+    return this.updateTask(id, { status: "pending", lifecycleStatus: "open" }, {
+      event: "reopened",
+      note: "Todo reopened",
+      now,
+    });
+  }
+
+  async getTaskActivity(id) {
+    const task = await this.getTask(id);
+    if (!task) throw new Error(`unknown task: ${id}`);
+    return task.history || [];
   }
 
   async deleteTask(id, { now = nowIso() } = {}) {

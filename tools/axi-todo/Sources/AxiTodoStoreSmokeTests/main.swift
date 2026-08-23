@@ -6,9 +6,42 @@ try runStoreSmokeTests()
 private func runStoreSmokeTests() throws {
     try storeCreatesAndUpdatesTasksInNodeCompatibleShape()
     try storeReadsMixedHistoryDataWrittenByRunner()
+    try personalTasksStayOutOfTheAgentExecutionShape()
     try storeDeletesTasksAndRejectsRunningDeletion()
     try statusUpdateCanRequeueFailedTask()
     print("AxiTodoStoreSmokeTests passed")
+}
+
+private func personalTasksStayOutOfTheAgentExecutionShape() throws {
+    let homeURL = temporaryDirectory()
+    let store = AxiTodoStore(homeURL: homeURL)
+    let task = try store.addTask(
+        title: "Buy milk",
+        body: "On the way home",
+        taskDomain: .personal,
+        cwd: homeURL.path,
+        dueAt: nil
+    )
+
+    try expect(task.taskDomain == .personal, "personal task should use personal domain")
+    try expect(task.lifecycleStatus == .open, "personal task should start open")
+    try expect(task.executionStatus == .idle, "personal task should not be queued")
+    try expect(task.dueDate == nil, "personal task should allow no due date")
+    try expect(task.dueAt == nil, "personal task should allow no due date")
+    try expect(!(task.history.first?.id.isEmpty ?? true), "personal task history should have an id")
+    try expect(task.history.first?.actor == "user", "personal task history should identify the user")
+
+    let completed = try store.updateStatus(taskID: task.id, status: .completed)
+    try expect(completed.lifecycleStatus == .completed, "personal completion should update lifecycle")
+    try expect(completed.history.last?.event == "completed", "personal completion should record activity")
+
+    let reopened = try store.updateStatus(taskID: task.id, status: .pending)
+    try expect(reopened.lifecycleStatus == .open, "personal pending should reopen the task")
+    try expect(reopened.history.last?.event == "reopened", "personal reopen should record activity")
+
+    let snoozed = try store.snoozeTask(taskID: task.id)
+    try expect(snoozed.reminderState == .snoozed, "personal snooze should update reminder state")
+    try expect(snoozed.remindAt != nil, "personal snooze should set reminder time")
 }
 
 private func storeCreatesAndUpdatesTasksInNodeCompatibleShape() throws {
@@ -115,6 +148,7 @@ private func storeReadsMixedHistoryDataWrittenByRunner() throws {
     try expect(tasks.count == 1, "runner fixture should decode one task")
     try expect(tasks[0].status == .completed, "runner fixture status should decode")
     try expect(tasks[0].history.count == 1, "mixed history data should decode")
+    try expect(tasks[0].history[0].id.hasPrefix("legacy-"), "legacy history should get a stable id")
 }
 
 private func statusUpdateCanRequeueFailedTask() throws {

@@ -1,6 +1,43 @@
 import Foundation
 
-public let axiTodoStoreVersion = 1
+public let axiTodoStoreVersion = 3
+
+public enum AxiTaskDomain: String, Codable, CaseIterable, Identifiable {
+    case agent
+    case personal
+
+    public var id: String { rawValue }
+}
+
+public enum AxiTodoLifecycleStatus: String, Codable, CaseIterable, Identifiable {
+    case open
+    case completed
+    case cancelled
+    case archived
+
+    public var id: String { rawValue }
+}
+
+public enum AxiTodoExecutionStatus: String, Codable, CaseIterable, Identifiable {
+    case idle
+    case queued
+    case running
+    case succeeded
+    case failed
+    case blocked
+
+    public var id: String { rawValue }
+}
+
+public enum AxiTodoReminderState: String, Codable, CaseIterable, Identifiable {
+    case none
+    case scheduled
+    case snoozed
+    case fired
+    case cancelled
+
+    public var id: String { rawValue }
+}
 
 public enum AxiTaskStatus: String, Codable, CaseIterable, Identifiable {
     case pending
@@ -44,12 +81,19 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
     public var id: String
     public var title: String
     public var prompt: String
+    public var body: String?
+    public var taskDomain: AxiTaskDomain
+    public var lifecycleStatus: AxiTodoLifecycleStatus
+    public var executionStatus: AxiTodoExecutionStatus
     public var cwd: String
     public var status: AxiTaskStatus
     public var priority: Int
     public var attempts: Int
     public var maxAttempts: Int
-    public var dueAt: String
+    public var dueDate: String?
+    public var dueAt: String?
+    public var remindAt: String?
+    public var reminderState: AxiTodoReminderState
     public var verifyCommand: String?
     public var summary: String?
     public var error: String?
@@ -67,12 +111,19 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         id: String = UUID().uuidString.lowercased(),
         title: String,
         prompt: String,
+        body: String? = nil,
+        taskDomain: AxiTaskDomain = .agent,
+        lifecycleStatus: AxiTodoLifecycleStatus = .open,
+        executionStatus: AxiTodoExecutionStatus = .idle,
         cwd: String,
         status: AxiTaskStatus = .pending,
         priority: Int = 0,
         attempts: Int = 0,
         maxAttempts: Int = 3,
-        dueAt: String,
+        dueDate: String? = nil,
+        dueAt: String? = nil,
+        remindAt: String? = nil,
+        reminderState: AxiTodoReminderState = .none,
         verifyCommand: String? = nil,
         summary: String? = nil,
         error: String? = nil,
@@ -89,12 +140,19 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         self.id = id
         self.title = title
         self.prompt = prompt
+        self.body = body
+        self.taskDomain = taskDomain
+        self.lifecycleStatus = lifecycleStatus
+        self.executionStatus = executionStatus
         self.cwd = cwd
         self.status = status
         self.priority = min(100, max(-100, priority))
         self.attempts = max(0, attempts)
         self.maxAttempts = max(1, maxAttempts)
+        self.dueDate = dueDate
         self.dueAt = dueAt
+        self.remindAt = remindAt
+        self.reminderState = reminderState
         self.verifyCommand = verifyCommand
         self.summary = summary
         self.error = error
@@ -116,13 +174,39 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         id = try container.decodeTrimmedString(forKey: .id, fallback: UUID().uuidString.lowercased())
         title = try container.decodeTrimmedString(forKey: .title, fallback: "Untitled")
         prompt = try container.decodeTrimmedString(forKey: .prompt, fallback: title)
+        body = try container.decodeOptionalTrimmedString(forKey: .body)
+        let domainText = try container.decodeTrimmedString(forKey: .taskDomain, fallback: AxiTaskDomain.agent.rawValue)
+        taskDomain = AxiTaskDomain(rawValue: domainText) ?? .agent
         cwd = try container.decodeTrimmedString(forKey: .cwd, fallback: FileManager.default.currentDirectoryPath)
         let statusText = try container.decodeTrimmedString(forKey: .status, fallback: AxiTaskStatus.pending.rawValue)
         status = AxiTaskStatus(rawValue: statusText) ?? .pending
+        let lifecycleText = try container.decodeTrimmedString(
+            forKey: .lifecycleStatus,
+            fallback: status == .completed ? AxiTodoLifecycleStatus.completed.rawValue : status == .cancelled ? AxiTodoLifecycleStatus.cancelled.rawValue : AxiTodoLifecycleStatus.open.rawValue
+        )
+        lifecycleStatus = AxiTodoLifecycleStatus(rawValue: lifecycleText) ?? .open
+        let executionText = try container.decodeTrimmedString(
+            forKey: .executionStatus,
+            fallback: AxiTodoExecutionStatus.from(status: status, domain: taskDomain).rawValue
+        )
+        executionStatus = AxiTodoExecutionStatus(rawValue: executionText) ?? .idle
         priority = min(100, max(-100, try container.decodeIfPresent(Int.self, forKey: .priority) ?? 0))
         attempts = max(0, try container.decodeIfPresent(Int.self, forKey: .attempts) ?? 0)
         maxAttempts = max(1, try container.decodeIfPresent(Int.self, forKey: .maxAttempts) ?? 3)
-        dueAt = AxiTodoDate.normalizedIsoString(try container.decodeIfPresent(String.self, forKey: .dueAt)) ?? now
+        dueDate = try container.decodeOptionalTrimmedString(forKey: .dueDate)
+        let normalizedDueAt = AxiTodoDate.normalizedIsoString(try container.decodeIfPresent(String.self, forKey: .dueAt))
+        // Preserve the v1 Agent default while allowing personal tasks to have
+        // no schedule at all.
+        dueAt = normalizedDueAt ?? (taskDomain == .agent ? now : nil)
+        if dueDate == nil, taskDomain == .personal, let dueAt {
+            dueDate = String(dueAt.prefix(10))
+        }
+        remindAt = AxiTodoDate.normalizedIsoString(try container.decodeIfPresent(String.self, forKey: .remindAt))
+        let reminderText = try container.decodeTrimmedString(
+            forKey: .reminderState,
+            fallback: remindAt == nil ? AxiTodoReminderState.none.rawValue : AxiTodoReminderState.scheduled.rawValue
+        )
+        reminderState = AxiTodoReminderState(rawValue: reminderText) ?? .none
         verifyCommand = try container.decodeOptionalTrimmedString(forKey: .verifyCommand)
         summary = try container.decodeOptionalTrimmedString(forKey: .summary)
         error = try container.decodeOptionalTrimmedString(forKey: .error)
@@ -139,26 +223,37 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
 
     public static func create(
         title: String,
-        prompt: String,
+        prompt: String? = nil,
+        body: String? = nil,
+        taskDomain: AxiTaskDomain = .agent,
         cwd: String,
         priority: Int,
         maxAttempts: Int,
-        dueAt: Date,
-        verifyCommand: String?
+        dueDate: String? = nil,
+        dueAt: Date? = nil,
+        remindAt: Date? = nil,
+        verifyCommand: String? = nil
     ) -> AxiTodoTask {
         let now = AxiTodoDate.isoString()
         var task = AxiTodoTask(
             title: title.trimmedNonEmpty ?? "Untitled",
-            prompt: prompt.trimmedNonEmpty ?? title.trimmedNonEmpty ?? "Untitled",
+            prompt: prompt?.trimmedNonEmpty ?? title.trimmedNonEmpty ?? "Untitled",
+            body: body?.trimmedNonEmpty,
+            taskDomain: taskDomain,
+            lifecycleStatus: .open,
+            executionStatus: taskDomain == .personal ? .idle : .queued,
             cwd: URL(fileURLWithPath: cwd).standardizedFileURL.path,
             priority: priority,
             maxAttempts: maxAttempts,
-            dueAt: AxiTodoDate.isoString(from: dueAt),
+            dueDate: dueDate ?? (taskDomain == .personal ? dueAt.map { AxiTodoDate.dateOnlyString(from: $0) } : nil),
+            dueAt: dueAt.map { AxiTodoDate.isoString(from: $0) },
+            remindAt: remindAt.map { AxiTodoDate.isoString(from: $0) },
+            reminderState: remindAt == nil ? .none : .scheduled,
             verifyCommand: verifyCommand?.trimmedNonEmpty,
             createdAt: now,
             updatedAt: now
         )
-        task.appendHistory(event: "created", message: "Task created", at: now)
+        task.appendHistory(event: "created", message: "Task created", actor: taskDomain == .personal ? "user" : "system", at: now)
         return task
     }
 
@@ -166,11 +261,26 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         event: String,
         message: String,
         data: [String: AxiTodoJSONValue] = [:],
+        actor: String = "system",
         at: String = AxiTodoDate.isoString()
     ) {
-        history.append(AxiTodoHistoryEntry(at: at, event: event, message: message, data: data))
+        history.append(AxiTodoHistoryEntry(at: at, event: event, actor: actor, message: message, data: data))
         if history.count > 100 {
             history = Array(history.suffix(100))
+        }
+    }
+}
+
+extension AxiTodoExecutionStatus {
+    public static func from(status: AxiTaskStatus, domain: AxiTaskDomain) -> AxiTodoExecutionStatus {
+        if domain == .personal { return .idle }
+        switch status {
+        case .pending: return .queued
+        case .running: return .running
+        case .completed: return .succeeded
+        case .failed: return .failed
+        case .blocked: return .blocked
+        case .cancelled: return .idle
         }
     }
 }
@@ -190,17 +300,30 @@ public struct AxiTodoVerification: Codable, Equatable {
 }
 
 public struct AxiTodoHistoryEntry: Codable, Equatable, Identifiable {
-    public var id: String { "\(at)-\(event)-\(message)" }
+    public var id: String
     public var at: String
     public var event: String
+    public var actor: String
     public var message: String
     public var data: [String: AxiTodoJSONValue]
 
-    public init(at: String, event: String, message: String, data: [String: AxiTodoJSONValue] = [:]) {
+    public init(id: String = UUID().uuidString.lowercased(), at: String, event: String, actor: String = "system", message: String, data: [String: AxiTodoJSONValue] = [:]) {
+        self.id = id
         self.at = at
         self.event = event
+        self.actor = actor
         self.message = message
         self.data = data
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        at = try container.decodeTrimmedString(forKey: .at, fallback: AxiTodoDate.isoString())
+        event = try container.decodeTrimmedString(forKey: .event, fallback: "event")
+        actor = try container.decodeTrimmedString(forKey: .actor, fallback: "system")
+        message = try container.decodeTrimmedString(forKey: .message, fallback: "")
+        id = try container.decodeTrimmedString(forKey: .id, fallback: "legacy-\(at)-\(event)-\(message)")
+        data = try container.decodeIfPresent([String: AxiTodoJSONValue].self, forKey: .data) ?? [:]
     }
 }
 
@@ -258,6 +381,15 @@ public enum AxiTodoDate {
         return isoString(from: date)
     }
 
+    public static func dateOnlyString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+
     public static func parse(_ text: String?) -> Date? {
         guard let text = text?.trimmedNonEmpty else { return nil }
         for formatter in [
@@ -284,6 +416,10 @@ extension String {
     public var trimmedNonEmpty: String? {
         let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
+    }
+
+    public var matchesDateOnlyFormat: Bool {
+        range(of: "^\\d{4}-\\d{2}-\\d{2}$", options: .regularExpression) != nil
     }
 }
 

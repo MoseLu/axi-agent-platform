@@ -17,6 +17,8 @@ checkbox.
 | FastAPI dashboard aggregation route | `python3 -m pytest backend/tests/test_dashboard.py -q` | **4 passed in 0.10s** — path resolution, DTO field-by-field match with Go BFF, empty-state handling, request_id UUID format. |
 | Hook wrapper path resolution | `node --test scripts/workspace-git-hooks.test.mjs` | **14 passed / 0 failed** including 2 new tests verifying walk-up governance-root discovery contract. |
 | Audit script physical-root fix | `node scripts/workspace-audit.mjs` | Surface area now covers `/Volumes/code/workspace/{infra,projects,products,shared,tools,references}`; errors=32 (real drift, not false-green). |
+| Unified Axi Todo model and desktop surface | `pnpm --dir tools/axi-todo verify` | **Passed** — Node syntax and 61 tests, Swift store smoke, TypeScript check, frontend build, and Swift desktop build. |
+| PostgreSQL unified-task migration | `node tools/axi-todo/bin/axi-todo-migrate-postgres.mjs` + read-only store query | **Passed** — `axi_todo` now exposes the personal-task columns; 33 existing Agent tasks remain `agent`, cancelled tasks project to `executionStatus=idle`, and legacy history receives stable IDs. |
 
 ## What is NOT verified (open work for owner or future sessions)
 

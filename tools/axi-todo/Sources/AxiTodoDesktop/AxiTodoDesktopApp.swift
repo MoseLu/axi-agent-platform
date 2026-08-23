@@ -115,21 +115,38 @@ final class AxiTodoDesktopApp: NSObject, NSApplicationDelegate, WKNavigationDele
     private func handle(method: String, payload: [String: Any]) throws -> Any {
         switch method {
         case "listTasks":
+            let taskDomain = string(payload["taskDomain"]).flatMap(AxiTaskDomain.init(rawValue:))
             return [
                 "storePath": store.fileURL.path,
-                "tasks": try jsonObject(store.listTasks()),
+                "tasks": try jsonObject(store.listTasks(taskDomain: taskDomain)),
             ]
         case "listWorkspaceProjects":
             return ["projects": workspaceProjects()]
         case "createTask":
             return try jsonObject(store.addTask(
                 title: string(payload["title"]) ?? "新 Todo",
-                prompt: string(payload["prompt"]) ?? "待填写",
+                prompt: string(payload["prompt"]),
+                body: string(payload["body"]),
+                taskDomain: AxiTaskDomain(rawValue: string(payload["taskDomain"]) ?? "agent") ?? .agent,
                 cwd: string(payload["cwd"]) ?? defaultWorkspacePath(),
                 priority: int(payload["priority"]) ?? 0,
                 maxAttempts: int(payload["maxAttempts"]) ?? 3,
-                dueAt: AxiTodoDate.parse(string(payload["dueAt"])) ?? Date(),
+                dueDate: string(payload["dueDate"]),
+                dueAt: AxiTodoDate.parse(string(payload["dueAt"])),
+                remindAt: AxiTodoDate.parse(string(payload["remindAt"])),
                 verifyCommand: string(payload["verifyCommand"])
+            ))
+        case "createPersonalTask":
+            return try jsonObject(store.addTask(
+                title: string(payload["title"]) ?? "新 Todo",
+                prompt: string(payload["prompt"]),
+                body: string(payload["body"]),
+                taskDomain: .personal,
+                cwd: string(payload["cwd"]) ?? defaultWorkspacePath(),
+                dueDate: string(payload["dueDate"]),
+                dueAt: AxiTodoDate.parse(string(payload["dueAt"])),
+                remindAt: AxiTodoDate.parse(string(payload["remindAt"])),
+                verifyCommand: nil
             ))
         case "saveTask":
             let task = try decode(AxiTodoTask.self, from: require(payload["task"], "task"))
@@ -144,6 +161,19 @@ final class AxiTodoDesktopApp: NSObject, NSApplicationDelegate, WKNavigationDele
                 throw BridgeError.invalidPayload("invalid status: \(statusText)")
             }
             return try jsonObject(store.updateStatus(taskID: id, status: status))
+        case "completeTask":
+            return try jsonObject(store.completePersonalTask(taskID: try requireString(payload["id"], "id")))
+        case "reopenTask":
+            return try jsonObject(store.reopenPersonalTask(taskID: try requireString(payload["id"], "id")))
+        case "snoozeTask":
+            let id = try requireString(payload["id"], "id")
+            return try jsonObject(store.snoozeTask(taskID: id, minutes: int(payload["minutes"]) ?? 15))
+        case "getTaskActivity":
+            let id = try requireString(payload["id"], "id")
+            guard let task = try store.listTasks().first(where: { $0.id == id }) else {
+                throw BridgeError.invalidPayload("unknown task: \(id)")
+            }
+            return try jsonObject(task.history)
         default:
             throw BridgeError.invalidPayload("unknown method: \(method)")
         }

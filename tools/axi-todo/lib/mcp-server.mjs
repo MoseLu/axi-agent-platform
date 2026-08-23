@@ -93,16 +93,36 @@ export function toolDefinitions() {
       inputSchema: {
         type: "object",
         properties: taskInputProperties(),
-        required: ["title", "prompt"],
+        required: ["title"],
       },
     },
     {
       name: "axi_todo_list_tasks",
-      description: "List local axi-todo tasks, optionally filtered by status.",
+      description: "List local axi-todo tasks, optionally filtered by status or task domain.",
       inputSchema: {
         type: "object",
-        properties: { status: { type: "string" } },
+        properties: { status: { type: "string" }, taskDomain: { type: "string", enum: ["agent", "personal"] } },
       },
+    },
+    {
+      name: "axi_todo_complete_task",
+      description: "Complete a personal Todo and append a user activity event.",
+      inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
+    },
+    {
+      name: "axi_todo_reopen_task",
+      description: "Reopen a completed personal Todo and append a user activity event.",
+      inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
+    },
+    {
+      name: "axi_todo_snooze_task",
+      description: "Snooze an open personal Todo reminder, defaulting to 15 minutes.",
+      inputSchema: { type: "object", properties: { id: { type: "string" }, minutes: { type: "number" } }, required: ["id"] },
+    },
+    {
+      name: "axi_todo_get_task_activity",
+      description: "Read the bounded activity history for one local Todo.",
+      inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
     },
     {
       name: "axi_todo_ready_tasks",
@@ -195,7 +215,19 @@ async function callTool(store, params) {
     return textResult(await store.addTask(args));
   }
   if (name === "axi_todo_list_tasks") {
-    return textResult(await store.listTasks({ status: args.status }));
+    return textResult(await store.listTasks({ status: args.status, taskDomain: args.taskDomain }));
+  }
+  if (name === "axi_todo_complete_task") {
+    return textResult(await store.completePersonalTask(args.id));
+  }
+  if (name === "axi_todo_reopen_task") {
+    return textResult(await store.reopenPersonalTask(args.id));
+  }
+  if (name === "axi_todo_snooze_task") {
+    return textResult(await store.snoozeTask(args.id, { minutes: args.minutes }));
+  }
+  if (name === "axi_todo_get_task_activity") {
+    return textResult(await store.getTaskActivity(args.id));
   }
   if (name === "axi_todo_ready_tasks") {
     return textResult(await store.listReadyTasks({ limit: args.limit }));
@@ -248,9 +280,16 @@ function taskInputProperties() {
     title: { type: "string" },
     prompt: { type: "string" },
     cwd: { type: "string" },
+    body: { type: "string" },
+    taskDomain: { type: "string", enum: ["agent", "personal"] },
+    lifecycleStatus: { type: "string", enum: ["open", "completed", "cancelled", "archived"] },
+    executionStatus: { type: "string", enum: ["idle", "queued", "running", "succeeded", "failed", "blocked"] },
+    dueDate: { type: "string", description: "Personal task local date in YYYY-MM-DD format" },
     priority: { type: "number" },
     maxAttempts: { type: "number" },
     dueAt: { type: "string" },
+    remindAt: { type: "string" },
+    reminderState: { type: "string", enum: ["none", "scheduled", "fired", "snoozed", "cancelled"] },
     verifyCommand: { type: "string" },
     charterId: { type: "string" },
     expectedResult: { type: "string" },

@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
-export const STORE_VERSION = 2;
+export const STORE_VERSION = 3;
 
 export const TASK_STATUSES = new Set([
   "pending",
@@ -16,6 +16,10 @@ export const TASK_STATUSES = new Set([
 ]);
 
 export const TERMINAL_STATUSES = new Set(["completed", "failed", "cancelled"]);
+export const TASK_DOMAINS = new Set(["agent", "personal"]);
+export const PERSONAL_LIFECYCLE_STATUSES = new Set(["open", "completed", "cancelled", "archived"]);
+export const EXECUTION_STATUSES = new Set(["idle", "queued", "running", "succeeded", "failed", "blocked"]);
+export const REMINDER_STATES = new Set(["none", "scheduled", "snoozed", "fired", "cancelled"]);
 export const TASK_KINDS = new Set(["task", "inspect", "edit", "test", "verify", "doc", "research"]);
 export const RISK_LEVELS = new Set(["low", "medium", "high"]);
 export const AUDIT_LEVELS = new Set(["none", "standard", "strict"]);
@@ -96,18 +100,33 @@ export function normalizeState(raw) {
 
 export function createTask(input = {}, { now = nowIso(), cwd = process.cwd() } = {}) {
   const title = requiredText(input.title, "title");
-  const prompt = requiredText(input.prompt, "prompt");
+  const taskDomain = normalizeEnum(input.taskDomain ?? input.task_domain, TASK_DOMAINS, "agent");
+  const prompt = taskDomain === "personal"
+    ? optionalText(input.prompt) || title
+    : requiredText(input.prompt, "prompt");
   const status = normalizeStatus(input.status || "pending");
+  const lifecycleStatus = normalizeLifecycleStatus(input.lifecycleStatus ?? input.lifecycle_status, status);
+  const executionStatus = normalizeExecutionStatus(input.executionStatus ?? input.execution_status, status, taskDomain);
+  const dueAt = normalizeOptionalIso(input.dueAt ?? input.due_at) || (taskDomain === "personal" ? undefined : now);
+  const dueDate = normalizeOptionalDateOnly(input.dueDate ?? input.due_date) || (taskDomain === "personal" && dueAt ? dueAt.slice(0, 10) : undefined);
+  const remindAt = normalizeOptionalIso(input.remindAt ?? input.remind_at);
   const task = {
     id: String(input.id || crypto.randomUUID()),
     title,
     prompt,
+    body: optionalText(input.body),
+    taskDomain,
+    lifecycleStatus,
+    executionStatus,
     cwd: path.resolve(String(input.cwd || cwd)),
     status,
     priority: normalizePriority(input.priority),
     attempts: normalizeNonNegativeInt(input.attempts, 0),
     maxAttempts: normalizePositiveInt(input.maxAttempts ?? input.max_attempts, 3),
-    dueAt: normalizeOptionalIso(input.dueAt ?? input.due_at) || now,
+    dueAt,
+    dueDate,
+    remindAt,
+    reminderState: normalizeEnum(input.reminderState ?? input.reminder_state, REMINDER_STATES, remindAt ? "scheduled" : "none"),
     verifyCommand: optionalText(input.verifyCommand ?? input.verify_command),
     charterId: optionalText(input.charterId ?? input.charter_id),
     expectedResult: optionalText(input.expectedResult ?? input.expected_result),
@@ -174,7 +193,7 @@ export function createTask(input = {}, { now = nowIso(), cwd = process.cwd() } =
     verifyLoggedAt: normalizeOptionalIso(input.verifyLoggedAt ?? input.verify_logged_at),
     history: [],
   };
-  appendHistory(task, "created", "Task created", {}, now);
+  appendHistory(task, "created", "Task created", {}, now, taskDomain === "personal" ? "user" : "system");
   return task;
 }
 
@@ -185,6 +204,7 @@ export function normalizePatch(input = {}) {
     switch (key) {
       case "title":
       case "prompt":
+      case "body":
       case "summary":
       case "error":
         patch[key] = optionalText(value);
@@ -194,6 +214,18 @@ export function normalizePatch(input = {}) {
         break;
       case "status":
         patch.status = normalizeStatus(value);
+        break;
+      case "taskDomain":
+      case "task_domain":
+        patch.taskDomain = normalizeEnum(value, TASK_DOMAINS, "agent");
+        break;
+      case "lifecycleStatus":
+      case "lifecycle_status":
+        patch.lifecycleStatus = normalizeEnum(value, PERSONAL_LIFECYCLE_STATUSES, "open");
+        break;
+      case "executionStatus":
+      case "execution_status":
+        patch.executionStatus = normalizeEnum(value, EXECUTION_STATUSES, "idle");
         break;
       case "priority":
         patch.priority = normalizePriority(value);
@@ -206,6 +238,18 @@ export function normalizePatch(input = {}) {
       case "due_at":
         patch.dueAt = normalizeOptionalIso(value);
         break;
+      case "dueDate":
+      case "due_date":
+        patch.dueDate = normalizeOptionalDateOnly(value);
+        break;
+      case "remindAt":
+      case "remind_at":
+        patch.remindAt = normalizeOptionalIso(value);
+        break;
+      case "reminderState":
+      case "reminder_state":
+        patch.reminderState = normalizeEnum(value, REMINDER_STATES, "none");
+        break;
       case "verifyCommand":
       case "verify_command":
         patch.verifyCommand = optionalText(value);
@@ -213,6 +257,10 @@ export function normalizePatch(input = {}) {
       case "verifyLoggedAt":
       case "verify_logged_at":
         patch.verifyLoggedAt = normalizeOptionalIso(value);
+        break;
+      case "completedAt":
+      case "completed_at":
+        patch.completedAt = normalizeOptionalIso(value);
         break;
       case "charterId":
       case "charter_id":
@@ -348,16 +396,25 @@ export function normalizeExistingTask(input) {
   if (!input || typeof input !== "object") return null;
   try {
     const now = nowIso();
+    const taskDomain = normalizeEnum(input.taskDomain ?? input.task_domain, TASK_DOMAINS, "agent");
+    const dueAt = normalizeOptionalIso(input.dueAt ?? input.due_at) || (taskDomain === "personal" ? undefined : now);
     return {
       id: requiredText(input.id, "id"),
       title: requiredText(input.title, "title"),
-      prompt: requiredText(input.prompt, "prompt"),
+      taskDomain,
+      prompt: requiredText(input.prompt || (taskDomain === "personal" ? input.title : undefined), "prompt"),
+      body: optionalText(input.body),
       cwd: path.resolve(String(input.cwd || process.cwd())),
       status: normalizeStatus(input.status || "pending"),
+      lifecycleStatus: normalizeLifecycleStatus(input.lifecycleStatus ?? input.lifecycle_status, input.status || "pending"),
+      executionStatus: normalizeExecutionStatus(input.executionStatus ?? input.execution_status, input.status || "pending", taskDomain),
       priority: normalizePriority(input.priority),
       attempts: normalizeNonNegativeInt(input.attempts, 0),
       maxAttempts: normalizePositiveInt(input.maxAttempts ?? input.max_attempts, 3),
-      dueAt: normalizeOptionalIso(input.dueAt ?? input.due_at) || now,
+      dueAt,
+      dueDate: normalizeOptionalDateOnly(input.dueDate ?? input.due_date) || (taskDomain === "personal" && dueAt ? dueAt.slice(0, 10) : undefined),
+      remindAt: normalizeOptionalIso(input.remindAt ?? input.remind_at),
+      reminderState: normalizeEnum(input.reminderState ?? input.reminder_state, REMINDER_STATES, (input.remindAt ?? input.remind_at) ? "scheduled" : "none"),
       verifyCommand: optionalText(input.verifyCommand ?? input.verify_command),
       charterId: optionalText(input.charterId ?? input.charter_id),
       expectedResult: optionalText(input.expectedResult ?? input.expected_result),
@@ -378,15 +435,11 @@ export function normalizeExistingTask(input) {
       riskLevel: normalizeEnum(input.riskLevel ?? input.risk_level, RISK_LEVELS, "medium"),
       plannerConfidence: normalizeBoundedNumber(input.plannerConfidence ?? input.planner_confidence, 0, 1),
       evidenceContract: optionalText(input.evidenceContract ?? input.evidence_contract),
-      // See the long block on `evidenceContract` above; `evidenceMissing` is
-    // the per-run marker that completeTask sets when the gate fires, so
-    // downstream agents can see at a glance that this task is being held
-    // because its `## Evidence` block did not parse.
-    evidenceMissing: normalizeOptionalBoolean(input.evidenceMissing ?? input.evidence_missing),
-    // Echoes the last evidenceContract the runner actually enforced; useful
-    // for audit trail and for "what was the contract this task was held on".
-    evidenceContractSeen: optionalText(input.evidenceContractSeen ?? input.evidence_contract_seen),
-    agentRole: normalizeOptionalEnum(input.agentRole ?? input.agent_role, AGENT_ROLES),
+      // See the long block on `evidenceContract` above; these fields are
+      // retained so older runner records remain auditable after normalization.
+      evidenceMissing: normalizeOptionalBoolean(input.evidenceMissing ?? input.evidence_missing),
+      evidenceContractSeen: optionalText(input.evidenceContractSeen ?? input.evidence_contract_seen),
+      agentRole: normalizeOptionalEnum(input.agentRole ?? input.agent_role, AGENT_ROLES),
       agentCategory: normalizeOptionalEnum(input.agentCategory ?? input.agent_category, AGENT_CATEGORIES),
       executionMode: normalizeOptionalEnum(input.executionMode ?? input.execution_mode, EXECUTION_MODES),
       modelHint: optionalText(input.modelHint ?? input.model_hint),
@@ -405,23 +458,61 @@ export function normalizeExistingTask(input) {
       lastRunId: optionalText(input.lastRunId ?? input.last_run_id),
       lastOutputPath: optionalText(input.lastOutputPath ?? input.last_output_path),
       verification: normalizeVerification(input.verification),
-      history: Array.isArray(input.history) ? input.history.slice(-100) : [],
+      history: normalizeHistory(input.history),
     };
   } catch {
     return null;
   }
 }
 
-export function appendHistory(task, event, message, data = {}, at = nowIso()) {
+export function appendHistory(task, event, message, data = {}, at = nowIso(), actor = "system") {
   const entry = {
+    id: crypto.randomUUID(),
     at,
     event: String(event || "event"),
+    actor: optionalText(actor) || "system",
     message: String(message || ""),
     data: data && typeof data === "object" ? data : {},
   };
   task.history = Array.isArray(task.history) ? task.history : [];
   task.history.push(entry);
   if (task.history.length > 100) task.history = task.history.slice(-100);
+}
+
+export function synchronizeTaskState(task, { patch = {}, now = nowIso() } = {}) {
+  if (patch.status === "completed") {
+    task.completedAt = task.completedAt || now;
+  } else if (patch.status && patch.status !== "completed") {
+    task.completedAt = undefined;
+  }
+
+  if (task.taskDomain === "personal") {
+    if (patch.status === "completed" || patch.lifecycleStatus === "completed") {
+      task.status = "completed";
+      task.lifecycleStatus = "completed";
+      task.executionStatus = "idle";
+      task.completedAt = task.completedAt || now;
+      task.reminderState = "cancelled";
+    } else if (patch.status === "cancelled" || patch.lifecycleStatus === "cancelled") {
+      task.status = "cancelled";
+      task.lifecycleStatus = "cancelled";
+      task.executionStatus = "idle";
+    } else if (patch.status === "pending" || patch.lifecycleStatus === "open") {
+      task.status = "pending";
+      task.lifecycleStatus = "open";
+      task.executionStatus = "idle";
+      task.completedAt = undefined;
+      if (task.remindAt) task.reminderState = "scheduled";
+    }
+    if (patch.remindAt !== undefined && patch.reminderState === undefined && task.lifecycleStatus === "open") {
+      task.reminderState = task.remindAt ? "scheduled" : "none";
+    }
+    return task;
+  }
+
+  if (patch.status) task.executionStatus = normalizeExecutionStatus(undefined, task.status, "agent");
+  if (patch.lifecycleStatus === "completed") task.completedAt = task.completedAt || now;
+  return task;
 }
 
 export function taskSort(left, right) {
@@ -434,6 +525,7 @@ export function isDue(task, at = nowIso()) {
 }
 
 export function isActionableTask(task) {
+  if (task?.taskDomain === "personal") return false;
   const prompt = optionalText(task?.prompt);
   return Boolean(prompt && prompt !== "待填写");
 }
@@ -464,6 +556,26 @@ function normalizeStatus(value) {
     throw new Error(`invalid task status: ${status}`);
   }
   return status;
+}
+
+function normalizeLifecycleStatus(value, status) {
+  const fallback = status === "completed" ? "completed" : status === "cancelled" ? "cancelled" : "open";
+  return normalizeEnum(value, PERSONAL_LIFECYCLE_STATUSES, fallback);
+}
+
+function normalizeExecutionStatus(value, status, taskDomain) {
+  if (taskDomain === "personal" && value === undefined) return "idle";
+  const fallback = {
+    pending: "queued",
+    running: "running",
+    waiting: "queued",
+    awaiting_audit: "blocked",
+    completed: "succeeded",
+    failed: "failed",
+    blocked: "blocked",
+    cancelled: "idle",
+  }[status] || "idle";
+  return normalizeEnum(value, EXECUTION_STATUSES, fallback);
 }
 
 function normalizePriority(value) {
@@ -541,6 +653,15 @@ function normalizeOptionalIso(value) {
   return new Date(ms).toISOString();
 }
 
+function normalizeOptionalDateOnly(value) {
+  const text = optionalText(value);
+  if (!text) return undefined;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) throw new Error(`invalid date: ${text}`);
+  const parsed = Date.parse(`${text}T00:00:00.000Z`);
+  if (!Number.isFinite(parsed)) throw new Error(`invalid date: ${text}`);
+  return text;
+}
+
 function normalizeVerification(value = {}) {
   if (!value || typeof value !== "object") return {};
   return {
@@ -549,6 +670,26 @@ function normalizeVerification(value = {}) {
     exitCode: value.exitCode === undefined ? undefined : Number(value.exitCode),
     output: optionalText(value.output),
   };
+}
+
+function normalizeHistory(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry, index) => {
+      const at = normalizeOptionalIso(entry.at) || nowIso();
+      const event = String(entry.event || "event");
+      const message = String(entry.message || "");
+      return {
+        id: optionalText(entry.id) || `legacy-${at}-${event}-${index}`,
+        at,
+        event,
+        actor: optionalText(entry.actor) || "system",
+        message,
+        data: entry.data && typeof entry.data === "object" && !Array.isArray(entry.data) ? entry.data : {},
+      };
+    })
+    .slice(-100);
 }
 
 function normalizeRecordList(value) {

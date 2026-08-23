@@ -7,9 +7,11 @@ import {
   isActionableTask,
   isDue,
   normalizeMemoryCardType,
+  normalizeExistingTask,
   normalizePatch,
   normalizeState,
   nowIso,
+  synchronizeTaskState,
   taskSort,
 } from "./schema.mjs";
 import crypto from "node:crypto";
@@ -36,7 +38,7 @@ export class PostgresTaskStore {
       completionSummaries,
       memoryCards,
     ] = await Promise.all([
-      this.queryJson("select payload from tasks order by priority desc, created_at asc"),
+      this.queryTasks("select payload from tasks order by priority desc, created_at asc"),
       this.queryRows("select * from task_charters order by created_at asc"),
       this.queryRows("select * from planning_records order by created_at asc"),
       this.queryRows("select * from task_runs order by created_at asc"),
@@ -62,7 +64,7 @@ export class PostgresTaskStore {
     });
   }
 
-  async listTasks({ status } = {}) {
+  async listTasks({ status, taskDomain } = {}) {
     const values = [];
     const where = status ? "where status = $1" : "";
     if (status) values.push(status);
@@ -70,7 +72,10 @@ export class PostgresTaskStore {
       `select payload from tasks ${where} order by priority desc, created_at asc`,
       values,
     );
-    return result.rows.map((row) => row.payload).sort(taskSort);
+    return result.rows
+      .map((row) => normalizeDbTask(row.payload))
+      .filter((task) => !taskDomain || task.taskDomain === taskDomain)
+      .sort(taskSort);
   }
 
   async listReadyTasks({ limit = 50, now = nowIso() } = {}) {
@@ -90,7 +95,7 @@ export class PostgresTaskStore {
 
   async getTask(id) {
     const result = await this.pool.query("select payload from tasks where id = $1", [id]);
-    return result.rows[0]?.payload || null;
+    return result.rows[0] ? normalizeDbTask(result.rows[0].payload) : null;
   }
 
   async addTask(input, options = {}) {
@@ -102,13 +107,53 @@ export class PostgresTaskStore {
   async updateTask(id, patchInput, { note, event = "updated", now = nowIso() } = {}) {
     return this.withClient(async (client) => {
       const task = await this.getTaskForUpdate(client, id);
-      Object.assign(task, normalizePatch(patchInput));
+      const patch = normalizePatch(patchInput);
+      Object.assign(task, patch);
+      synchronizeTaskState(task, { patch, now });
       task.updatedAt = now;
-      if (task.status === "completed" && !task.completedAt) task.completedAt = now;
-      appendHistory(task, event, note || "Task updated", { patch: normalizePatch(patchInput) }, now);
+      appendHistory(task, event, note || "Task updated", { patch }, now, task.taskDomain === "personal" ? "user" : "system");
       await this.upsertTask(task, client);
       return task;
     });
+  }
+
+  async snoozeTask(id, { minutes = 15, now = nowIso() } = {}) {
+    const task = await this.getTask(id);
+    if (!task || task.taskDomain !== "personal") throw new Error(`task is not personal: ${id}`);
+    if (task.lifecycleStatus !== "open") throw new Error(`cannot snooze closed personal task: ${id}`);
+    const remindAt = new Date(Date.parse(now) + Math.max(1, Number(minutes) || 15) * 60_000).toISOString();
+    return this.updateTask(id, { remindAt, reminderState: "snoozed" }, {
+      event: "reminder_snoozed",
+      note: `Reminder snoozed for ${minutes} minutes`,
+      now,
+    });
+  }
+
+  async completePersonalTask(id, { now = nowIso() } = {}) {
+    const task = await this.getTask(id);
+    if (!task || task.taskDomain !== "personal") throw new Error(`task is not personal: ${id}`);
+    if (task.lifecycleStatus !== "open") throw new Error(`cannot complete closed personal task: ${id}`);
+    return this.updateTask(id, { status: "completed", lifecycleStatus: "completed" }, {
+      event: "completed",
+      note: "Todo completed",
+      now,
+    });
+  }
+
+  async reopenPersonalTask(id, { now = nowIso() } = {}) {
+    const task = await this.getTask(id);
+    if (!task || task.taskDomain !== "personal") throw new Error(`task is not personal: ${id}`);
+    return this.updateTask(id, { status: "pending", lifecycleStatus: "open" }, {
+      event: "reopened",
+      note: "Todo reopened",
+      now,
+    });
+  }
+
+  async getTaskActivity(id) {
+    const task = await this.getTask(id);
+    if (!task) throw new Error(`unknown task: ${id}`);
+    return task.history || [];
   }
 
   async deleteTask(id) {
@@ -124,7 +169,7 @@ export class PostgresTaskStore {
   async claimNextTask({ runnerId = process.pid, now = nowIso() } = {}) {
     return this.withClient(async (client) => {
       const result = await client.query("select payload from tasks order by priority desc, created_at asc for update");
-      const state = normalizeState({ ...createEmptyState(), tasks: result.rows.map((row) => row.payload) });
+      const state = normalizeState({ ...createEmptyState(), tasks: result.rows.map((row) => normalizeDbTask(row.payload)) });
       const task = selectSchedulableTasks(state, { limit: 1, now })[0];
       if (!task) return null;
       task.status = "running";
@@ -183,7 +228,7 @@ export class PostgresTaskStore {
       const nowMs = Date.parse(now);
       const changed = [];
       for (const row of result.rows) {
-        const task = row.payload;
+        const task = normalizeDbTask(row.payload);
         if (!task.startedAt) continue;
         const ageMs = nowMs - Date.parse(task.startedAt);
         if (ageMs <= timeoutMs) continue;
@@ -401,19 +446,20 @@ export class PostgresTaskStore {
   async getTaskForUpdate(client, id) {
     const result = await client.query("select payload from tasks where id = $1 for update", [id]);
     if (!result.rows[0]) throw new Error(`unknown task: ${id}`);
-    return result.rows[0].payload;
+    return normalizeDbTask(result.rows[0].payload);
   }
 
   async upsertTask(task, client = this.pool) {
     await client.query(
-      `insert into tasks (id, charter_id, title, prompt, cwd, status, priority, attempts, max_attempts, due_at, verify_command, expected_result, acceptance_checks, audit_level, risk_level, task_kind, parent_id, depends_on, resource_keys, task_granularity, model_selection_reason, rejected_approaches, wait_state, checkpoint, heartbeat_at, run_manifest_path, payload, created_at, updated_at, started_at, completed_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)
-       on conflict (id) do update set charter_id = excluded.charter_id, title = excluded.title, prompt = excluded.prompt, cwd = excluded.cwd, status = excluded.status, priority = excluded.priority, attempts = excluded.attempts, max_attempts = excluded.max_attempts, due_at = excluded.due_at, verify_command = excluded.verify_command, expected_result = excluded.expected_result, acceptance_checks = excluded.acceptance_checks, audit_level = excluded.audit_level, risk_level = excluded.risk_level, task_kind = excluded.task_kind, parent_id = excluded.parent_id, depends_on = excluded.depends_on, resource_keys = excluded.resource_keys, task_granularity = excluded.task_granularity, model_selection_reason = excluded.model_selection_reason, rejected_approaches = excluded.rejected_approaches, wait_state = excluded.wait_state, checkpoint = excluded.checkpoint, heartbeat_at = excluded.heartbeat_at, run_manifest_path = excluded.run_manifest_path, payload = excluded.payload, updated_at = excluded.updated_at, started_at = excluded.started_at, completed_at = excluded.completed_at`,
+      `insert into tasks (id, charter_id, title, prompt, cwd, status, priority, attempts, max_attempts, due_at, verify_command, expected_result, acceptance_checks, audit_level, risk_level, task_kind, parent_id, depends_on, resource_keys, task_granularity, model_selection_reason, rejected_approaches, wait_state, checkpoint, heartbeat_at, run_manifest_path, payload, created_at, updated_at, started_at, completed_at, body, task_domain, lifecycle_status, execution_status, remind_at, reminder_state, due_date)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38)
+       on conflict (id) do update set charter_id = excluded.charter_id, title = excluded.title, prompt = excluded.prompt, cwd = excluded.cwd, status = excluded.status, priority = excluded.priority, attempts = excluded.attempts, max_attempts = excluded.max_attempts, due_at = excluded.due_at, verify_command = excluded.verify_command, expected_result = excluded.expected_result, acceptance_checks = excluded.acceptance_checks, audit_level = excluded.audit_level, risk_level = excluded.risk_level, task_kind = excluded.task_kind, parent_id = excluded.parent_id, depends_on = excluded.depends_on, resource_keys = excluded.resource_keys, task_granularity = excluded.task_granularity, model_selection_reason = excluded.model_selection_reason, rejected_approaches = excluded.rejected_approaches, wait_state = excluded.wait_state, checkpoint = excluded.checkpoint, heartbeat_at = excluded.heartbeat_at, run_manifest_path = excluded.run_manifest_path, payload = excluded.payload, updated_at = excluded.updated_at, started_at = excluded.started_at, completed_at = excluded.completed_at, body = excluded.body, task_domain = excluded.task_domain, lifecycle_status = excluded.lifecycle_status, execution_status = excluded.execution_status, remind_at = excluded.remind_at, reminder_state = excluded.reminder_state, due_date = excluded.due_date`,
       [
         task.id, task.charterId, task.title, task.prompt, task.cwd, task.status, task.priority, task.attempts, task.maxAttempts,
         task.dueAt, task.verifyCommand, task.expectedResult, jsonb(task.acceptanceChecks), task.auditLevel, task.riskLevel, task.taskKind,
         task.parentId, jsonb(task.dependsOn), jsonb(task.resourceKeys), task.taskGranularity, task.modelSelectionReason, jsonb(task.rejectedApproaches),
         jsonb(task.waitState), task.checkpoint, task.heartbeatAt, task.runManifestPath, jsonb(task), task.createdAt, task.updatedAt, task.startedAt, task.completedAt,
+        task.body, task.taskDomain, task.lifecycleStatus, task.executionStatus, task.remindAt, task.reminderState, task.dueDate,
       ],
     );
   }
@@ -421,6 +467,11 @@ export class PostgresTaskStore {
   async queryJson(sql, values = []) {
     const result = await this.pool.query(sql, values);
     return result.rows.map((row) => row.payload);
+  }
+
+  async queryTasks(sql, values = []) {
+    const result = await this.pool.query(sql, values);
+    return result.rows.map((row) => normalizeDbTask(row.payload));
   }
 
   async queryRows(sql, values = []) {
@@ -468,6 +519,10 @@ function compactRunResult(result = {}) {
 
 function jsonb(value) {
   return JSON.stringify(value ?? null);
+}
+
+function normalizeDbTask(payload) {
+  return normalizeExistingTask(payload) || payload;
 }
 
 function createCompletionSummaryRecord(task, input = {}, now) {

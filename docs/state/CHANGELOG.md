@@ -5,6 +5,13 @@ All notable changes to **Axi Agent Platform** are recorded here. The format foll
 ## [Unreleased]
 
 ### Added
+- Unified Axi Todo task fields for personal work: domain, lifecycle and
+  execution state, optional body/due/reminder data, bounded actor-tagged
+  history with stable event IDs, and a Postgres migration that permits
+  no-date personal tasks.
+- Added the desktop `个人待办` view with Today/Active/Completed sections,
+  date grouping, restore, activity expansion, one-shot reminders, and
+  15-minute snooze.
 - Added a `task-execution-routing/v1` boundary: the legacy Agent APIs now
   consume only signed, read-only `bounded_agent` routes, emit authenticated
   minimal lifecycle events, and turn all direct command/write/effect paths
@@ -17,6 +24,8 @@ All notable changes to **Axi Agent Platform** are recorded here. The format foll
 
 ### Changed
 - Upgraded `docs/project-docs.manifest.json` to the v2 zero-context onboarding contract and added ongoing freshness governance to `TODO.md`.
+- Split Axi icon data into five app-local chunks so the existing 1 MB chunk
+  guard remains active during the new desktop Todo build.
 
 ### Deprecated
 - None.

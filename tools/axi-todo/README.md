@@ -10,12 +10,18 @@ It lives under `tools/` rather than `projects/` because it is local developer au
 
 - Task store: JSON file at `~/.axi-todo/tasks.json` by default, or `AXI_TODO_HOME/tasks.json`.
 - Desktop app: macOS WebView shell with shared `@axi/core`, `@axi/shell`, `@axi/crud`, `@axi/settings`, `@axi/widgets`, and `@axi/vite-plugin` layers for creating, editing, filtering, deleting, building, and re-queuing tasks against the same JSON store.
-- MCP server: stdio JSON-RPC server exposing task add/list/get/update/delete/run-once tools.
+- MCP server: stdio JSON-RPC server exposing Agent task operations plus personal
+  Todo completion, restore, snooze, and activity-history tools.
 - Daemon: single-worker loop; default interval is `300000` ms.
 - Executor: local `codex exec --output-last-message ... -C <task.cwd> <prompt>`.
 - Verification: optional `verifyCommand` runs in the task `cwd`. A failed verification moves a completed task back to `pending` when retries remain, otherwise `failed`.
 - Verification writeback: when `verifyCommand` runs, the daemon appends a one-line bullet to an existing `<task.cwd>/VERIFICATION.md` under `## Axi Todo Verify Activity`. Idempotent on `<taskId>@<checkedAt>` so re-runs do not duplicate. Set `AXI_TODO_VERIFY_LOG_CREATE=1` only when first-write creation is intended. Paths under `references/` are skipped. Use `node bin/axi-todo.mjs verify-log --project <path>` to query entries.
 - Task graph: optional `parentId`, `dependsOn`, `resourceKeys`, `taskKind`, `estimatedCostPercent`, `riskLevel`, `plannerConfidence`, `evidenceContract`, and OMO-style routing fields let external loops schedule safe parallel work without losing the local JSON ledger model.
+- Unified task model: `taskDomain` separates `agent` execution tasks from
+  `personal` Todos. Personal tasks use `lifecycleStatus` and
+  `executionStatus`, support optional `body`, `dueDate`, `dueAt`, `remindAt`,
+  `reminderState`, and retain bounded activity history without entering the
+  Codex daemon scheduler.
 - PRD continuity design: long-running PRD discussions should resume from local evidence packs instead of model memory. See `../../docs/axi-todo-prd-continuity-design.md` for the planned `prd` ledger, claim provenance, checkpoint, audit, resume, and export model.
 
 ## Desktop App
@@ -25,6 +31,8 @@ The desktop app owns the normal user workflow as a single Axi UI editable table.
 - click `+` to open a local draft, then click `提交` to create the task.
 - edit title, prompt, directory, verification command, due time, and status inline.
 - existing task edits autosave shortly after you stop typing or changing a field.
+- the `个人待办` route provides Today, Active, and Completed history views;
+  completed rows can be restored and every row exposes its activity history.
 - filter active, pending, running, blocked, failed, completed, cancelled, or all rows.
 - write through the same `tasks.json` lock file used by the daemon.
 
@@ -120,6 +128,10 @@ Useful MCP tools:
 
 - `axi_todo_add_task`
 - `axi_todo_list_tasks`
+- `axi_todo_complete_task`
+- `axi_todo_reopen_task`
+- `axi_todo_snooze_task`
+- `axi_todo_get_task_activity`
 - `axi_todo_get_task`
 - `axi_todo_update_task`
 - `axi_todo_delete_task`
@@ -153,6 +165,9 @@ node /Volumes/code/workspace/projects/axi-agent-platform/tools/axi-todo/bin/axi-
 - `failed`: execution failed, or verification failed after attempts were exhausted.
 - `blocked`: manually paused by a user or agent.
 - `cancelled`: terminal cancellation.
+
+Personal Todos keep `status` for compatibility with the shared store, but the
+user-facing lifecycle is `open`, `completed`, `cancelled`, or `archived`.
 
 ## CLI Reference
 

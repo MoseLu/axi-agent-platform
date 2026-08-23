@@ -85,6 +85,44 @@ export function useTaskLedger() {
     setEditingId(null);
   }, []);
 
+  const createPersonalTask = useCallback(async ({
+    body,
+    dueDate,
+    dueAt,
+    remindAt,
+    title,
+  }: { body?: string; dueDate?: string; dueAt?: string; remindAt?: string; title: string }) => {
+    const task = await native.createPersonalTask({
+      body,
+      dueDate,
+      dueAt,
+      lifecycleStatus: "open",
+      prompt: title,
+      remindAt,
+      reminderState: remindAt ? "scheduled" : "none",
+      taskDomain: "personal",
+      title,
+    });
+    setTasks((current) => [task, ...current]);
+    return task;
+  }, []);
+
+  const updateStatus = useCallback(async (id: string, status: AxiTodoTask["status"]) => {
+    try {
+      replaceTask(await native.updateStatus(id, status));
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "更新状态失败");
+    }
+  }, [replaceTask]);
+
+  const snoozeTask = useCallback(async (id: string) => {
+    try {
+      replaceTask(await native.snoozeTask(id));
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "稍后提醒失败");
+    }
+  }, [replaceTask]);
+
   const closeEditor = useCallback(() => {
     setDraftTask(null);
     setEditingId(null);
@@ -162,6 +200,7 @@ export function useTaskLedger() {
   return {
     closeEditor,
     createTask,
+    createPersonalTask,
     deleteTask,
     draftTask,
     editingTask,
@@ -171,7 +210,9 @@ export function useTaskLedger() {
     refresh,
     setEditingId,
     submitDraftTask,
+    snoozeTask,
     tasks,
+    updateStatus,
     workspaceProjects,
   };
 }

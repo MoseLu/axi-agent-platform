@@ -1,15 +1,26 @@
 export type AxiTaskStatus = "pending" | "running" | "completed" | "failed" | "blocked" | "cancelled";
+export type AxiTaskDomain = "agent" | "personal";
+export type AxiLifecycleStatus = "open" | "completed" | "cancelled" | "archived";
+export type AxiExecutionStatus = "idle" | "queued" | "running" | "succeeded" | "failed" | "blocked";
+export type AxiReminderState = "none" | "scheduled" | "snoozed" | "fired" | "cancelled";
 
 export type AxiTodoTask = {
   id: string;
   title: string;
   prompt: string;
+  body?: string;
+  taskDomain: AxiTaskDomain;
+  lifecycleStatus: AxiLifecycleStatus;
+  executionStatus: AxiExecutionStatus;
   cwd: string;
   status: AxiTaskStatus;
   priority: number;
   attempts: number;
   maxAttempts: number;
-  dueAt: string;
+  dueDate?: string;
+  dueAt?: string;
+  remindAt?: string;
+  reminderState: AxiReminderState;
   verifyCommand?: string;
   summary?: string;
   error?: string;
@@ -95,8 +106,11 @@ export const native = {
   createTask(payload: Partial<AxiTodoTask>) {
     return callNative<AxiTodoTask>("createTask", payload as Record<string, unknown>);
   },
-  listTasks() {
-    return callNative<TaskListResponse>("listTasks");
+  createPersonalTask(payload: Partial<AxiTodoTask>) {
+    return callNative<AxiTodoTask>("createPersonalTask", payload as Record<string, unknown>);
+  },
+  listTasks(taskDomain?: AxiTaskDomain) {
+    return callNative<TaskListResponse>("listTasks", taskDomain ? { taskDomain } : {});
   },
   listWorkspaceProjects() {
     return callNative<WorkspaceProjectListResponse>("listWorkspaceProjects");
@@ -109,5 +123,17 @@ export const native = {
   },
   updateStatus(id: string, status: AxiTaskStatus) {
     return callNative<AxiTodoTask>("updateStatus", { id, status });
+  },
+  completeTask(id: string) {
+    return callNative<AxiTodoTask>("completeTask", { id });
+  },
+  reopenTask(id: string) {
+    return callNative<AxiTodoTask>("reopenTask", { id });
+  },
+  getTaskActivity(id: string) {
+    return callNative<unknown[]>("getTaskActivity", { id });
+  },
+  snoozeTask(id: string, minutes = 15) {
+    return callNative<AxiTodoTask>("snoozeTask", { id, minutes });
   },
 };

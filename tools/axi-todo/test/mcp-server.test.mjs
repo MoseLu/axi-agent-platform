@@ -10,13 +10,17 @@ test("tool definitions expose core axi-todo operations", () => {
   const names = toolDefinitions().map((tool) => tool.name).sort();
   assert.deepEqual(names, [
     "axi_todo_add_task",
+    "axi_todo_complete_task",
     "axi_todo_delete_task",
     "axi_todo_get_task",
+    "axi_todo_get_task_activity",
     "axi_todo_list_tasks",
     "axi_todo_ready_tasks",
+    "axi_todo_reopen_task",
     "axi_todo_run_once",
     "axi_todo_schedule_tasks",
     "axi_todo_search_memory",
+    "axi_todo_snooze_task",
     "axi_todo_split_task",
     "axi_todo_update_task",
   ]);
@@ -35,6 +39,7 @@ test("tool definitions expose core axi-todo operations", () => {
   assert.equal(addProperties.maxParallelGroup.type, "number");
   assert.deepEqual(addProperties.auditLevel.enum, ["none", "standard", "strict"]);
   assert.equal(addProperties.expectedResult.type, "string");
+  assert.deepEqual(toolDefinitions().find((tool) => tool.name === "axi_todo_add_task").inputSchema.required, ["title"]);
 });
 
 test("mcp server can add and list tasks", async () => {
@@ -75,6 +80,46 @@ test("mcp server can add and list tasks", async () => {
     params: { name: "axi_todo_delete_task", arguments: { id: added.id } },
   });
   assert.match(deleted.content[0].text, /MCP task/);
+});
+
+test("mcp server can create and manage a personal task without prompt", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-mcp-personal-"));
+  const store = new TaskStore({ home });
+  const server = createMcpServer({ store });
+  const add = await server.handle({
+    method: "tools/call",
+    params: {
+      name: "axi_todo_add_task",
+      arguments: {
+        title: "买牛奶",
+        taskDomain: "personal",
+        body: "回家路上购买",
+      },
+    },
+  });
+  const added = JSON.parse(add.content[0].text);
+  assert.equal(added.taskDomain, "personal");
+  assert.equal(added.prompt, "买牛奶");
+  assert.equal(added.executionStatus, "idle");
+
+  const snoozed = await server.handle({
+    method: "tools/call",
+    params: { name: "axi_todo_snooze_task", arguments: { id: added.id, minutes: 60 } },
+  });
+  assert.equal(JSON.parse(snoozed.content[0].text).reminderState, "snoozed");
+
+  const completed = await server.handle({
+    method: "tools/call",
+    params: { name: "axi_todo_complete_task", arguments: { id: added.id } },
+  });
+  assert.equal(JSON.parse(completed.content[0].text).lifecycleStatus, "completed");
+
+  const activity = await server.handle({
+    method: "tools/call",
+    params: { name: "axi_todo_get_task_activity", arguments: { id: added.id } },
+  });
+  assert.match(activity.content[0].text, /reminder_snoozed/);
+  assert.match(activity.content[0].text, /completed/);
 });
 
 test("mcp server can split tasks without applying by default", async () => {

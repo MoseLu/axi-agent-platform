@@ -30,13 +30,18 @@ export function createTaskDraft(): AxiTodoTask {
     attempts: 0,
     createdAt: now,
     cwd: workspaceRoot,
+    dueDate: new Date().toISOString().slice(0, 10),
     dueAt: now,
     history: [],
     id: `draft-${crypto.randomUUID()}`,
+    executionStatus: "queued",
+    lifecycleStatus: "open",
     maxAttempts: 3,
     priority: 0,
     prompt: "",
+    reminderState: "none",
     status: "pending",
+    taskDomain: "agent",
     title: "新 Todo",
     updatedAt: now,
     verification: {},
@@ -49,7 +54,7 @@ export function applyTaskPatch(task: AxiTodoTask, patch: Partial<AxiTodoTask>) {
     typeof patch.prompt === "string"
     && isDraftPrompt(task.prompt)
     && !isDraftPrompt(next.prompt)
-    && Date.parse(task.dueAt) > Date.now() + 60_000
+    && (!task.dueAt || Date.parse(task.dueAt) > Date.now() + 60_000)
   ) {
     next.dueAt = new Date().toISOString();
   }
