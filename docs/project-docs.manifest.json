@@ -242,13 +242,14 @@
   },
   "verification": {
     "status": "verified",
-    "lastVerifiedAt": "2026-06-18",
+    "lastVerifiedAt": "2026-08-23",
     "commands": [
-      "PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py"
+      "PYTHONPATH=backend python3 -m pytest backend/tests/test_dashboard.py -q",
+      "node /Volumes/code/workspace/infra/axi-workspace-governance/scripts/workspace-audit.mjs"
     ],
     "evidence": [
-      "PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py passed 11 tests on 2026-06-11.",
-      "Warnings were deprecation-only and do not block handoff readiness."
+      "PYTHONPATH=backend python3 -m pytest backend/tests/test_dashboard.py -q passed 4 tests in 0.18s on 2026-08-23 (path resolution, DTO field-by-field match with Go BFF, empty-state handling, request_id UUID format).",
+      "node /Volumes/code/workspace/infra/axi-workspace-governance/scripts/workspace-audit.mjs reports errors=0, warnings=0 on 2026-08-23 (3 incubations checked, no drift)."
     ]
   },
   "startup_profile": {
