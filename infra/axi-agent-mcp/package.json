@@ -21,7 +21,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.0",
     "@types/pg": "^8.16.0",
-    "dotenv": "^16.4.0",
+    "dotenv": "^17.4.2",
     "fast-glob": "^3.3.3",
     "mongodb": "^7.1.0",
     "pg": "^8.18.0",
