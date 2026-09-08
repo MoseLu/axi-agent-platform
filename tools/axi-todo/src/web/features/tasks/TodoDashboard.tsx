@@ -3,6 +3,7 @@ import { AxiIconButton, AxiLogoMark, AxiSvgIcon, useAxiTheme } from "@axi/core";
 import { AxiDashboardShell } from "@axi/shell";
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { statusOptions, workspaceRoot } from "../../app/constants";
+import { t } from "../../app/i18n";
 import type { ExportFormat, ProjectSelectOption, RouteKey, StatusFilter, TodoDraftItem } from "../../app/types";
 import { writeClipboardText } from "../../shared/clipboard";
 import { focusTodoItem, TodoItemsPage } from "../todo-items/TodoItemsPage";
@@ -205,28 +206,28 @@ export function TodoDashboard() {
         />
       )}
       breadcrumbs={activeRoute === "items" ? [
-        { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: "Axi 应用" },
-        { current: true, icon: <AxiSvgIcon name="list" size={14} />, key: "todo-items", label: "待办事项" },
+        { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: t("nav.axiApp") },
+        { current: true, icon: <AxiSvgIcon name="list" size={14} />, key: "todo-items", label: t("nav.items") },
       ] : activeRoute === "personal" ? [
-        { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: "Axi 应用" },
-        { current: true, icon: <AxiSvgIcon name="list" size={14} />, key: "personal-todo", label: "个人待办" },
+        { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: t("nav.axiApp") },
+        { current: true, icon: <AxiSvgIcon name="list" size={14} />, key: "personal-todo", label: t("nav.personal") },
       ] : [
-        { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: "Axi 应用" },
+        { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: t("nav.axiApp") },
         { current: true, icon: <AxiSvgIcon name="task" size={14} />, key: "todo", label: "Todo" },
       ]}
       className="todo-dashboard-shell"
       globalSearch={globalSearchNode}
       labels={{
-        github: "GitHub",
-        settings: "设置",
-        sidebarCollapse: "收起侧栏",
-        sidebarExpand: "展开侧栏",
-        theme: "切换主题",
+        github: t("topbar.github"),
+        settings: t("topbar.settings"),
+        sidebarCollapse: t("topbar.settings"),
+        sidebarExpand: t("topbar.settings"),
+        theme: t("topbar.theme"),
       }}
       navGroups={navGroups}
       pageProps={{ fluid: true, padded: true }}
       sidebarCollapsed={sidebarCollapsed}
-      sidebarSearchPlaceholder="搜索任务"
+      sidebarSearchPlaceholder={t("search.placeholder")}
       sidebarSearchValue={searchText}
       tabbarLeftActions={activeRoute === "tasks" ? (
         <div className="todo-tabbar-actions">

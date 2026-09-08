@@ -5,6 +5,7 @@ import { useMemo, type MouseEvent } from "react";
 import type { RouteKey } from "../../app/types";
 import type { AxiTodoTask } from "../../native";
 import { formatTime, projectLabel } from "./taskUtils";
+import { t } from "../../app/i18n";
 
 const navGroups: AxiDashboardNavGroup[] = [
   {
@@ -12,22 +13,22 @@ const navGroups: AxiDashboardNavGroup[] = [
       {
         iconName: "task",
         key: "route:tasks",
-        label: "执行任务",
+        label: t("nav.tasks"),
       },
       {
         iconName: "list",
         key: "route:personal",
-        label: "个人待办",
+        label: t("nav.personal"),
       },
       {
         iconName: "list",
         key: "route:items",
-        label: "待办事项",
+        label: t("nav.items"),
       },
     ],
     iconName: "menu",
     key: "pages",
-    label: "菜单",
+    label: t("nav.menu"),
   },
 ];
 
@@ -62,13 +63,13 @@ export function useTodoShellConfig({
 }) {
   const avatarConfig = useMemo<AxiDashboardAvatarConfig>(() => ({
     avatar: <AxiSvgIcon name="my" size={16} />,
-    description: "本地桌面任务",
-    label: "管理员",
+    description: t("avatar.localDesktop"),
+    label: t("avatar.admin"),
     menuItems: [
       {
         iconName: "refresh",
         key: "refresh",
-        label: "刷新",
+        label: t("action.refresh"),
         onClick: () => {
           void refresh();
         },
@@ -76,18 +77,18 @@ export function useTodoShellConfig({
       {
         iconName: "settings",
         key: "settings",
-        label: "设置",
+        label: t("action.settings"),
         onClick: onSettingsOpen,
       },
     ],
-    name: "管理员",
+    name: t("avatar.admin"),
   }), [onSettingsOpen, refresh]);
 
   const topbarActions = useMemo(() => ({
     github: {
       iconName: "github" as AxiIconName,
       key: "github",
-      label: "GitHub",
+      label: t("topbar.github"),
       onClick: () => message.info("当前本地仓库未配置 GitHub remote"),
     },
     notice: {
@@ -95,45 +96,45 @@ export function useTodoShellConfig({
       badgeTone: "warning" as const,
       iconName: "notice" as AxiIconName,
       key: "notice",
-      label: "通知",
+      label: t("topbar.notice"),
       popover: (
         <div className="todo-topbar-panel">
-          <strong>任务通知</strong>
-          <span>{tasks.filter((task) => task.status === "failed" || task.status === "blocked").length ? "有任务需要处理" : "当前没有异常任务"}</span>
+          <strong>{t("panel.tasks")}</strong>
+          <span>{tasks.filter((task) => task.status === "failed" || task.status === "blocked").length ? t("panel.hasIssues") : t("panel.noIssues")}</span>
         </div>
       ),
     },
     message: {
       iconName: "msg" as AxiIconName,
       key: "message",
-      label: "消息",
+      label: t("topbar.message"),
       popover: (
         <div className="todo-topbar-panel">
-          <strong>执行消息</strong>
-          <span>当前共 {tasks.length} 个本地任务</span>
+          <strong>{t("panel.messages")}</strong>
+          <span>{t("panel.totalTasks", { count: tasks.length })}</span>
         </div>
       ),
     },
     language: {
       iconName: "lang" as AxiIconName,
       key: "language",
-      label: "语言",
+      label: t("topbar.language"),
       popover: (
         <div className="todo-topbar-panel is-compact">
-          <span className="is-active">简体中文</span>
+          <span className="is-active">{t("panel.locale")}</span>
         </div>
       ),
     },
     theme: {
       iconName: (mode === "dark" ? "light" : "dark") as AxiIconName,
       key: "theme",
-      label: mode === "dark" ? "切换亮色模式" : "切换暗色模式",
+      label: mode === "dark" ? t("topbar.switchToLight") : t("topbar.switchToDark"),
       onClick: onThemeToggle,
     },
     settings: {
       iconName: "theme" as AxiIconName,
       key: "settings",
-      label: "设置",
+      label: t("topbar.settings"),
       onClick: onSettingsOpen,
     },
   }), [mode, onSettingsOpen, onThemeToggle, tasks]);
@@ -162,11 +163,11 @@ export function useTodoShellConfig({
         搜索
       </AxiGlobalSearchTrigger>
       <AxiGlobalSearch
-        footer={<span>共 {globalSearchItems.length} 个任务</span>}
+        footer={<span>{t("search.count", { count: globalSearchItems.length })}</span>}
         items={globalSearchItems}
         open={globalSearchOpen}
-        placeholder="搜索任务"
-        title="Todo 搜索"
+        placeholder={t("search.placeholder")}
+        title={t("search.title")}
         value={searchText}
         onChange={onSearchTextChange}
         onOpenChange={onGlobalSearchOpenChange}
