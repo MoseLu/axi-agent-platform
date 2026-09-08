@@ -184,7 +184,7 @@ export function TodoDashboard() {
       brand={{
         className: "todo-sidebar-brand",
         logo: <AxiLogoMark className="todo-sidebar-logo" size={24} />,
-        title: "Axi Todo",
+        title: t("shell.brand"),
       }}
       avatarConfig={avatarConfig}
       breadcrumbActions={(
