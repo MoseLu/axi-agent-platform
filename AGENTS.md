@@ -166,3 +166,25 @@ python infra/axi-workspace-governance/scripts/verify_doc_i18n.py projects/axi-ag
 ---
 
 *最后更新：2026-06-07 — 根级 AGENTS 首版，由 workspace-docs-gap 子代理 W4 落地。*
+
+## Relationship Metadata
+
+This section declares relationship metadata consumed by the workspace control-plane snapshot for relationship provenance tracking.
+
+### As a Provider (targetRef)
+
+When other projects declare a dependency on this project in `workspace.graph.json`, they inherit the following metadata contract:
+
+- **requiredness**: "required" (this project is a mandatory dependency for consumers)
+- **dependencyPhase**: varies by capability (see below)
+- **versionConstraint**: "workspace protocol" (workspace dependencies use `link:/catalog:` protocol, no explicit version pinning)
+- **validityWindow**: "indefinite" (no expiration on workspace protocol dependencies)
+
+#### Capability Phases
+
+| Capability | Dependency Phase | Notes |
+|---|---|---|
+| multi-agent-collaboration | runtime | Agent collaboration runs during task execution |
+| subagent-code-dev | runtime | SubAgent worktree operations run during development |
+| mcp-model-swarm | runtime | MCP tools enable model routing at runtime |
+| rest-api | runtime | REST endpoints serve requests during operation |
