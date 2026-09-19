@@ -3,7 +3,7 @@
   "project": "axi-agent-platform",
   "name": "Axi Agent Platform",
   "status": "verified",
-  "canonicalPath": "/Volumes/code/workspace/projects/axi-agent-platform",
+  "canonicalPath": "/Volumes/code/workspace/projects/axi-agent",
   "kind": "multi-runtime monorepo",
   "lifecycle": "active",
   "owner": "Axi Core Projects",
@@ -214,7 +214,7 @@
   "decisions": {
     "adr": "docs/ADR/README.md",
     "changelog": "docs/state/CHANGELOG.md",
-    "submitLog": "docs/logs/submit/20260611-124509-batch-submit.md"
+    "submitLog": ""
   },
   "documents": {
     "readme": "README.md",
