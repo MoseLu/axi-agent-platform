@@ -1,11 +1,25 @@
 import { message } from "antd";
-import { AxiSvgIcon, type AxiIconName } from "@axi/core";
+import { AxiSvgIcon, axiIconNames, type AxiIconName } from "@axi/core";
 import { AxiGlobalSearch, AxiGlobalSearchTrigger, type AxiDashboardAvatarConfig, type AxiDashboardNavGroup } from "@axi/shell";
 import { useMemo, type MouseEvent } from "react";
 import type { RouteKey } from "../../app/types";
 import type { AxiTodoTask } from "../../native";
 import { formatTime, projectLabel } from "./taskUtils";
-import { t } from "../../app/i18n";
+import { t, setLocale, getLocale } from "../../app/i18n";
+
+/** Runtime validator to ensure an icon name is known to @axi/core */
+function isValidIconName(name: string): name is AxiIconName {
+  return axiIconNames.includes(name as AxiIconName);
+}
+
+/** Guard: throws if the icon name is not a known AxiIconName */
+function assertValidIconName(name: string, fallback: AxiIconName): AxiIconName {
+  if (!isValidIconName(name)) {
+    console.warn(`[useTodoShellConfig] Unknown AxiIconName "${name}", falling back to "${fallback}"`);
+    return fallback;
+  }
+  return name as AxiIconName;
+}
 
 const navGroups: AxiDashboardNavGroup[] = [
   {
@@ -49,7 +63,7 @@ export function useTodoShellConfig({
 }: {
   closeEditor: () => void;
   globalSearchOpen: boolean;
-  mode: string;
+  mode: "dark" | "light";
   refresh: () => Promise<void>;
   searchText: string;
   tasks: AxiTodoTask[];
@@ -86,15 +100,15 @@ export function useTodoShellConfig({
 
   const topbarActions = useMemo(() => ({
     github: {
-      iconName: "github" as AxiIconName,
+      iconName: assertValidIconName("github", "task"),
       key: "github",
       label: t("topbar.github"),
-      onClick: () => message.info("当前本地仓库未配置 GitHub remote"),
+      onClick: () => message.info(t("github.noRemote")),
     },
     notice: {
       badge: tasks.filter((task) => task.status === "failed" || task.status === "blocked").length || undefined,
       badgeTone: "warning" as const,
-      iconName: "notice" as AxiIconName,
+      iconName: assertValidIconName("notice", "task"),
       key: "notice",
       label: t("topbar.notice"),
       popover: (
@@ -105,7 +119,7 @@ export function useTodoShellConfig({
       ),
     },
     message: {
-      iconName: "msg" as AxiIconName,
+      iconName: assertValidIconName("msg", "task"),
       key: "message",
       label: t("topbar.message"),
       popover: (
@@ -116,9 +130,13 @@ export function useTodoShellConfig({
       ),
     },
     language: {
-      iconName: "lang" as AxiIconName,
+      iconName: assertValidIconName("lang", "task"),
       key: "language",
       label: t("topbar.language"),
+      onClick: () => {
+        const next = getLocale() === "zh-CN" ? "en-US" : "zh-CN";
+        setLocale(next);
+      },
       popover: (
         <div className="todo-topbar-panel is-compact">
           <span className="is-active">{t("panel.locale")}</span>
@@ -126,13 +144,13 @@ export function useTodoShellConfig({
       ),
     },
     theme: {
-      iconName: (mode === "dark" ? "light" : "dark") as AxiIconName,
+      iconName: assertValidIconName(mode === "dark" ? "light" : "dark", "task"),
       key: "theme",
       label: mode === "dark" ? t("topbar.switchToLight") : t("topbar.switchToDark"),
       onClick: onThemeToggle,
     },
     settings: {
-      iconName: "theme" as AxiIconName,
+      iconName: assertValidIconName("theme", "task"),
       key: "settings",
       label: t("topbar.settings"),
       onClick: onSettingsOpen,
@@ -160,7 +178,7 @@ export function useTodoShellConfig({
         shortcut="Ctrl K"
         onClick={() => onGlobalSearchOpenChange(true)}
       >
-        搜索
+        {t("search.trigger")}
       </AxiGlobalSearchTrigger>
       <AxiGlobalSearch
         footer={<span>{t("search.count", { count: globalSearchItems.length })}</span>}

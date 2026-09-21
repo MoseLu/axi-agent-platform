@@ -18,7 +18,7 @@ async function main() {
   }
   if (command === "install") {
     await fs.mkdir(path.dirname(PLIST_PATH), { recursive: true });
-    await fs.mkdir(path.join(os.homedir(), ".axi-todo", "logs"), { recursive: true });
+    await fs.mkdir(path.join(os.homedir(), ".axi", "logs", "axi-todo"), { recursive: true });
     await fs.writeFile(PLIST_PATH, buildPlist(), "utf8");
     await runProcess("launchctl", ["bootout", `gui/${process.getuid()}`, PLIST_PATH], { timeoutMs: 5000 });
     const result = await runProcess("launchctl", ["bootstrap", `gui/${process.getuid()}`, PLIST_PATH], { timeoutMs: 5000 });
@@ -47,7 +47,7 @@ main().catch((error) => {
 
 function buildPlist() {
   const node = process.execPath;
-  const logDir = path.join(os.homedir(), ".axi-todo", "logs");
+  const logDir = path.join(os.homedir(), ".axi", "logs", "axi-todo");
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">

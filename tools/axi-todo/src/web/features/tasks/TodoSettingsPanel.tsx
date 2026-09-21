@@ -7,6 +7,7 @@ export function TodoSettingsPanel({
   projectLabel,
   taskCount,
   totalTaskCount,
+  workspaceProjectSummary,
   onCompactChange,
   onOpenChange,
   onPreferenceChange,
@@ -17,6 +18,7 @@ export function TodoSettingsPanel({
   projectLabel: string;
   taskCount: number;
   totalTaskCount: number;
+  workspaceProjectSummary?: { label: string; count: number }[];
   onCompactChange: (value: boolean) => void;
   onOpenChange: (value: boolean) => void;
   onPreferenceChange: Parameters<typeof AxiSettingsThemeSection>[0]["onChange"];
@@ -46,6 +48,18 @@ export function TodoSettingsPanel({
           <strong>{taskCount}/{totalTaskCount}</strong>
         </div>
       </AxiSettingsSection>
+      {workspaceProjectSummary && workspaceProjectSummary.length > 0 && (
+        <AxiSettingsSection title="工作区项目">
+          <div className="todo-settings-summary">
+            {workspaceProjectSummary.map((item) => (
+              <div key={item.label} className="todo-settings-project-row">
+                <span>{item.label}</span>
+                <strong>{item.count}</strong>
+              </div>
+            ))}
+          </div>
+        </AxiSettingsSection>
+      )}
     </AxiSettingsPanel>
   );
 }

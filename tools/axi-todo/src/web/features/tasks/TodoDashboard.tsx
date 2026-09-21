@@ -1,3 +1,20 @@
+/**
+ * TodoDashboard
+ *
+ * Renders three routing planes via the AxiDashboardShell tab bar:
+ *  - "tasks"   → TaskListPage + TaskEditor  (agent tasks only, filtered by project/status)
+ *  - "personal"→ PersonalTodoPage            (personal tasks only, self-filtered internally)
+ *  - "items"   → TodoItemsPage               (draft checklist items, not persisted as tasks)
+ *
+ * Domain separation is enforced at the component boundary:
+ *   • visibleTasks   = all tasks where taskDomain !== "personal"  (agent tasks)
+ *   • PersonalTodoPage receives the raw `tasks` array and filters internally
+ *     with `tasks.filter(task => task.taskDomain === "personal")`
+ *
+ * Topbar indicators (notice badge, total-count) intentionally operate on the
+ * full `tasks` array to give a complete system-health picture. Global search
+ * results are scoped to agent tasks only via `visibleTasks`.
+ */
 import { message } from "antd";
 import { AxiIconButton, AxiLogoMark, AxiSvgIcon, useAxiTheme } from "@axi/core";
 import { AxiDashboardShell } from "@axi/shell";
@@ -15,7 +32,7 @@ import { PersonalTodoPage } from "./PersonalTodoPage";
 import { TodoSettingsPanel } from "./TodoSettingsPanel";
 import { formatTime, projectKey, projectLabel } from "./taskUtils";
 import { useTaskColumns } from "./useTaskColumns";
-import { useTaskLedger } from "./useTaskLedger";
+import { isAgentTask, useTaskLedger } from "./useTaskLedger";
 import { useTodoShellConfig } from "./useTodoShellConfig";
 
 export function TodoDashboard() {
@@ -84,16 +101,16 @@ export function TodoDashboard() {
 
   const copyTodoItems = useCallback(async () => {
     if (!todoItems.length) {
-      message.error("请先填写待办事项");
+      message.error(t("todo.copyEmptyError"));
       return;
     }
 
     const text = exportFormat === "json" ? formatTodoItemsAsJson(todoItems) : formatTodoItemsAsMarkdown(todoItems);
     try {
       await writeClipboardText(text);
-      message.success(`已复制 ${todoItems.length} 条待办事项为 ${exportFormat === "json" ? "JSON" : "Markdown"}`);
+      message.success(t("todo.copySuccess", { count: todoItems.length, format: exportFormat === "json" ? "JSON" : "Markdown" }));
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "复制失败");
+      message.error(error instanceof Error ? error.message : t("todo.copyFailed"));
     }
   }, [exportFormat, todoItems]);
 
@@ -105,15 +122,15 @@ export function TodoDashboard() {
 
   const projectOptions = useMemo(() => {
     const projects = new Map<string, string>();
-    tasks.filter((task) => task.taskDomain !== "personal").forEach((task) => projects.set(projectKey(task.cwd), projectLabel(task.cwd)));
+    tasks.filter(isAgentTask).forEach((task) => projects.set(projectKey(task.cwd), projectLabel(task.cwd)));
     return [
-      { label: "全部项目", value: "all" },
+      { label: t("todo.filterAllProjects"), value: "all" },
       ...Array.from(projects, ([value, label]) => ({ label, value })).sort((left, right) => left.label.localeCompare(right.label)),
     ];
   }, [tasks]);
 
   const statusFilterOptions = useMemo(() => [
-    { label: "全部状态", value: "all" as StatusFilter },
+    { label: t("todo.filterAllStatuses"), value: "all" as StatusFilter },
     ...statusOptions.map((option) => ({ label: option.label, value: option.value as StatusFilter })),
   ], []);
 
@@ -126,7 +143,7 @@ export function TodoDashboard() {
     };
 
     workspaceProjects.forEach((project) => addProject(project.path, project.label));
-    tasks.filter((task) => task.taskDomain !== "personal").forEach((task) => addProject(task.cwd));
+    tasks.filter(isAgentTask).forEach((task) => addProject(task.cwd));
 
     return Array.from(byPath.values()).sort((left, right) => {
       if (left.value === workspaceRoot) return -1;
@@ -143,7 +160,7 @@ export function TodoDashboard() {
 
   const visibleTasks = useMemo(() => {
     const query = searchText.trim().toLowerCase();
-    return tasks.filter((task) => task.taskDomain !== "personal").filter((task) => {
+    return tasks.filter(isAgentTask).filter((task) => {
       if (projectFilter !== "all" && projectKey(task.cwd) !== projectFilter) return false;
       if (statusFilter !== "all" && task.status !== statusFilter) return false;
       if (!query) return true;
@@ -177,6 +194,25 @@ export function TodoDashboard() {
   });
 
   const columns = useTaskColumns({ deleteTask, markDoubted, setEditingId });
+
+  // Compute workspace-level project summary (tasks grouped by project cwd)
+  const workspaceProjectSummary = useMemo(() => {
+    const summary = new Map<string, { label: string; count: number }>();
+    tasks
+      .filter(isAgentTask)
+      .forEach((task) => {
+        const key = projectKey(task.cwd);
+        const label = projectLabel(task.cwd);
+        const existing = summary.get(key);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          summary.set(key, { label, count: 1 });
+        }
+      });
+    return Array.from(summary.values()).sort((a, b) => b.count - a.count);
+  }, [tasks]);
+
   return (
     <AxiDashboardShell
       activeNavKey={activeRoute === "items" ? "route:items" : activeRoute === "personal" ? "route:personal" : "route:tasks"}
@@ -213,15 +249,15 @@ export function TodoDashboard() {
         { current: true, icon: <AxiSvgIcon name="list" size={14} />, key: "personal-todo", label: t("nav.personal") },
       ] : [
         { icon: <AxiSvgIcon name="app" size={14} />, key: "axi", label: t("nav.axiApp") },
-        { current: true, icon: <AxiSvgIcon name="task" size={14} />, key: "todo", label: "Todo" },
+        { current: true, icon: <AxiSvgIcon name="task" size={14} />, key: "todo", label: t("nav.tasks") },
       ]}
       className="todo-dashboard-shell"
       globalSearch={globalSearchNode}
       labels={{
         github: t("topbar.github"),
         settings: t("topbar.settings"),
-        sidebarCollapse: t("topbar.settings"),
-        sidebarExpand: t("topbar.settings"),
+        sidebarCollapse: t("topbar.sidebarCollapse"),
+        sidebarExpand: t("topbar.sidebarExpand"),
         theme: t("topbar.theme"),
       }}
       navGroups={navGroups}
@@ -231,8 +267,8 @@ export function TodoDashboard() {
       sidebarSearchValue={searchText}
       tabbarLeftActions={activeRoute === "tasks" ? (
         <div className="todo-tabbar-actions">
-          <AxiIconButton icon={<AxiSvgIcon name="refresh" size={14} />} title="刷新任务" onClick={() => void refresh()} />
-          <AxiIconButton icon={<AxiSvgIcon name="home" size={14} />} title="重置筛选" onClick={() => {
+          <AxiIconButton icon={<AxiSvgIcon name="refresh" size={14} />} title={t("todo.refreshTasks")} onClick={() => void refresh()} />
+          <AxiIconButton icon={<AxiSvgIcon name="home" size={14} />} title={t("todo.resetFilters")} onClick={() => {
             setSearchText("");
             setProjectFilter("all");
             setStatusFilter("all");
@@ -240,13 +276,13 @@ export function TodoDashboard() {
         </div>
       ) : activeRoute === "personal" ? (
         <div className="todo-tabbar-actions">
-          <AxiIconButton icon={<AxiSvgIcon name="refresh" size={14} />} title="刷新个人待办" onClick={() => void refresh()} />
+          <AxiIconButton icon={<AxiSvgIcon name="refresh" size={14} />} title={t("todo.refreshPersonal")} onClick={() => void refresh()} />
         </div>
       ) : null}
       tabs={openRoutes.map((route) => route === "items"
-        ? { closable: true, key: route, label: "待办事项" }
-        : route === "personal" ? { key: route, label: "个人待办" }
-        : { key: route, label: "执行任务" })}
+        ? { closable: true, key: route, label: t("nav.items") }
+        : route === "personal" ? { key: route, label: t("nav.personal") }
+        : { key: route, label: t("nav.tasks") })}
       topbarActions={topbarActions}
       onNavSelect={(key) => {
         if (key === "route:tasks") {
@@ -312,9 +348,10 @@ export function TodoDashboard() {
         compact={compact}
         open={settingsOpen}
         preference={preference}
-        projectLabel={projectFilter === "all" ? "全部项目" : projectLabel(projectFilter)}
+        projectLabel={projectFilter === "all" ? t("todo.filterAllProjects") : projectLabel(projectFilter)}
         taskCount={visibleTasks.length}
         totalTaskCount={tasks.length}
+        workspaceProjectSummary={workspaceProjectSummary}
         onCompactChange={setCompact}
         onOpenChange={setSettingsOpen}
         onPreferenceChange={setPreference}

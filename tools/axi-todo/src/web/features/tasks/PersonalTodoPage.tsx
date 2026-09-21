@@ -4,6 +4,7 @@ import { AxiDatePicker } from "@axi/widgets";
 import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AxiTodoTask } from "../../native";
+import { isPersonalTask } from "./useTaskLedger";
 import { formatTime } from "./taskUtils";
 
 type PersonalView = "today" | "open" | "completed";
@@ -87,7 +88,7 @@ export function PersonalTodoPage({
   }, [addSignal]);
 
   const personalTasks = useMemo(
-    () => tasks.filter((task) => task.taskDomain === "personal"),
+    () => tasks.filter(isPersonalTask),
     [tasks],
   );
   const today = todayKey();

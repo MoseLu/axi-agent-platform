@@ -514,6 +514,19 @@
   }
 }
 
+.todo-settings-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.todo-settings-project-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2px;
+}
+
 .editor-field .ant-input-number,
 .editor-field .axi-date-picker,
 .editor-field .axi-select {

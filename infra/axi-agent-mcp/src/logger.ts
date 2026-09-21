@@ -17,6 +17,7 @@ export interface LogEntry {
   duration?: number;
   data?: Record<string, any>;
   error?: string;
+  stackTrace?: string; // LOG-STD-010: full stack trace for error consistency
 }
 
 export interface TraceSpan {
@@ -30,6 +31,7 @@ export interface TraceSpan {
   status: "pending" | "success" | "error";
   tags?: Record<string, string>;
   error?: string;
+  stackTrace?: string; // LOG-STD-010: full stack trace for error consistency
 }
 
 export interface PerformanceMetrics {
@@ -117,12 +119,16 @@ class Logger {
 
   /**
    * 记录错误日志
+   * LOG-STD-010: Captures full stack trace for error consistency across relay
    */
   error(event: string, error: Error | string, data?: Record<string, any>, model?: string): string {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const stackTrace = error instanceof Error && error.stack ? error.stack : undefined;
     return this.log({
       level: "error",
       event,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMessage,
+      stackTrace,
       data,
       model,
     });
@@ -154,13 +160,16 @@ class Logger {
 
   /**
    * 结束追踪
+   * LOG-STD-010: Captures stack trace when status is error for consistent error propagation
    */
-  endTrace(span: TraceSpan, status: "success" | "error", error?: string) {
+  endTrace(span: TraceSpan, status: "success" | "error", error?: Error | string) {
     span.endTime = new Date();
     span.duration = span.endTime.getTime() - span.startTime.getTime();
     span.status = status;
     if (error) {
-      span.error = error;
+      span.error = error instanceof Error ? error.message : String(error);
+      // LOG-STD-010: Capture full stack trace when available
+      span.stackTrace = error instanceof Error && error.stack ? error.stack : undefined;
     }
   }
 

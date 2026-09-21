@@ -21,6 +21,18 @@ Priority legend:
 
 ## P1 — Required for Next Minor
 
+### AXI-AP-BFF-005 — BFF merge into FastAPI (DECISION-001)
+- Owner: backend maintainer.
+- Acceptance: Go BFF merged into FastAPI with dashboard aggregation at `/api/v1/dashboard/stats`; DTO contract preserved; Go BFF archived at `services/agent-bff-ARCHIVED/`.
+- Evidence: `backend/app/api/dashboard.py` registered; `backend/tests/test_dashboard.py` passes (4/4); `services/agent-bff-ARCHIVED/` exists.
+- Status: Completed 2026-09-20.
+
+### AXI-AP-GATEWAY-006 — Gateway runtime verification (GATEWAY-VERIFY-005)
+- Owner: backend maintainer.
+- Acceptance: Enhanced health endpoints (`/health`, `/health/live`, `/health/ready`), `/metrics` endpoint, request ID tracing, and gateway verification tests.
+- Evidence: `backend/app/api/gateway.py`; `backend/tests/test_gateway_verification.py` passes (10/10).
+- Status: Completed 2026-09-20.
+
 ### AXI-AP-SUBAGENT-003 — SubAgent worktree lifecycle coverage
 - Owner: backend maintainer.
 - Acceptance: create, sync, commit, merge, and cleanup paths for Git worktrees covered by automated tests, with concurrent-agent collision handled.
@@ -62,6 +74,12 @@ Priority legend:
 
 ### AXI-AP-ADR-011 — First ADR set under `docs/ADR/`
 - Capture SubAgent worktree isolation and MCP swarm boundary as ADR-0001 / ADR-0002.
+
+### AXI-AP-CONSOLIDATE-013 — Consolidation policies for small backends
+- Owner: architecture engineer.
+- Acceptance: CONSOLIDATE-001 (merge criteria) and CONSOLIDATE-002 (modularity checklist) policies written and applied to identify next consolidation candidates.
+- Evidence: `docs/state/CONSOLIDATE-001-when-to-merge-small-backends.md`; `docs/state/CONSOLIDATE-002-service-modularity-checklist.md`.
+- Status: Completed 2026-09-20.
 
 ## Tracking
 

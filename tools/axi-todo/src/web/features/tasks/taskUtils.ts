@@ -1,22 +1,54 @@
 import dayjs from "dayjs";
+import fs from "node:fs";
 import { draftPrompt, workspaceRoot } from "../../app/constants";
 import type { AxiTodoTask } from "../../native";
 
-export function projectKey(cwd: string) {
-  const normalized = cwd.replace(/\/+$/, "");
+/**
+ * Returns the canonical project root path for a given cwd, or workspaceRoot as fallback.
+ *
+ * Edge cases handled:
+ * - undefined/null/empty cwd  →  workspaceRoot
+ * - cwd outside workspaceRoot  →  workspaceRoot
+ * - symlinked cwd  →  resolved real path before comparison
+ */
+export function projectKey(cwd: string): string {
+  if (!cwd) return workspaceRoot;
+
+  // Resolve symlinks and relative segments so we compare real paths
+  const resolved = fs.realpathSync.native(cwd);
+  const normalized = resolved.replace(/\/+$/, "");
   const prefix = `${workspaceRoot}/projects/`;
+
   if (normalized === workspaceRoot) return workspaceRoot;
   if (normalized.startsWith(prefix)) {
     const [project] = normalized.slice(prefix.length).split("/");
     return project ? `${prefix}${project}` : workspaceRoot;
   }
-  return normalized || cwd;
+  return workspaceRoot;
 }
 
-export function projectLabel(cwd: string) {
+/**
+ * Returns a human-readable project label from a cwd.
+ * Falls back to "workspace" when cwd is at workspace root.
+ */
+export function projectLabel(cwd: string): string {
   const key = projectKey(cwd);
   if (key === workspaceRoot) return "workspace";
-  return key.split("/").filter(Boolean).at(-1) || key;
+  return key.split("/").filter(Boolean).at(-1) ?? key;
+}
+
+/**
+ * Checks whether a project path exists on the filesystem.
+ * Used to guard against stale or deleted project directories.
+ */
+export function projectExists(cwd: string): boolean {
+  if (!cwd) return false;
+  try {
+    const key = projectKey(cwd);
+    return fs.existsSync(key) && fs.statSync(key).isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 export function formatTime(value: string) {

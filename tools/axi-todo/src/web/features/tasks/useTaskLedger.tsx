@@ -1,8 +1,31 @@
+/**
+ * Task Domain Split (taskDomain discriminator):
+ * ─────────────────────────────────────────────────────────────────────
+ * "agent"  — Long-running, AI-powered todos created via createTask/submitDraftTask.
+ *             These are workspace-scoped, have cwd, verifyCommand, prompt, and appear
+ *             in the TaskListPage / global search / project filters.
+ * "personal" — Short-lived personal reminders created via createPersonalTask.
+ *             These are personal-only, not workspace-scoped, and appear in
+ *             PersonalTodoPage with its own today/open/completed views.
+ *
+ * All tasks land in the same `tasks` state; the consuming components are responsible
+ * for filtering by taskDomain to keep the two domains visually and functionally separated.
+ */
 import { Modal, message } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { workspaceRoot } from "../../app/constants";
 import { native, type AxiTodoTask, type AxiWorkspaceProject } from "../../native";
 import { applyTaskPatch, createTaskDraft, isDraftPrompt } from "./taskUtils";
+
+/** Type guard: true when the task is an AI agent task (not a personal reminder). */
+export function isAgentTask(task: AxiTodoTask): task is AxiTodoTask & { taskDomain: "agent" } {
+  return task.taskDomain === "agent";
+}
+
+/** Type guard: true when the task is a personal reminder (not an agent task). */
+export function isPersonalTask(task: AxiTodoTask): task is AxiTodoTask & { taskDomain: "personal" } {
+  return task.taskDomain === "personal";
+}
 
 export function useTaskLedger() {
   const [tasks, setTasks] = useState<AxiTodoTask[]>([]);

@@ -21,6 +21,7 @@ export interface ErrorContext {
   errorType: ErrorType;
   retryCount: number;
   timestamp: Date;
+  // LOG-STD-010: stack trace stored in error.stack, accessible via getFullError()
 }
 
 export interface FallbackStrategy {
@@ -310,6 +311,17 @@ export class ErrorHandler {
    */
   clearErrorLogs() {
     this.errorLogs = [];
+  }
+
+  /**
+   * 获取完整的错误信息（包含栈跟踪）
+   * LOG-STD-010: 用于 relay 传输时的统一错误格式
+   */
+  getFullError(context: ErrorContext): { message: string; stack?: string } {
+    return {
+      message: context.error.message,
+      stack: context.error.stack,
+    };
   }
 }
 

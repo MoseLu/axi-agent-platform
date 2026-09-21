@@ -21,6 +21,11 @@ services:
     networks:
       - axi-agent-platform-network
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "5"
 
   frontend:
     build: ./frontend
@@ -32,6 +37,11 @@ services:
     networks:
       - axi-agent-platform-network
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "5"
 
 networks:
   axi-agent-platform-network:

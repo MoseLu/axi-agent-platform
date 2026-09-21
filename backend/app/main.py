@@ -11,8 +11,9 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db, VectorStore
-from app.api import agents_router, tasks_router, tools_router, memory_router, mcp_router, workstation_router
+from app.api import agents_router, tasks_router, tools_router, memory_router, mcp_router, workstation_router, dashboard_router
 from app.api.subagent import router as subagent_router, get_code_isolation_manager
+from app.api.gateway import check_component_health, get_metrics_summary, _gateway_metrics
 from app.core import AgentManager, TaskScheduler, MemoryManager, CodeIsolationManager
 from app.tools import ToolManager, get_builtin_tools
 from app.models import MiniMaxConnector
@@ -96,6 +97,13 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# 挂载全局组件到 app.state 供 gateway 端点使用
+app.state.agent_manager = agent_manager
+app.state.task_scheduler = task_scheduler
+app.state.tool_manager = tool_manager
+app.state.memory_manager = memory_manager
+app.state.vector_store = vector_store
+
 # CORS 配置
 app.add_middleware(
     CORSMiddleware,
@@ -113,6 +121,7 @@ app.include_router(memory_router, prefix="/api/v1")
 app.include_router(mcp_router, prefix="/api/v1")
 app.include_router(workstation_router, prefix="/api/v1")
 app.include_router(subagent_router)  # subAgent 模式专用接口
+app.include_router(dashboard_router, prefix="/api/v1")  # Dashboard aggregation (replaces Go BFF per ADR-005)
 
 
 @app.get("/")
@@ -127,12 +136,45 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
-    """健康检查"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat()
-    }
+async def health_check(request: Request):
+    """健康检查 - 检查所有组件状态"""
+    health = await check_component_health(
+        request.app.state.agent_manager,
+        request.app.state.task_scheduler,
+        request.app.state.tool_manager,
+        request.app.state.memory_manager,
+    )
+    return health
+
+
+@app.get("/health/live")
+async def liveness_check():
+    """Liveness probe - 简单存活检查"""
+    return {"status": "alive", "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/health/ready")
+async def readiness_check(request: Request):
+    """Readiness probe - 检查是否就绪接收流量"""
+    try:
+        agents = await request.app.state.agent_manager.list_agents()
+        tasks = await request.app.state.task_scheduler.list_tasks()
+        tools = await request.app.state.tool_manager.list_tools()
+        return {
+            "status": "ready",
+            "agent_count": len(agents),
+            "task_count": len(tasks),
+            "tool_count": len(tools),
+            "timestamp": datetime.now().isoformat(),
+        }
+    except Exception as e:
+        return {"status": "not_ready", "error": str(e), "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/metrics")
+async def metrics_endpoint():
+    """Prometheus-style metrics endpoint"""
+    return get_metrics_summary()
 
 
 @app.get("/api/v1/stats")
