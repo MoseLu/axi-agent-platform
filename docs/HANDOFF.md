@@ -92,3 +92,17 @@
 - Evidence: `PYTHONPATH=backend python3 -m pytest backend/tests/test_dashboard.py -q passed 4 tests in 0.18s on 2026-08-23 (path resolution, DTO field-by-field match with Go BFF, empty-state handling, request_id UUID format).`, `node /Volumes/code/workspace/foundation/workspace-governance/scripts/workspace-audit.mjs reports errors=0, warnings=0 on 2026-08-23 (3 incubations checked, no drift).`
 
 > Generated from `docs/project-docs.manifest.json`; edit the manifest, then regenerate this file.
+
+## Ahead-batch snapshot (2026-09-24)
+
+- Branch: `dev`
+- Upstream: `origin/dev`
+- Ahead commits: 9
+- Per v2.1 PRD §4 batch-separation rule:
+  - governance batch: 1
+  - docs batch: 3
+  - product batch (feat/fix/refactor): 1
+  - other (submit logs, agent sessions, etc.): 4
+- Next verification gate (project-local): `uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_runtime_api_smoke.py backend/tests/test_workstation_agent_tasks.py`
+- Push strategy: owner decides; agent does not auto-push.
+
