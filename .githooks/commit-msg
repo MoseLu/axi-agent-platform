@@ -2,4 +2,19 @@
 # Generated-by: axi-workspace-git-hooks
 set -eu
 
-node "/Volumes/code/workspace/infra/axi-workspace-governance/scripts/git-hooks/axi-commit-msg-lore-trailer.mjs" "$1"
+_candidate="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+_governance_root=""
+while [ -n "$_candidate" ]; do
+  if [ -f "$_candidate/workspace.json" ] && [ -d "$_candidate/scripts/git-hooks" ]; then
+    _governance_root="$_candidate"
+    break
+  fi
+  _parent="$(dirname "$_candidate")"
+  if [ "$_parent" = "$_candidate" ]; then break; fi
+  _candidate="$_parent"
+done
+if [ -z "$_governance_root" ]; then
+  echo "[axi-workspace-git-hooks] cannot locate governance root; skipping commit message validation" >&2
+  exit 0
+fi
+node "$_governance_root/scripts/git-hooks/axi-commit-msg-lore-trailer.mjs" "$1"

@@ -15,8 +15,7 @@ while [ -n "$_candidate" ]; do
   _candidate="$_parent"
 done
 if [ -z "$_governance_root" ]; then
-  echo "[axi-workspace-git-hooks] cannot locate governance root; skipping workspace propagation" >&2
+  echo "[axi-workspace-git-hooks] cannot locate governance root; skipping workflow preflight" >&2
   exit 0
 fi
-node "$_governance_root/scripts/git-hooks/axi-submit-log-post-commit.mjs" "$repo_root" || true
-node "$_governance_root/scripts/workspace-change-propagation.mjs" "$repo_root" || true
+node "$_governance_root/scripts/workspace-flow.mjs" preflight --repo-root "$repo_root" --staged --record
