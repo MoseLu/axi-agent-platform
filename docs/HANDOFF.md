@@ -1,7 +1,7 @@
 # Axi Agent Platform Handoff
 
 - Project: `axi-agent-platform`
-- Path: `/Volumes/code/workspace/projects/axi-agent-platform`
+- Path: `/Volumes/code/workspace/agent-cluster/axi-agent-platform`
 - Owner: `Axi Core Projects`
 - Readiness: `verified`
 - Purpose: Multi-agent collaboration platform combining a FastAPI backend, React dashboard, SubAgent worktree isolation, an MCP model swarm, and the Axi Todo tool.
@@ -89,6 +89,6 @@
 - Changelog: `docs/state/CHANGELOG.md`
 - Submit log: `docs/logs/submit/20260611-124509-batch-submit.md`
 - Last verified: `2026-08-23`
-- Evidence: `PYTHONPATH=backend python3 -m pytest backend/tests/test_dashboard.py -q passed 4 tests in 0.18s on 2026-08-23 (path resolution, DTO field-by-field match with Go BFF, empty-state handling, request_id UUID format).`, `node /Volumes/code/workspace/infra/axi-workspace-governance/scripts/workspace-audit.mjs reports errors=0, warnings=0 on 2026-08-23 (3 incubations checked, no drift).`
+- Evidence: `PYTHONPATH=backend python3 -m pytest backend/tests/test_dashboard.py -q passed 4 tests in 0.18s on 2026-08-23 (path resolution, DTO field-by-field match with Go BFF, empty-state handling, request_id UUID format).`, `node /Volumes/code/workspace/foundation/workspace-governance/scripts/workspace-audit.mjs reports errors=0, warnings=0 on 2026-08-23 (3 incubations checked, no drift).`
 
 > Generated from `docs/project-docs.manifest.json`; edit the manifest, then regenerate this file.
