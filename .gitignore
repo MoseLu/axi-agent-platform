@@ -14,3 +14,10 @@ frontend/dist/
 apps/*/node_modules/
 apps/*/dist/
 apps/*/release/
+
+# Local databases / vector stores (gitignored, regenerated on first run)
+*.db
+*.sqlite3
+*.sqlite
+chroma_db/
+chroma/
