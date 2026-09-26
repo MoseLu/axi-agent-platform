@@ -36,7 +36,7 @@ Status legend:
 
 - Scope: Add `CHANGELOG.md`, `TODO.md`, `MILESTONE.md`, `INDEX.md`, `docs/PRD.md`, and `docs/TDD.md`; preserve existing human-authored sections; first ADR directory created.
 - Verification:
-  - `for f in README.md README.zh-CN.md AGENTS.md CHANGELOG.md TODO.md MILESTONE.md INDEX.md PRD.md TDD.md; do test -f /Volumes/code/workspace/projects/axi-agent-platform/$f || exit 1; done && rg -n "Axi Agent Platform|PRD|TDD|Axi Todo|MCP" README.md PRD.md TDD.md MILESTONE.md INDEX.md` exits 0.
+  - `for f in README.md README.zh-CN.md AGENTS.md CHANGELOG.md TODO.md MILESTONE.md INDEX.md PRD.md TDD.md; do test -f /Volumes/code/workspace/agent-cluster/axi-agent-platform/$f || exit 1; done && rg -n "Axi Agent Platform|PRD|TDD|Axi Todo|MCP" README.md PRD.md TDD.md MILESTONE.md INDEX.md` exits 0.
 - Evidence: this commit set; see `CHANGELOG.md` [Unreleased] section.
 
 ## M-2026-Q3 — v1.2.0 WebSocket + real-time — ⏳

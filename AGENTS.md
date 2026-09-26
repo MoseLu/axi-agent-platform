@@ -1,6 +1,6 @@
 # Axi Agent Platform — 项目根级 AGENTS
 
-> 本文件是 **`/Volumes/code/workspace/projects/axi-agent-platform` 仓库根级** AGENTS，是进入本仓库的 agent 第一站。
+> 本文件是 **`/Volumes/code/workspace/agent-cluster/axi-agent-platform` 仓库根级** AGENTS，是进入本仓库的 agent 第一站。
 > 子模块（后端、前端、`infra/axi-agent-mcp`、升级方案镜像）的内部约束在各自的目录文件里，详见「Authoritative Sources」。
 > **两者的关系：根级 AGENTS = 项目门面与边界；子模块文件 = 实现与契约。** 任何对 `backend/`、`frontend/`、`infra/` 的修改必须先读对应子模块的文档；任何对仓库整体结构、升级方案、跨项目边界的判断必须先读本文件。
 
@@ -35,7 +35,7 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 | `README.zh-CN.md`、`docs/state/UPGRADE_v1.1.0.zh-CN.md`、`docs/state/upgrade-plan.zh-CN.md` | 是 | 根级文档的简体中文身份镜像（i18n mirror） |
 | `README.md`、`docs/state/UPGRADE_v1.1.0.md`、`docs/state/升级方案.md`、`docs/state/参考.md` | 是 | 源语言（中文）文档；本仓库 i18n 的「源」 |
 | `infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md` | 是 | MCP 蜂群服务契约，跨项目边界前必读 |
-| `references/*`（工作区级） | 否 | 由 `infra/axi-workspace-governance/` 治理，本项目不翻译、不编辑 |
+| `references/*`（工作区级） | 否 | 由 `foundation/workspace-governance/` 治理，本项目不翻译、不编辑 |
 | `backend/chroma_db/`、`backend/axi_agent_platform.db` | 否 | 运行时数据目录，不入版本控制 |
 | `backend/projects/` | 否 | SubAgent 模式的 worktree 根目录（受 `REPOSITORY_PATH` 控制），不入版本控制 |
 
@@ -51,12 +51,12 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 | SubAgent 模式升级说明（v1.1.0 新增角色、worktree、API、配置） | [`docs/state/UPGRADE_v1.1.0.zh-CN.md`](docs/state/UPGRADE_v1.1.0.zh-CN.md) |
 | SubAgent API 环境变量（`REPOSITORY_PATH` / `MAX_WORKTREES` / `MAX_PARALLEL_AGENTS` / `DEFAULT_BASE_BRANCH` / `WORKTREES_CLEANUP_HOURS`） | `docs/state/UPGRADE_v1.1.0.zh-CN.md` §「环境变量配置」与 [`README.zh-CN.md`](README.zh-CN.md) §「SubAgent 模式配置」 |
 | MCP 模型蜂群（模型路由、工具分组、服务契约） | [`infra/axi-agent-mcp/README.zh-CN.md`](infra/axi-agent-mcp/README.zh-CN.md)、[`infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md`](infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md) |
-| 与 Cursor subAgent 结合的可行性分析 | [`upgrade-plan.zh-CN.md`](upgrade-plan.zh-CN.md)（B6c 已建，请直接跳转，**不要照抄正文**） |
+| 与 Cursor subAgent 结合的可行性分析 | [`upgrade-plan.zh-CN.md`](docs/state/upgrade-plan.zh-CN.md)（B6c 已建，请直接跳转，**不要照抄正文**） |
 | 安全策略 | [`docs/governance/SECURITY.md`](docs/governance/SECURITY.md) |
 | 项目待办与路线图 | `docs/state/TODO.md`（仓库根级） |
 | 文档清单与责任归属 | [`docs/project-docs.manifest.json`](docs/project-docs.manifest.json) |
 | 变更历史 | `docs/state/CHANGELOG.md`（仓库根级） |
-| 工作区治理镜像 | 工作区级 `infra/axi-workspace-governance/`（只读，权威源在本仓库外） |
+| 工作区治理镜像 | 工作区级 `foundation/workspace-governance/`（只读，权威源在本仓库外） |
 
 > **优先级冲突时**：根级 `AGENTS.md` > `README.zh-CN.md` / `docs/state/UPGRADE_v1.1.0.zh-CN.md` > 子模块内部 AGENTS / 契约文档 > 治理镜像 > 个人记忆。
 
@@ -84,7 +84,7 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 
 ## Cross-Project Boundary
 
-- **不翻译**：`references/*`、`references/archives/*`、`infra/axi-workspace-governance/references/*`、`infra/axi-workspace-governance/temp/*`。
+- **不翻译**：`references/*`、`references/archives/*`、`foundation/workspace-governance/references/*`、`foundation/workspace-governance/temp/*`。
 - **不复制内容到本项目**：工作区其他项目的 README、AGENTS、ADR 都不应被原样搬入本仓库；本项目只承载「Axi Agent Platform 自身产品 + 升级方案」的内容。
 - **不假装是源**：源语言（中文）文档是本仓库 i18n 的「源」；简体中文 `*.zh-CN.md` 镜像只是为满足工作区 i18n 校验脚本的最小差异化要求，**不替代**源文档的权威地位。源说明文档（如 `升级方案.md`）的简体中文镜像（如 `upgrade-plan.zh-CN.md`）已由 B6c 落地，**直接跳转**到源即可，不要再次回写正文。
 - **可消费**：通过 workspace graph（`workspace-project`）查询 `axi-agent-platform` 的 `consumes` / `consumers` / `provides` / `contracts`；不要在业务代码里硬编码跨项目绝对路径。
@@ -116,10 +116,10 @@ The canonical change log for this project lives at [`docs/state/CHANGELOG.md`](d
 
 ## Windows 路径与 i18n 镜像策略
 
-- **Windows 路径保留原样（F5 决策）**：在工作区 i18n 镜像中，Windows 风格的路径（如 `venv\Scripts\activate`、`C:\Users\...`）**不做规范化**——保留反斜杠、保留盘符。原因是工作区 i18n 校验脚本（`infra/axi-workspace-governance/scripts/verify_doc_i18n.py`）以反引号 token multiset、内联反引号集合、行内标记集合等做不变量校验；若把 `\` 改写为 `/`、把 `C:\Users\foo` 改写为 POSIX 形式，会破坏 token multiset，触发 false-negative「未翻译」告警。
+- **Windows 路径保留原样（F5 决策）**：在工作区 i18n 镜像中，Windows 风格的路径（如 `venv\Scripts\activate`、`C:\Users\...`）**不做规范化**——保留反斜杠、保留盘符。原因是工作区 i18n 校验脚本（`foundation/workspace-governance/scripts/verify_doc_i18n.py`）以反引号 token multiset、内联反引号集合、行内标记集合等做不变量校验；若把 `\` 改写为 `/`、把 `C:\Users\foo` 改写为 POSIX 形式，会破坏 token multiset，触发 false-negative「未翻译」告警。
 - **i18n 镜像的最小差异化**：简体中文 `*.zh-CN.md` 文件在顶部追加「关于本镜像（i18n note）」段，**正文逐字保留**源文档（代码块段数、链接集合、行内反引号标记集合、大写蛇形命名标记集合均与源完全一致）。源文档更新时同步更新镜像的对应正文（不含顶部 i18n 注释）。
 - **token multiset 不变量**：回引号标记、大写蛇形名（`REPOSITORY_PATH`、`MAX_WORKTREES`）、链接路径、代码块行数在源与镜像之间必须一致。任何 i18n 改动后请在提交前先跑 `verify_doc_i18n` 校验。
-- 详细决策记录见 `infra/axi-workspace-governance/docs/` 中的 F5 决策条目（若该文件尚未落地，由工作区治理 owner 维护）。
+- 详细决策记录见 `foundation/workspace-governance/docs/` 中的 F5 决策条目（若该文件尚未落地，由工作区治理 owner 维护）。
 
 ---
 
@@ -135,7 +135,7 @@ cd backend && pytest
 pnpm --dir frontend build
 
 # 镜像一致性校验（修改 *.zh-CN.md 后必跑）
-python infra/axi-workspace-governance/scripts/verify_doc_i18n.py projects/axi-agent-platform
+python foundation/workspace-governance/scripts/verify_doc_i18n.py agent-cluster/axi-agent-platform
 
 # 工作区图谱健康检查
 /Volumes/code/workspace/scripts/workspace-project health axi-agent-platform
@@ -166,6 +166,23 @@ python infra/axi-workspace-governance/scripts/verify_doc_i18n.py projects/axi-ag
 ---
 
 *最后更新：2026-06-07 — 根级 AGENTS 首版，由 workspace-docs-gap 子代理 W4 落地。*
+
+## Boundaries
+
+- **可写范围**：`backend/app/**`、`frontend/src/**`、`apps/desktop-glass-ui/**`、`infra/axi-agent-mcp/**`、`tools/axi-todo/**`、`docs/**`、根级 `AGENTS.md` / `README.md` / `README.zh-CN.md` / `docs/state/UPGRADE_v1.1.0*`。
+- **不可写**：`backend/chroma_db/`、`backend/axi_agent_platform.db`、`backend/projects/`（SubAgent 的 Git worktree 根目录）、`frontend/dist/`、`backend/__pycache__/` 与工作区级 `references/*` / `foundation/workspace-governance/`。
+- **不要**在业务代码里硬编码跨项目绝对路径；改跨项目能力前先查 `workspace-project consumers axi-agent-platform` / `workspace-project deps axi-agent-platform`。
+- **不要**让 `backend/` 直接写其它项目的 workspace graph 或 Kernel 注册表字段；持久化变更必须经过 `foundation/axi-kernel` 的 `axi_kernel.register_*` API 或 `workspace-project` CLI。
+- **不要**把 OMX / Codex / Cursor 内部状态目录（`.omx/`、`.codegraph/`、agent transcripts）写入 commit。
+
+## Request Defaults
+
+- 把用户最新一条消息视为当前事实。
+- 在询问仓库根或路径前，先用 `workspace-project validate` + `WORKSPACE_INDEX.md` + `workspace-project list` 解析；`workspace-project whereami` 必须传本仓库的规范绝对路径。
+- "接手"、"零上下文接手"、"检查当前状态"、"是否可以开始后续开发"按 ready 任务处理：先读本文件 + `README.zh-CN.md` + `docs/state/UPGRADE_v1.1.0.zh-CN.md` + 最近 `CHANGELOG.md`，再跑最小验证。
+- 修改 `backend/**` → 至少跑 `make backend-test` 与相关 pytest；修改 `infra/axi-agent-mcp/**` → 至少跑 `pnpm --dir infra/axi-agent-mcp typecheck` 与 mcp 服务冒烟；改跨项目契约（SubAgent API / MCP 蜂群）→ 跑 `workspace-project consumers axi-agent-platform` 列出的下游最小验证。
+- 普通 ready 检查禁止 `workspace-project deps / consumers / profile`，除非用户明确要求跨项目契约分析。
+- 答复结尾不再列多个"下一步选项"；按"Verification"里最小验证序列直接推进或报告。
 
 ## Relationship Metadata
 

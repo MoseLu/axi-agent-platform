@@ -3,7 +3,7 @@
   "project": "axi-agent-platform",
   "name": "Axi Agent Platform",
   "status": "verified",
-  "canonicalPath": "/Volumes/code/workspace/projects/axi-agent",
+  "canonicalPath": "/Volumes/code/workspace/agent-cluster/axi-agent",
   "kind": "multi-runtime monorepo",
   "lifecycle": "active",
   "owner": "Axi Core Projects",
@@ -242,14 +242,14 @@
   },
   "verification": {
     "status": "verified",
-    "lastVerifiedAt": "2026-08-23",
+    "lastVerifiedAt": "2026-09-25",
     "commands": [
       "PYTHONPATH=backend python3 -m pytest backend/tests/test_dashboard.py -q",
-      "node /Volumes/code/workspace/infra/axi-workspace-governance/scripts/workspace-audit.mjs"
+      "node /Volumes/code/workspace/foundation/workspace-governance/scripts/workspace-audit.mjs"
     ],
     "evidence": [
       "PYTHONPATH=backend python3 -m pytest backend/tests/test_dashboard.py -q passed 4 tests in 0.18s on 2026-08-23 (path resolution, DTO field-by-field match with Go BFF, empty-state handling, request_id UUID format).",
-      "node /Volumes/code/workspace/infra/axi-workspace-governance/scripts/workspace-audit.mjs reports errors=0, warnings=0 on 2026-08-23 (3 incubations checked, no drift)."
+      "node /Volumes/code/workspace/foundation/workspace-governance/scripts/workspace-audit.mjs reports errors=0, warnings=0 on 2026-08-23 (3 incubations checked, no drift)."
     ]
   },
   "startup_profile": {

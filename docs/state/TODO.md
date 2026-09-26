@@ -12,7 +12,7 @@ Priority legend:
 ### AXI-AP-DOC-001 — Complete the docs suite and verify required files
 - Owner: docs-agent / Axi workspace docs deep-init rollout.
 - Acceptance: `README.md`, `README.zh-CN.md`, `AGENTS.md`, `CHANGELOG.md`, `TODO.md`, `MILESTONE.md`, `INDEX.md`, `PRD.md`, and `TDD.md` all exist; manual sections preserved.
-- Test case: run the verification command `for f in README.md README.zh-CN.md AGENTS.md CHANGELOG.md TODO.md MILESTONE.md INDEX.md PRD.md TDD.md; do test -f /Volumes/code/workspace/projects/axi-agent-platform/$f || exit 1; done && rg -n "Axi Agent Platform|PRD|TDD|Axi Todo|MCP" README.md PRD.md TDD.md MILESTONE.md INDEX.md` and assert exit code 0.
+- Test case: run the verification command `for f in README.md README.zh-CN.md AGENTS.md CHANGELOG.md TODO.md MILESTONE.md INDEX.md PRD.md TDD.md; do test -f /Volumes/code/workspace/agent-cluster/axi-agent-platform/$f || exit 1; done && rg -n "Axi Agent Platform|PRD|TDD|Axi Todo|MCP" README.md PRD.md TDD.md MILESTONE.md INDEX.md` and assert exit code 0.
 
 ### AXI-AP-MCP-002 — Keep `axi-agent-mcp` service contract drift-free
 - Owner: backend maintainer.
