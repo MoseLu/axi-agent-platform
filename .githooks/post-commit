@@ -14,9 +14,28 @@ while [ -n "$_candidate" ]; do
   if [ "$_parent" = "$_candidate" ]; then break; fi
   _candidate="$_parent"
 done
+case "$repo_root" in
+  "/Volumes/code/workspace"/*)
+    if [ -z "$_governance_root" ] && [ -f "/Volumes/code/workspace/foundation/workspace-governance/workspace.json" ] && [ -d "/Volumes/code/workspace/foundation/workspace-governance/scripts/git-hooks" ]; then
+      _governance_root="/Volumes/code/workspace/foundation/workspace-governance"
+    fi
+    ;;
+esac
 if [ -z "$_governance_root" ]; then
   echo "[axi-workspace-git-hooks] cannot locate governance root; skipping workspace propagation" >&2
   exit 0
 fi
-node "$_governance_root/scripts/git-hooks/axi-submit-log-post-commit.mjs" "$repo_root" || true
-node "$_governance_root/scripts/workspace-change-propagation.mjs" "$repo_root" || true
+status=0
+if ! node "$_governance_root/scripts/git-hooks/axi-submit-log-post-commit.mjs" "$repo_root"; then
+  echo "[axi-workspace-git-hooks] submit log failed" >&2
+  status=1
+fi
+if ! node "$_governance_root/scripts/workspace-change-ledger.mjs" record "$repo_root"; then
+  echo "[axi-workspace-git-hooks] change ledger record failed" >&2
+  status=1
+fi
+if ! node "$_governance_root/scripts/workspace-change-propagation.mjs" "$repo_root"; then
+  echo "[axi-workspace-git-hooks] workspace propagation failed" >&2
+  status=1
+fi
+exit "$status"

@@ -14,8 +14,15 @@ while [ -n "$_candidate" ]; do
   if [ "$_parent" = "$_candidate" ]; then break; fi
   _candidate="$_parent"
 done
+case "$repo_root" in
+  "/Volumes/code/workspace"/*)
+    if [ -z "$_governance_root" ] && [ -f "/Volumes/code/workspace/foundation/workspace-governance/workspace.json" ] && [ -d "/Volumes/code/workspace/foundation/workspace-governance/scripts/git-hooks" ]; then
+      _governance_root="/Volumes/code/workspace/foundation/workspace-governance"
+    fi
+    ;;
+esac
 if [ -z "$_governance_root" ]; then
   echo "[axi-workspace-git-hooks] cannot locate governance root; skipping workflow preflight" >&2
   exit 0
 fi
-node "$_governance_root/scripts/workspace-flow.mjs" preflight --repo-root "$repo_root" --staged
+node "$_governance_root/scripts/workspace-flow.mjs" preflight --repo-root "$repo_root" --staged --record
