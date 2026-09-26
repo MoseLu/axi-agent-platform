@@ -15,6 +15,9 @@ apps/*/node_modules/
 apps/*/dist/
 apps/*/release/
 
+# Nested infra pnpm lockfile is regenerated from package.json at workspace root
+infra/**/package-lock.json
+
 # Local databases / vector stores (gitignored, regenerated on first run)
 *.db
 *.sqlite3
