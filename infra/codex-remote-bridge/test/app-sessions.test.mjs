@@ -103,13 +103,13 @@ test("listActiveAppTasks reports recent running Codex App threads", (t) => {
     {
       id: "task_one",
       title: "Finish the WeChat IM phone handoff end to end",
-      cwd: "/Volumes/code/workspace/projects/axi-workbench/apps/ollama-menu-assistant",
+      cwd: "/Volumes/code/workspace/workbench/axi-workbench/apps/ollama-menu-assistant",
       updated_at_ms: (now - 90) * 1000,
     },
     {
       id: "task_two",
       title: "已继续补全并安装 pet 图片",
-      cwd: "/Volumes/code/workspace/projects/axi-workbench/apps/ollama-menu-assistant",
+      cwd: "/Volumes/code/workspace/workbench/axi-workbench/apps/ollama-menu-assistant",
       updated_at_ms: (now - 45) * 1000,
     },
     {

@@ -26,7 +26,7 @@
   `plutil -lint ~/Library/LaunchAgents/cn.redamancy.codex-remote-bridge.plist`.
 
 ## Workflow
-- Keep source changes in `/Volumes/code/workspace/projects/axi-agent-platform/infra/codex-remote-bridge`.
+- Keep source changes in `/Volumes/code/workspace/agent-cluster/axi-agent-platform/infra/codex-remote-bridge`.
 - Use `install --no-start` while an older Cockpit Tools build is still running
   an embedded bridge with the same `clientId`.
 - Start the sidecar only when duplicate bridge connections are not possible.

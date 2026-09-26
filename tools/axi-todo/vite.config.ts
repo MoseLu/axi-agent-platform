@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
 import type { PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
-import { axi, axiDefaultChunkGroups } from "/Volumes/code/workspace/shared/axi-ui/packages/vite-plugin/dist/index.js";
+import { axi, axiDefaultChunkGroups } from "/Volumes/code/workspace/foundation/axi-ui/packages/vite-plugin/dist/index.js";
 
-const axiUiRoot = "/Volumes/code/workspace/shared/axi-ui/packages";
+const axiUiRoot = "/Volumes/code/workspace/foundation/axi-ui/packages";
 const maxChunkSizeBytes = 1_000_000;
 const axiIconChunkGroups = [1, 2, 3, 4, 5].map((chunk) => ({
   name: `axi-icons-${chunk}`,

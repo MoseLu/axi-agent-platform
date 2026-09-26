@@ -16,7 +16,7 @@ sqlalchemy==2.0.25
 alembic==1.13.1
 chromadb==0.4.22
 greenlet==3.4.0
-numpy==1.26.4
+numpy>=2.0,<3.0
 
 # Data Models
 pydantic==2.13.4

@@ -1,7 +1,7 @@
 # Codex Session
 
 ## Current State
-- Project migrated to `/Volumes/code/workspace/projects/axi-agent-platform/infra/codex-remote-bridge`.
+- Project migrated to `/Volumes/code/workspace/agent-cluster/axi-agent-platform/infra/codex-remote-bridge`.
 - Source was moved out of `/Volumes/code/workspace/references/cockpit-tools/sidecar/`.
 - Installed runtime remains at
   `~/.antigravity_cockpit/packages/codex-remote-bridge/current/`.
@@ -16,7 +16,7 @@
   that Codex App session.
 
 ## Continue From Here
-- Open future Codex sessions in `/Volumes/code/workspace/projects/axi-agent-platform/infra/codex-remote-bridge`.
+- Open future Codex sessions in `/Volumes/code/workspace/agent-cluster/axi-agent-platform/infra/codex-remote-bridge`.
 - Use `node --test test/*.test.mjs` as the first verification command.
 - Use `node bin/codex-remote-bridge-manager.mjs install --no-start` and then
   `node bin/codex-remote-bridge-manager.mjs restart` for local package refreshes.

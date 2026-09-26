@@ -5,7 +5,7 @@
 **axi-todo is NOT a standalone workspace project.** It is a component of `axi-agent` located at:
 
 ```
-/Volumes/code/workspace/projects/axi-agent/tools/axi-todo/
+/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/
 ```
 
 It lives under `tools/` rather than `projects/` because it is local developer automation: a CLI, MCP server, and LaunchAgent-backed daemon for Codex task handling.
@@ -16,9 +16,9 @@ The workspace contains multiple independent todo/task systems with different own
 
 | System | Location | Owner | Purpose |
 |--------|----------|-------|---------|
-| **axi-todo** | `projects/axi-agent/tools/axi-todo/` | axi-agent | Primary canonical local task ledger; CLI + MCP server + LaunchAgent daemon for Codex execution |
-| **workflow-todo** | `shared/axi-ui/gallery/test/gallery-todo.test.mjs` | axi-ui/gallery | Gallery-specific test artifact, not a production todo system |
-| **feiyu-agentflow todo** | `projects/axi-notify/donors/feiyu-agentflow/` | feiyu-agentflow donor | Imported agentflow backend; part of axi-notify donor code |
+| **axi-todo** | `agent-cluster/axi-agent/tools/axi-todo/` | axi-agent | Primary canonical local task ledger; CLI + MCP server + LaunchAgent daemon for Codex execution |
+| **workflow-todo** | `foundation/axi-ui/gallery/test/gallery-todo.test.mjs` | axi-ui/gallery | Gallery-specific test artifact, not a production todo system |
+| **feiyu-agentflow todo** | `foundation/axi-notify/donors/feiyu-agentflow/` | feiyu-agentflow donor | Imported agentflow backend; part of axi-notify donor code |
 | **axi-soul-world todo** | `products/axi-soul-world/apps/android/` | axiom-soul-world | Android application todo; separate product domain |
 | **minimax-axi-todo-loop** | `~/.claude/skills/minimax-axi-todo-loop/` | skills | Orchestration skill for MiniMax quota-aware todo scheduling |
 

@@ -5,7 +5,7 @@ Companion doc for the A-segment change set landing in `tools/axi-todo/lib/{proce
 Run order:
 
 ```bash
-cd /Volumes/code/workspace/projects/axi-agent-platform
+cd /Volumes/code/workspace/agent-cluster/axi-agent-platform
 node --test tools/axi-todo/test/evidence-guardrails.test.mjs
 node --test tools/axi-todo/test/*.test.mjs        # regression
 ```

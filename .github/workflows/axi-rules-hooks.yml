@@ -35,9 +35,9 @@ on:
       - main
     paths:
       - '.githooks/**'
-      - 'infra/axi-workspace-governance/scripts/git-hooks/**'
-      - 'infra/axi-workspace-governance/scripts/workspace-git-hooks.mjs'
-      - 'infra/axi-workspace-governance/scripts/workspace-git-hooks.test.mjs'
+      - 'foundation/workspace-governance/scripts/git-hooks/**'
+      - 'foundation/workspace-governance/scripts/workspace-git-hooks.mjs'
+      - 'foundation/workspace-governance/scripts/workspace-git-hooks.test.mjs'
       - '.github/workflows/axi-rules-hooks.yml'
   pull_request:
     branches:
@@ -45,9 +45,9 @@ on:
       - main
     paths:
       - '.githooks/**'
-      - 'infra/axi-workspace-governance/scripts/git-hooks/**'
-      - 'infra/axi-workspace-governance/scripts/workspace-git-hooks.mjs'
-      - 'infra/axi-workspace-governance/scripts/workspace-git-hooks.test.mjs'
+      - 'foundation/workspace-governance/scripts/git-hooks/**'
+      - 'foundation/workspace-governance/scripts/workspace-git-hooks.mjs'
+      - 'foundation/workspace-governance/scripts/workspace-git-hooks.test.mjs'
       - '.github/workflows/axi-rules-hooks.yml'
   workflow_dispatch:
 
@@ -87,24 +87,24 @@ jobs:
             --depth 1 \
             --branch dev \
             https://x-access-token:${GITHUB_TOKEN}@github.com/axiomaticworld/axi-workspace-governance.git \
-            infra/axi-workspace-governance
+            foundation/workspace-governance
 
       - name: Install governance dependencies
-        working-directory: infra/axi-workspace-governance
+        working-directory: foundation/workspace-governance
         run: pnpm install --frozen-lockfile=false
 
       - name: Run hook unit tests
-        working-directory: infra/axi-workspace-governance
+        working-directory: foundation/workspace-governance
         run: pnpm git-hooks:test
 
       - name: Install hooks into the owning repository
-        working-directory: infra/axi-workspace-governance
+        working-directory: foundation/workspace-governance
         env:
           AXI_HOOKS_SELF_ONLY: '1'
         run: pnpm workspace:git:hooks:install
 
       - name: Verify the owning repository (self-only)
-        working-directory: infra/axi-workspace-governance
+        working-directory: foundation/workspace-governance
         env:
           AXI_HOOKS_SELF_ONLY: '1'
         run: pnpm workspace:git:hooks:verify

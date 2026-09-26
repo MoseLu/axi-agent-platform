@@ -1,7 +1,7 @@
 # Evidence
 
 ## 2026-04-28
-- Migrated source to `/Volumes/code/workspace/projects/axi-agent-platform/infra/codex-remote-bridge`.
+- Migrated source to `/Volumes/code/workspace/agent-cluster/axi-agent-platform/infra/codex-remote-bridge`.
 - Verified sidecar tests before migration:
   `node --test sidecar/codex-remote-bridge/test/*.test.mjs` passed with 8 tests.
 - Verified sidecar tests after migration from the new project root:

@@ -66,7 +66,7 @@ Extend the existing `tasks.json` state shape with PRD-specific collections. Keep
 {
   "id": "prd_...",
   "title": "Axi Todo PRD continuity",
-  "cwd": "/Volumes/code/workspace/projects/axi-agent-platform",
+  "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent-platform",
   "status": "active",
   "canonicalPrdPath": "docs/prd/<slug>/PRD.md",
   "artifactRoot": "docs/prd/<slug>",

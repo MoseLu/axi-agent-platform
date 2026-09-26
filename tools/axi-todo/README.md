@@ -2,7 +2,7 @@
 
 `axi-todo` is a local persistent task ledger plus Codex runner. It is the Axi Todo / assistant surface for unfinished-task checks. Day-to-day task maintenance is handled by the macOS desktop app; the CLI, MCP server, and LaunchAgent stay behind it as the automation backend.
 
-Canonical workspace path: `/Volumes/code/workspace/projects/axi-agent-platform/tools/axi-todo`.
+Canonical workspace path: `/Volumes/code/workspace/agent-cluster/axi-agent-platform/tools/axi-todo`.
 
 It lives under `tools/` rather than `projects/` because it is local developer automation: a CLI, MCP server, and LaunchAgent-backed daemon for Codex task handling. Product applications remain under `/Volumes/code/workspace/projects`.
 
@@ -45,7 +45,7 @@ pnpm desktop:bundle
 The bundle is generated at:
 
 ```text
-/Volumes/code/workspace/projects/axi-agent-platform/tools/axi-todo/dist/Axi Todo.app
+/Volumes/code/workspace/agent-cluster/axi-agent-platform/tools/axi-todo/dist/Axi Todo.app
 ```
 
 Install it into `Applications`:
@@ -70,7 +70,7 @@ pnpm verify
 node bin/axi-todo.mjs add \
   --title "Check README" \
   --prompt "Inspect this project and improve README wording if needed." \
-  --cwd /Volumes/code/workspace/projects/axi-agent-platform/tools/axi-todo \
+  --cwd /Volumes/code/workspace/agent-cluster/axi-agent-platform/tools/axi-todo \
   --verify-command "pnpm verify"
 
 node bin/axi-todo.mjs list
@@ -78,7 +78,7 @@ node bin/axi-todo.mjs ready --limit 16
 node bin/axi-todo.mjs schedule --limit 16
 node bin/axi-todo.mjs run-once
 node bin/axi-todo.mjs daemon --interval-ms 300000
-node bin/axi-todo.mjs verify-log --project /Volumes/code/workspace/projects/axi-image-preview --limit 16
+node bin/axi-todo.mjs verify-log --project /Volumes/code/workspace/workbench/axi-image-preview --limit 16
 ```
 
 ## Task Splitting And Scheduling
@@ -88,7 +88,7 @@ Use `split` to turn one broad goal into a dry-run child-task plan before writing
 ```bash
 node bin/axi-todo.mjs split \
   --goal "Improve MiniMax five-hour quota scheduling" \
-  --cwd /Volumes/code/workspace/projects/axi-agent-platform/tools/axi-todo \
+  --cwd /Volumes/code/workspace/agent-cluster/axi-agent-platform/tools/axi-todo \
   --target-ready 24 \
   --verify-command "pnpm test"
 ```
@@ -121,7 +121,7 @@ Useful OMO-aligned task fields:
 Register the stdio MCP server with the local Codex CLI:
 
 ```bash
-codex mcp add axi-todo -- node /Volumes/code/workspace/projects/axi-agent-platform/tools/axi-todo/bin/axi-todo-mcp.mjs
+codex mcp add axi-todo -- node /Volumes/code/workspace/agent-cluster/axi-agent-platform/tools/axi-todo/bin/axi-todo-mcp.mjs
 ```
 
 Useful MCP tools:
@@ -154,7 +154,7 @@ node bin/axi-todo-launchd.mjs uninstall
 The LaunchAgent runs:
 
 ```text
-node /Volumes/code/workspace/projects/axi-agent-platform/tools/axi-todo/bin/axi-todo-daemon.mjs --interval-ms 300000
+node /Volumes/code/workspace/agent-cluster/axi-agent-platform/tools/axi-todo/bin/axi-todo-daemon.mjs --interval-ms 300000
 ```
 
 ## Task Statuses

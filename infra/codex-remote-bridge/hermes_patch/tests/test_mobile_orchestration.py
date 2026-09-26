@@ -77,11 +77,11 @@ class MobileOrchestrationTests(unittest.TestCase):
                 "tasks": [
                     {
                         "thread_name": "Finish the WeChat IM phone handoff end to end",
-                        "cwd": "/Volumes/code/workspace/projects/axi-workbench/apps/ollama-menu-assistant",
+                        "cwd": "/Volumes/code/workspace/workbench/axi-workbench/apps/ollama-menu-assistant",
                     },
                     {
                         "thread_name": "已继续补全并安装 pet 图片",
-                        "cwd": "/Volumes/code/workspace/projects/axi-workbench/apps/ollama-menu-assistant",
+                        "cwd": "/Volumes/code/workspace/workbench/axi-workbench/apps/ollama-menu-assistant",
                     },
                     {
                         "thread_name": "在管理员页面增第四个选项",
