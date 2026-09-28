@@ -5,6 +5,10 @@ All notable changes to **Axi Agent Platform** are recorded here. The format foll
 ## [Unreleased]
 
 ### Added
+- 2026-09-29: Wired Capability Broker into `ToolManager.execute_tool` and
+  `AxiAgentMcpClient.call_tool` — calls without `capability_id` raise
+  `CapabilityError(deny_unregistered_tool)`. Workstation safe-tools
+  auto-issue read-only capabilities. Phase 1 commit 4.
 - Unified Axi Todo task fields for personal work: domain, lifecycle and
   execution state, optional body/due/reminder data, bounded actor-tagged
   history with stable event IDs, and a Postgres migration that permits

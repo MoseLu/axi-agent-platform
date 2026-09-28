@@ -42,6 +42,7 @@
 - Verify: `pnpm --dir infra/axi-agent-mcp test`
 - Verify: `pnpm --dir tools/axi-todo verify`
 - Smoke: `PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_code_isolation_manager.py backend/tests/test_runtime_api_smoke.py`
+- Verify: `PYTHONPATH=backend uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_broker_enforcement.py backend/tests/test_task_routing.py backend/tests/test_direct_execution_guards.py backend/tests/test_capability_broker.py backend/tests/test_governance_guard.py`
 
 ## Environment
 

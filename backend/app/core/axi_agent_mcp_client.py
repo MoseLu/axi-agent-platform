@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from app.config import settings
+from app.core.capability_broker import CapabilityBroker, CapabilityError
+from app.core.governance_runtime import get_runtime_broker
 
 
 AXI_AGENT_MCP_REQUIRED_TOOLS = {
@@ -107,7 +109,23 @@ class AxiAgentMcpClient:
             raise AxiAgentMcpClientError("Axi Agent MCP tools/list returned an invalid tools payload")
         return response
 
-    def call_tool(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def call_tool(
+        self,
+        name: str,
+        arguments: Optional[Dict[str, Any]] = None,
+        *,
+        capability_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        # Server-side enforcement: every MCP tool call MUST carry a
+        # Broker-issued capability. Refuse before any wire dispatch.
+        if capability_id is None:
+            raise CapabilityError(
+                "missing capability_id; axi_agent_mcp_client.call_tool requires broker-issued capability"
+            )
+        broker = get_runtime_broker()
+        action_digest = CapabilityBroker.compute_action_digest(name, arguments or {})
+        broker.consume(capability_id, action_digest=action_digest, target=name)
+
         result = self._request_mcp(
             {
                 "jsonrpc": "2.0",
@@ -141,7 +159,15 @@ class AxiAgentMcpClient:
         if gate_ids:
             arguments["gateIds"] = gate_ids
 
-        result = self.call_tool("swarm_validate_with_gates", arguments)
+        # Auto-issue a read-only workstation capability for the known-safe
+        # ``swarm_validate_with_gates`` tool. This keeps the existing
+        # ``validate_with_quality_gates`` callers (e.g. ``/workstation`` API,
+        # ``TaskScheduler._quality_check``) functional without requiring an
+        # upstream caller change in this commit. Future commits may migrate
+        # these callers to thread an explicit ``capability_id`` issued by the
+        # workflow governance pipeline.
+        cap = self._issue_workstation_capability("swarm_validate_with_gates", arguments)
+        result = self.call_tool("swarm_validate_with_gates", arguments, capability_id=cap.capability_id)
         text = result.get("text", "")
         passed = "验证状态**: ✅ 通过" in text or (
             "✅ 通过" in text and "❌ 未通过" not in text
@@ -162,7 +188,12 @@ class AxiAgentMcpClient:
         if tool_name not in AXI_AGENT_MCP_WORKSTATION_SAFE_TOOLS:
             raise AxiAgentMcpClientError(f"Axi Workstation cannot call mutating or unapproved MCP tool: {tool_name}")
 
-        result = self.call_tool(tool_name, arguments or {})
+        # Auto-issue a read-only workstation capability for known-safe tools.
+        # The allowlist above (``AXI_AGENT_MCP_WORKSTATION_SAFE_TOOLS``)
+        # restricts issuance to ``swarm_git_status`` only, so the
+        # capability remains scoped to read-only side effects.
+        cap = self._issue_workstation_capability(tool_name, arguments or {})
+        result = self.call_tool(tool_name, arguments or {}, capability_id=cap.capability_id)
         text = result.get("text", "")
         passed = not text.lstrip().startswith("❌")
         return {
@@ -189,6 +220,63 @@ class AxiAgentMcpClient:
             "mutating_tools": sorted(AXI_AGENT_MCP_MUTATING_TOOLS),
             "missing_mutating_tools": missing_mutating,
         }
+
+    # --- workstation capability auto-issuance ---
+
+    # Short TTL for workstation-safe auto-issued capabilities: the
+    # workstation path is synchronous and the capability is single-use
+    # (max_uses=1) — the only reason the TTL exists is to absorb clock
+    # skew between ``issue`` and ``consume``.
+    _WORKSTATION_CAPABILITY_TTL_SECONDS = 30
+
+    def _issue_workstation_capability(
+        self,
+        tool_name: str,
+        arguments: Dict[str, Any],
+    ) -> Any:
+        """Issue a one-shot capability for a known-safe workstation tool.
+
+        Used by ``validate_with_quality_gates`` and
+        ``run_workstation_readonly_tool`` so their existing callers (the
+        ``/workstation`` API and ``TaskScheduler._quality_check``) keep
+        working without threading an explicit ``capability_id`` through
+        the workflow governance pipeline in this commit. The capability is
+        scoped to ``subject="workstation"`` and a short TTL; the tool
+        itself is restricted by the allowlist checks at the call site.
+        """
+        from app.core.capability_broker import Capability as _Capability
+
+        broker = get_runtime_broker()
+        action_digest = CapabilityBroker.compute_action_digest(tool_name, arguments)
+        allowed_target = self._workstation_target(tool_name, arguments)
+        # ``plan_digest`` for workstation auto-issuance is the action
+        # digest itself — there is no upstream ExecutionPlan here. This
+        # keeps the broker's SHA-256 capability_id deterministic for the
+        # same (tool, arguments) pair without conflating with planner
+        # plans.
+        return broker.issue(
+            subject="workstation",
+            tool=tool_name,
+            plan_digest=action_digest,
+            action_digest=action_digest,
+            allowed_target=allowed_target,
+            idempotency_key=None,
+            ttl_seconds=self._WORKSTATION_CAPABILITY_TTL_SECONDS,
+        )
+
+    @staticmethod
+    def _workstation_target(tool_name: str, arguments: Dict[str, Any]) -> str:
+        """Return the target string the broker MUST bind against.
+
+        ``call_tool`` passes ``target=tool_name`` to ``broker.consume``
+        (the tool id is the binding that ties the capability to the call
+        site). Auto-issuance must therefore bind to the same string so
+        the consume call succeeds. The ``arguments`` dict is accepted for
+        forward-compat (a future commit may tighten this to a path-like
+        target) but is intentionally not consulted today: workstation
+        capabilities are bound to the tool id, not to a per-call path."""
+        del arguments  # unused; kept for API stability
+        return tool_name
 
     def _request_mcp(self, request: Dict[str, Any]) -> Dict[str, Any]:
         if not self.cwd.exists():

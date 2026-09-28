@@ -7,6 +7,8 @@ import asyncio
 from typing import Dict, List, Any, Optional, Callable
 from datetime import datetime
 
+from app.core.capability_broker import CapabilityBroker, CapabilityError
+from app.core.governance_runtime import get_runtime_broker
 from app.schemas.tool import Tool, ToolCreate, ToolUpdate, ToolExecutionResult, ToolType
 from app.database.vector_store import VectorStore
 
@@ -93,7 +95,8 @@ class ToolManager:
         tool_id: str,
         parameters: Dict[str, Any],
         agent_id: Optional[str] = None,
-        task_id: Optional[str] = None
+        task_id: Optional[str] = None,
+        capability_id: Optional[str] = None,
     ) -> ToolExecutionResult:
         """
         执行工具
@@ -103,12 +106,27 @@ class ToolManager:
             parameters: 执行参数
             agent_id: 调用智能体ID
             task_id: 任务ID
+            capability_id: Broker-issued capability (REQUIRED for side-effect tools).
+                A ``None`` value raises ``CapabilityError`` — the server-side
+                gate refuses to execute any side-effect tool without a
+                broker-issued capability, per the agent-governance principle
+                "没有 Capability 的工具调用必须在服务端失败".
             
         Returns:
             执行结果
         """
         start_time = time.time()
-        
+
+        # Server-side enforcement: every side-effect tool call MUST carry a
+        # Broker-issued capability. Refuse before any handler dispatch.
+        if capability_id is None:
+            raise CapabilityError(
+                "missing capability_id; tool_manager.execute_tool requires broker-issued capability"
+            )
+        broker = get_runtime_broker()
+        action_digest = CapabilityBroker.compute_action_digest(tool_id, parameters)
+        broker.consume(capability_id, action_digest=action_digest, target=tool_id)
+
         tool = self._tools.get(tool_id)
         if not tool:
             return ToolExecutionResult(
