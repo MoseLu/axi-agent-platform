@@ -1,0 +1,32 @@
+{
+  "manifestId": "axi-agent-mcp-builtin-2026-09-29",
+  "schemaVersion": "tool-manifest/v1",
+  "issuedAt": "2026-09-29T00:00:00Z",
+  "allowedTools": [
+    "swarm_chat",
+    "swarm_chat_with_model",
+    "swarm_analyze_task",
+    "swarm_validate_with_gates",
+    "swarm_git_status",
+    "swarm_run_test",
+    "swarm_write_file",
+    "swarm_modify_file",
+    "swarm_git_commit",
+    "swarm_git_create_branch",
+    "swarm_autofix_lint",
+    "swarm_vector_upsert"
+  ],
+  "mutatingTools": [
+    "swarm_write_file",
+    "swarm_modify_file",
+    "swarm_git_commit",
+    "swarm_git_create_branch",
+    "swarm_autofix_lint",
+    "swarm_vector_upsert"
+  ],
+  "workstationSafeTools": [
+    "swarm_git_status",
+    "swarm_validate_with_gates"
+  ],
+  "quarantine": []
+}

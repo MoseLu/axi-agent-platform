@@ -13,7 +13,13 @@ config({ path: join(__dirname, "..", ".env") });
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ErrorCode,
+  McpError,
+} from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+import { ToolManifestLoader } from "./manifest.js";
 import {
   selectModel,
   getFallbackChain,
@@ -71,6 +77,21 @@ import {
   SmartCache,
   CodeStore,
 } from "./database/index.js";
+
+// 治理层（Phase 1 commit 5）：加载服务端工具白名单 manifest。
+// manifest 必须在任何 registerTool 调用之前加载完成；加载失败时
+// 服务器拒绝启动（process.exit(1)），不存在绕过中间件的回退路径。
+const toolManifestLoader = new ToolManifestLoader();
+try {
+  toolManifestLoader.load();
+} catch (error) {
+  // eslint-disable-next-line no-console
+  console.error(
+    "[axi-agent-mcp] FATAL: failed to load tool manifest: " +
+      (error instanceof Error ? error.message : String(error)),
+  );
+  process.exit(1);
+}
 
 const server = new McpServer({
   name: "axi-agent-mcp",
@@ -2142,6 +2163,128 @@ function getCodebaseIndexer(projectRoot: string): CodebaseIndexer {
 
 // 启动文件锁清理
 fileLockManager.startCleanupInterval();
+
+// =============================================================================
+// 治理层（Phase 1 commit 5）：server-side tool allowlist middleware
+// -----------------------------------------------------------------------------
+// 覆盖 McpServer 默认注册的 `tools/call` 处理器。
+//   * 不在 manifest.allowedTools 中的工具 -> JSON-RPC -32601 tool_not_allowed
+//   * 属于 manifest.mutatingTools 的工具 -> 必须携带字符串参数 capability_id
+//     （长度 >= 8；具体内容校验留待 commit 6），缺失或不足则返回 -32602
+// capability_id 不从 arguments 中剥离，下游 handler 在 commit 6+ 阶段
+// 仍能直接读取用于 capability broker 校验。
+// =============================================================================
+
+type RegisteredToolEntry = {
+  title?: string;
+  description?: string;
+  inputSchema?: { safeParseAsync?: (data: unknown) => Promise<unknown> };
+  handler?: (args: unknown, extra: unknown) => unknown | Promise<unknown>;
+  enabled: boolean;
+};
+
+const mcpInternals = server as unknown as {
+  _registeredTools: Record<string, RegisteredToolEntry>;
+};
+
+server.server.setRequestHandler(
+  CallToolRequestSchema,
+  async (request, extra) => {
+    const params = (request.params ?? {}) as { name?: unknown; arguments?: unknown };
+    const toolName = typeof params.name === "string" ? params.name : "";
+
+    if (!toolManifestLoader.isAllowed(toolName)) {
+      throw new McpError(ErrorCode.MethodNotFound, "tool_not_allowed", {
+        reasonCode: "deny_unregistered_tool",
+        toolName,
+      });
+    }
+
+    if (toolManifestLoader.isMutating(toolName)) {
+      const args =
+        params.arguments && typeof params.arguments === "object"
+          ? (params.arguments as Record<string, unknown>)
+          : {};
+      const capabilityId = args.capability_id;
+      if (
+        typeof capabilityId !== "string" ||
+        capabilityId.length < 8
+      ) {
+        throw new McpError(
+          ErrorCode.InvalidParams,
+          "missing_capability",
+          {
+            reasonCode: "deny_unregistered_tool",
+            toolName,
+          },
+        );
+      }
+    }
+
+    const registered = mcpInternals._registeredTools?.[toolName];
+    if (!registered || registered.enabled === false) {
+      throw new McpError(
+        ErrorCode.MethodNotFound,
+        `Tool ${toolName} not found`,
+        { reasonCode: "deny_unregistered_tool", toolName },
+      );
+    }
+
+    let parsedArgs: unknown = params.arguments;
+    if (registered.inputSchema && typeof registered.inputSchema.safeParseAsync === "function") {
+      const parseResult = (await registered.inputSchema.safeParseAsync(
+        params.arguments ?? {},
+      )) as {
+        success: boolean;
+        data?: unknown;
+        error?: { issues?: Array<{ path?: Array<string | number>; message?: string }> };
+      };
+      if (!parseResult.success) {
+        const issues = parseResult.error?.issues ?? [];
+        const detail = issues
+          .map((issue) => {
+            const path = Array.isArray(issue.path) ? issue.path.join(".") : "";
+            return `${path || "<root>"}: ${issue.message ?? "invalid"}`;
+          })
+          .join("; ");
+        throw new McpError(
+          ErrorCode.InvalidParams,
+          `Input validation error: Invalid arguments for tool ${toolName}${
+            detail ? `: ${detail}` : ""
+          }`,
+        );
+      }
+      parsedArgs = parseResult.data;
+    }
+
+    if (typeof registered.handler !== "function") {
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Tool ${toolName} has no handler`,
+      );
+    }
+
+    try {
+      const handlerResult = await Promise.resolve(
+        registered.inputSchema
+          ? registered.handler(parsedArgs, extra)
+          : registered.handler(extra),
+      );
+      return handlerResult;
+    } catch (error) {
+      if (error instanceof McpError) {
+        if (error.code === ErrorCode.UrlElicitationRequired) {
+          throw error;
+        }
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        content: [{ type: "text" as const, text: message }],
+        isError: true,
+      };
+    }
+  },
+);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

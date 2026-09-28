@@ -12,6 +12,7 @@ All notable local changes to Axi Agent are tracked here.
   integration for publishing bounded-agent lifecycle spans to the workspace
   TraceStore.
 - 2026-09-29: Added Capability Broker + Governance Guard primitives (one-shot, action-digest-bound, TTL-bounded capabilities; 4-state allow/deny/transform/pause plan evaluation). Tool manifest enumerates all current built-in + MCP tool ids. Phase 1 commit 3.
+- 2026-09-29: `infra/axi-agent-mcp` adds server-side tool allowlist (`manifest.json` + middleware in `src/index.ts`); ~31 currently-unallowlisted `swarm_*` tools are now rejected at the MCP request boundary with JSON-RPC `code = -32601` / `reasonCode = "deny_unregistered_tool"`; mutating tools additionally require a `capability_id` argument (raw string ≥ 8 chars; content validation deferred to commit 6) and return `code = -32602` when missing. Phase 1 commit 5.
 
 ### Changed
 
