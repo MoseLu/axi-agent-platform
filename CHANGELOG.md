@@ -8,7 +8,10 @@ All notable local changes to Axi Agent are tracked here.
 
 ### Added
 
-- _（暂无新增条目；由项目 owner 在每次提交后补充）_
+- Optional `OBSERVABILITY_TRACE_SINK_URL` / `OBSERVABILITY_TRACE_SINK_TOKEN`
+  integration for publishing bounded-agent lifecycle spans to the workspace
+  TraceStore.
+- 2026-09-29: Added Capability Broker + Governance Guard primitives (one-shot, action-digest-bound, TTL-bounded capabilities; 4-state allow/deny/transform/pause plan evaluation). Tool manifest enumerates all current built-in + MCP tool ids. Phase 1 commit 3.
 
 ### Changed
 

@@ -1,7 +1,7 @@
 # Axi Agent Platform Handoff
 
 - Project: `axi-agent-platform`
-- Path: `/Volumes/code/workspace/agent-cluster/axi-agent-platform`
+- Path: `/Volumes/code/workspace/agent-cluster/axi-agent`
 - Owner: `Axi Core Projects`
 - Readiness: `verified`
 - Purpose: Multi-agent collaboration platform combining a FastAPI backend, React dashboard, SubAgent worktree isolation, an MCP model swarm, and the Axi Todo tool.
@@ -36,6 +36,7 @@
 - Health: `curl -fsS http://127.0.0.1:8000/health`
 - Health: `curl -fsS http://127.0.0.1:8000/`
 - Verify: `cd backend && pytest tests/`
+- Verify: `cd backend && PYTHONPATH=. .venv/bin/python -m pytest -q tests/test_capability_broker.py tests/test_governance_guard.py`
 - Verify: `pnpm --dir frontend build`
 - Verify: `pnpm --dir apps/desktop-glass-ui build`
 - Verify: `pnpm --dir infra/axi-agent-mcp test`
@@ -87,22 +88,8 @@
 
 - ADR: `docs/ADR/README.md`
 - Changelog: `docs/state/CHANGELOG.md`
-- Submit log: `docs/logs/submit/20260611-124509-batch-submit.md`
-- Last verified: `2026-08-23`
+- Submit log: not recorded
+- Last verified: `2026-09-25`
 - Evidence: `PYTHONPATH=backend python3 -m pytest backend/tests/test_dashboard.py -q passed 4 tests in 0.18s on 2026-08-23 (path resolution, DTO field-by-field match with Go BFF, empty-state handling, request_id UUID format).`, `node /Volumes/code/workspace/foundation/workspace-governance/scripts/workspace-audit.mjs reports errors=0, warnings=0 on 2026-08-23 (3 incubations checked, no drift).`
 
 > Generated from `docs/project-docs.manifest.json`; edit the manifest, then regenerate this file.
-
-## Ahead-batch snapshot (2026-09-24)
-
-- Branch: `dev`
-- Upstream: `origin/dev`
-- Ahead commits: 9
-- Per v2.1 PRD §4 batch-separation rule:
-  - governance batch: 1
-  - docs batch: 3
-  - product batch (feat/fix/refactor): 1
-  - other (submit logs, agent sessions, etc.): 4
-- Next verification gate (project-local): `uv run --python 3.12 --with-requirements backend/requirements.txt python -m pytest -q backend/tests/test_runtime_api_smoke.py backend/tests/test_workstation_agent_tasks.py`
-- Push strategy: owner decides; agent does not auto-push.
-
