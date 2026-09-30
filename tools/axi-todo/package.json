@@ -27,7 +27,7 @@
     "@axi/icons": "link:/Volumes/code/workspace/foundation/axi-ui/packages/icons",
     "@vitejs/plugin-react": "^5.2.0",
     "antd": "^6.4.3",
-    "dayjs": "^1.11.21",
+    "dayjs": "^1.11.23",
     "pg": "^8.21.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
