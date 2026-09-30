@@ -80,13 +80,13 @@ jobs:
       - name: Clone governance repo into sibling path
         working-directory: ${{ github.workspace }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AXI_GOVERNANCE_PAT: ${{ secrets.AXI_GOVERNANCE_PAT }}
         run: |
           mkdir -p infra
           git clone \
             --depth 1 \
             --branch dev \
-            https://x-access-token:${GITHUB_TOKEN}@github.com/axiomaticworld/axi-workspace-governance.git \
+            https://x-access-token:${AXI_GOVERNANCE_PAT}@github.com/MoseLu/axi-workspace-governance.git \
             foundation/workspace-governance
 
       - name: Install governance dependencies
