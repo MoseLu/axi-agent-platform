@@ -1,0 +1,64 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "in-progress",
+  "milestoneTitle": "M4: 修 M2 newFindings (PG source provenance + warnIfDualPopulated probe cost)",
+  "milestoneAcceptance": [
+    "M4.S1: M4 ledger 落地,范围与 M3 ledger 互不重叠 (不涉及 M1 10-entry recheck,后者仍是 owner decision)",
+    "M4.S2: PG schema 加 source 列 (text NOT NULL DEFAULT 'json-canonical'),加 imported_at timestamptz,迁移安全可重入 (idempotent IF NOT EXISTS)",
+    "M4.S3: PG migrator 写 tasks 时携带 source / imported_at,axi-todo-import-postgres.mjs 写源为 'import-postgres'",
+    "M4.S4: warnIfDualPopulated 默认只在 chosenKind 实际可能产生对偶写入时探测对侧 (JSON-only chosen → skip PG probe unless AXI_TODO_DUAL_PROBE=1;PG-only chosen → skip JSON probe symmetrically);probe 调用方 (cli / daemon / mcp) 在 store-only boot 路径下不付出 PG connect 成本",
+    "M4.S5: parity 测试:JSON task 的 source / imported_at 字段迁移到 PG 后保留;warnIfDualPopulated 在 JSON-only / PG-only / both-populated 三种场景下 IO 调用次数符合预期 (mocks 计数)",
+    "M4.S6: 全测试套件全绿,Swift smoke 不变;Lore commits 落地;M4 ledger close"
+  ],
+  "subTasks": [
+    {
+      "tag": "M4.S1",
+      "id": "TODO-m4-s1-id",
+      "status": "pending",
+      "deps": []
+    },
+    {
+      "tag": "M4.S2",
+      "id": "TODO-m4-s2-id",
+      "status": "pending",
+      "deps": ["M4.S1"]
+    },
+    {
+      "tag": "M4.S3",
+      "id": "TODO-m4-s3-id",
+      "status": "pending",
+      "deps": ["M4.S2"]
+    },
+    {
+      "tag": "M4.S4",
+      "id": "TODO-m4-s4-id",
+      "status": "pending",
+      "deps": ["M4.S1"]
+    },
+    {
+      "tag": "M4.S5",
+      "id": "TODO-m4-s5-id",
+      "status": "pending",
+      "deps": ["M4.S3", "M4.S4"]
+    },
+    {
+      "tag": "M4.S6",
+      "id": "TODO-m4-s6-id",
+      "status": "pending",
+      "deps": ["M4.S5"]
+    }
+  ],
+  "sourceFindings": [
+    "PG-NEWFINDING-1 (from M2 newFindings): M2 schema extension 把 source + importedAt 加到 JSON tasks,axi-todo-import-postgres.mjs:96 写 source: 'import-postgres',但 PG schema (001_task_memory.sql) 没对应列,migrator 写 PG 时 provenance 丢失。M4 关闭这个 gap。",
+    "PG-NEWFINDING-2 (from M2 newFindings): warnIfDualPopulated 在 bin/axi-todo.mjs / bin/axi-todo-daemon.mjs / lib/mcp-server.mjs 三个 boot 路径上无条件探测 PG (pool.connect + readState),JSON-only 启动路径付出 PG connect 成本。M4 让 probe 在 chosen-side 单一时默认 skip 对侧,显式 env var 强制开启。"
+  ],
+  "explicitlyOutOfScope": [
+    "M1 历史 10 条 JSON-only `status:'completed'` 条目 recheck:owner decision,逐条重审,不批量改状态。事实核查显示实际是 10 条而不是 18 条,本里程碑完全不涉及。",
+    "Swift AxiTodoStore 接 PG:超出 M4 scope。Swift 继续读 JSON 不变。",
+    "completion_summaries / failure_analyses / planning_records / memory_cards 加 source 列:超出 M4 scope;M4 只在 tasks 上加 source + imported_at,因 M2 newFinding 只提到 tasks 上的 source 字段丢失。其他 collection 的 provenance 留后续 milestone。",
+    "warnIfDualPopulated 整体重写 / 拆分为可选的 background sync:超出 M4 scope;M4 只收紧 probe 触发条件。",
+    "PG→JSON 反向同步 (把 PG 写回到 JSON):超出 M4 scope;M2 决策 JSON canonical,PG opt-in,反向同步不在任何新Finding 里。"
+  ],
+  "ownerDecisionsRequired": [],
+  "newFindings": []
+}
