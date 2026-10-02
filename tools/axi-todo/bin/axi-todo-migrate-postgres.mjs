@@ -3,7 +3,6 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_POSTGRES_DATABASE_URL } from "../lib/postgres-store.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const migrationsDirectory = path.join(root, "migrations");
@@ -11,7 +10,19 @@ const migrationPaths = readdirSync(migrationsDirectory)
   .filter((name) => name.endsWith(".sql"))
   .sort()
   .map((name) => path.join(migrationsDirectory, name));
-const databaseUrl = process.env.DATABASE_URL || process.env.AXI_TODO_DATABASE_URL || DEFAULT_POSTGRES_DATABASE_URL;
+// M2.S4: stop silently falling back to `postgresql:///axi_todo`. The previous
+// implicit default has caused "looks connected, actually empty DB" incidents
+// (see M2 ledger outOfScopeButFlagged). Operators must set DATABASE_URL or
+// AXI_TODO_DATABASE_URL; if both are missing we exit with a clear error so
+// the migrator never silently runs against the wrong database.
+const databaseUrl = process.env.DATABASE_URL || process.env.AXI_TODO_DATABASE_URL;
+if (!databaseUrl) {
+  process.stderr.write(
+    "axi-todo-migrate-postgres: DATABASE_URL (or AXI_TODO_DATABASE_URL) is required.\n" +
+      "Refusing to silently fall back to an implicit database URL.\n",
+  );
+  process.exit(1);
+}
 
 if (!migrationPaths.length || migrationPaths.some((migrationPath) => !existsSync(migrationPath))) {
   process.stderr.write(`migration not found in ${migrationsDirectory}\n`);
