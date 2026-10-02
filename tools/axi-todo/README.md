@@ -8,7 +8,7 @@ It lives under `tools/` rather than `projects/` because it is local developer au
 
 ## Runtime Model
 
-- Task store: JSON file at `~/.axi-todo/tasks.json` by default, or `AXI_TODO_HOME/tasks.json`.
+- Task store: JSON file at `~/.axi-todo/tasks.json` by default, or `AXI_TODO_HOME/tasks.json`. JSON is the canonical store because the Swift desktop bridge reads/writes it directly; the optional PostgreSQL backend is opt-in via env vars (see [PostgreSQL as an opt-in backend](#postgresql-as-an-opt-in-backend)).
 - Desktop app: macOS WebView shell with shared `@axi/core`, `@axi/shell`, `@axi/crud`, `@axi/settings`, `@axi/widgets`, and `@axi/vite-plugin` layers for creating, editing, filtering, deleting, building, and re-queuing tasks against the same JSON store.
 - MCP server: stdio JSON-RPC server exposing Agent task operations plus personal
   Todo completion, restore, snooze, and activity-history tools.
@@ -168,6 +168,59 @@ node /Volumes/code/workspace/agent-cluster/axi-agent-platform/tools/axi-todo/bin
 
 Personal Todos keep `status` for compatibility with the shared store, but the
 user-facing lifecycle is `open`, `completed`, `cancelled`, or `archived`.
+
+## PostgreSQL as an opt-in backend
+
+JSON is canonical, but operators who want a Postgres-backed store can run the
+PG schema (`bin/axi-todo-migrate-postgres.mjs`) and switch the runtime via
+`AXI_TODO_STORE`. The PG store is not the desktop app's source of truth — the
+Swift bridge is structurally bound to JSON — so the importer
+(`bin/axi-todo-import-postgres.mjs`) is the only sanctioned path for PG data
+to enter the canonical JSON ledger.
+
+### `AXI_TODO_STORE` values
+
+| Value      | Behaviour                                                                                                  |
+|------------|------------------------------------------------------------------------------------------------------------|
+| `json`     | Always use the local JSON store (`AXI_TODO_HOME` or `~/.axi-todo/tasks.json`).                              |
+| `postgres` | Always use Postgres; requires `DATABASE_URL` or `AXI_TODO_DATABASE_URL` to be set.                        |
+| `auto`     | Use Postgres when `DATABASE_URL` / `AXI_TODO_DATABASE_URL` is set, otherwise JSON.                        |
+
+`AXI_TODO_STORE` defaults to `postgres` for backwards compatibility, but if
+`AXI_TODO_HOME` is set and neither `DATABASE_URL` nor `AXI_TODO_DATABASE_URL`
+is, the runner falls back to JSON. M2 does **not** flip the default; if you
+want JSON to win when both env vars are set, run:
+
+```bash
+export AXI_TODO_STORE=json
+```
+
+The current default stays until the owner signs off on the swap (see M2
+ledger `ownerDecisionsRequired`).
+
+### Dual-store startup warning
+
+When the CLI, daemon, or MCP server boots and finds **both** stores
+populated, it prints one line to stderr:
+
+```text
+axi-todo: detected populated JSON + PG stores; using <chosen>. Run bin/axi-todo-import-postgres.mjs to consolidate (other=<kind> tasks=<count>).
+```
+
+This is informational only; it never blocks startup. Run
+`bin/axi-todo-import-postgres.mjs` (with `--dry-run` first) to bring PG rows
+into JSON. The importer is reentrant: it tracks imported PG ids in
+`$AXI_TODO_HOME/.imported-pg-ids.json` and skips them on the next run.
+
+### Migrator and importer no longer fall back silently
+
+As of M2, `bin/axi-todo-migrate-postgres.mjs` and
+`bin/axi-todo-import-postgres.mjs` both require `DATABASE_URL` or
+`AXI_TODO_DATABASE_URL` to be set. If both are missing they exit 1 with a
+clear stderr message instead of silently defaulting to
+`postgresql:///axi_todo` (the previous behaviour caused real "looks connected,
+actually empty DB" incidents; see `.m1-snapshot/ledger/m2-entries.json`
+`outOfScopeButFlagged`).
 
 ## CLI Reference
 
