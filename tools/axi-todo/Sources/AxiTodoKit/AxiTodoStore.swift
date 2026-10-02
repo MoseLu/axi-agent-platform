@@ -27,6 +27,12 @@ public final class AxiTodoStore {
         }
         let data = try Data(contentsOf: fileURL)
         let decoder = JSONDecoder()
+        // M6 track-2: `importedAt` is the first Swift Date field on
+        // `AxiTodoTask`; configure `.iso8601` so the Swift bridge matches the
+        // ISO 8601 strings that lib/schema.mjs writes at the top level of the
+        // normalized task JSON. Other timestamp fields remain `String?` on
+        // the model and continue to round-trip untouched.
+        decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(AxiTodoState.self, from: data)
     }
 
@@ -287,6 +293,10 @@ public final class AxiTodoStore {
     private func writeState(_ state: AxiTodoState) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        // M6 track-2: mirror readState — write `importedAt` (and any future
+        // `Date` fields) as ISO 8601 strings so the canonical JSON stays
+        // compatible with the Node daemon and lib/schema.mjs normalizers.
+        encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(state)
         try data.write(to: fileURL, options: [.atomic])
     }
