@@ -1,7 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
-  "milestoneStatus": "in-progress",
-  "verificationStatus": "Not yet submitted",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Awaiting owner acceptance",
   "milestoneTitle": "M7: post-commit hook 阻断修复 + newFindings 收尾 + M6.4 fact-check 修正",
   "milestoneAcceptance": [
     "M7.S1: M7 ledger 落地,锁定 3 条轨道 (workspace-change-ledger.mjs 阻断修复 / audit_reviews + task_events provenance / M6.4 audit fact-check 修正)",
@@ -14,44 +14,86 @@
     {
       "tag": "M7.S1",
       "id": "TODO-m7-s1-id",
-      "status": "in-progress",
-      "evidence": "this ledger file lands first",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "commit b3c6ed1 — this ledger file landed first",
       "deps": []
     },
     {
       "tag": "M7.S2",
       "id": "TODO-m7-s2-id",
       "trackTitle": "Post-commit hook 阻断修复 (workspace-change-ledger.mjs 恢复)",
-      "status": "in-progress",
-      "evidence": "foundation/workspace-governance/scripts/workspace-change-ledger.mjs + workspace-change-ledger.test.mjs restored from commit 395f171 + new commit on governance repo",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "foundation/workspace-governance commit 72d30d9 (branch feature/audit-docs) — workspace-change-ledger.mjs (206 lines) + workspace-change-ledger.test.mjs (51 lines) restored byte-for-byte from 395f171; byte-diff vs 395f171 = 0; smoke import exit 0; tests 2/2 pass",
       "deps": ["M7.S1"]
     },
     {
       "tag": "M7.S3",
       "id": "TODO-m7-s3-id",
       "trackTitle": "M6.4 web-deps audit fact-check 修正",
-      "status": "pending",
-      "evidence": ".m1-snapshot/m6-audit/web-deps-audit.json updated; npm view verification evidence recorded in audit",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "axi-agent commit be4e0919 (branch dev, parent b3c6ed1) — .m1-snapshot/m6-audit/web-deps-audit.json updated: vite@8.0.16 + typescript@6.0.3 driftStatus flipped to verified; npm view 4-query evidence recorded; correctedFrom + factCheck fields added; 14 driftFindings preserved + 6 ownerDecisionRequired preserved (only #1 retroactively resolved); JSON parse OK",
       "deps": ["M7.S1"]
     },
     {
       "tag": "M7.S4",
       "id": "TODO-m7-s4-id",
       "trackTitle": "audit_reviews + task_events PG provenance 镜像",
-      "status": "pending",
-      "evidence": "tools/axi-todo/migrations/005_event_provenance.sql + lib/postgres-store.mjs insert paths + test/migrate-event-provenance.test.mjs",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "axi-agent 4 commits (branch dev): 8302801 feat migrations/005_event_provenance.sql + f61a470 fix recordTaskEvent + recordAuditReview bind source + imported_at + aad2162 test 11/11 pass + bf1b012 docs; M3.S4 audit transaction wrapper byte-for-byte preserved (withClient BEGIN / audit_reviews INSERT / getTaskForUpdate / status-flip upsertTask / audit_waiting task_events INSERT / COMMIT)",
       "deps": ["M7.S1"]
     },
     {
       "tag": "M7.S99",
       "id": "TODO-m7-s99-id",
       "trackTitle": "事实核查 + 全套验证 + M7 ledger close",
-      "status": "pending",
-      "evidence": "git cat-file on all subagent commits + node --test + swift run + ledger close",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent fact-check: git cat-file -t on 6 commit SHAs (8302807/f61a470/aad2162/bf1b012/be4e0919/72d30d9) all = commit; node --test test/*.test.mjs → 181/181 pass (M7 delta +11 migrate-event-provenance.test.mjs); swift run AxiTodoStoreSmokeTests → pass; this ledger close committed",
       "deps": ["M7.S2", "M7.S3", "M7.S4"]
     }
   ],
-  "loreTrail": [],
+  "loreTrail": [
+    {
+      "sha": "72d30d9",
+      "scope": "governance",
+      "track": "M7.S2",
+      "subject": "fix(governance): restore scripts/workspace-change-ledger.mjs + .test.mjs from 395f171"
+    },
+    {
+      "sha": "be4e0919",
+      "scope": "axi-todo",
+      "track": "M7.S3",
+      "subject": "chore(axi-todo): M7 factcheck — vite@8.0.16 + typescript@6.0.3 verified as public registry versions"
+    },
+    {
+      "sha": "8302807",
+      "scope": "axi-todo",
+      "track": "M7.S4",
+      "subject": "feat(axi-todo): add migrations/005_event_provenance.sql mirroring M4 / M6 sticky source + imported_at onto audit_reviews + task_events"
+    },
+    {
+      "sha": "f61a470",
+      "scope": "axi-todo",
+      "track": "M7.S4",
+      "subject": "fix(axi-todo): recordTaskEvent + recordAuditReview bind source + imported_at with sticky ON CONFLICT"
+    },
+    {
+      "sha": "aad2162",
+      "scope": "axi-todo",
+      "track": "M7.S4",
+      "subject": "test(axi-todo): add migrate-event-provenance.test.mjs — 10 statements, idempotency, sticky upserts, M3.S4 withClient preserved"
+    },
+    {
+      "sha": "bf1b012",
+      "scope": "axi-todo",
+      "track": "M7.S4",
+      "subject": "docs(axi-todo): document M7 provenance extension to audit_reviews + task_events"
+    }
+  ],
   "subagentTracks": [
     {
       "id": "m7-track-1-post-commit-fix",
@@ -96,8 +138,28 @@
     "M6.4 audit ownerDecisionRequired #4 (5 uncommitted dirty .tsx files land in feature branch): out of M7 scope — these are separate scratch work, not part of any M-series milestone.",
     "Swift AxiTodoTask 24-field expansion (M6 ownerDecisionRequired #3): out of M7 scope — track-2 narrowly follows the M6 pattern; future design discussion deferred.",
     "user_preferences.source disambiguation (M6 newFinding #2): out of M7 scope — different semantics, needs separate design.",
-    "M6 track-5 post-commit hook side-finding (Cannot find module workspace-change-ledger.mjs) was a stale report — the actual post-commit hook calls axi-submit-log-post-commit.mjs (works) + workspace-change-ledger.mjs (missing) + workspace-change-propagation.mjs (works). M7 track-1 fixes the missing one."
+    "M6 track-5 post-commit hook side-finding (Cannot find module workspace-change-ledger.mjs) was a stale report — the actual post-commit hook calls axi-submit-log-post-commit.mjs (works) + workspace-change-ledger.mjs (missing) + workspace-change-propagation.mjs (works). M7 track-1 fixes the missing one.",
+    "completeTask inline audit_reviews INSERT (lib/postgres-store.mjs lines 248-273, needsAudit branch) does not bind source + imported_at — out of M7.S4 scope but documented as M7.2 candidate 1-line follow-up. See ownerDecisionsRequired OD-M7-2."
   ],
-  "ownerDecisionsRequired": [],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M7-1",
+      "subject": "branch alignment for workspace-change-ledger.mjs restoration",
+      "detail": "M7 track-1 subagent committed 72d30d9 on branch feature/audit-docs (NOT dev). Owner decision: cherry-pick to dev / accept feature/audit-docs as long-lived / merge feature/audit-docs into dev now.",
+      "discovered_by": "M7.S99 main agent branch-doeshice fact-check"
+    },
+    {
+      "id": "OD-M7-2",
+      "subject": "completeTask inverse of audit_reviews INSERT (needsAudit, post-insert provenance gap)",
+      "detail": "lib/postgres-store.mjs lines 248-273 inlines an audit_reviews INSERT for gate-held completions. M7.S4 narrowly mirrors M6 track-1 on recordAuditReview + recordTaskEvent only; this inline path was out of scope. After migration 005 runs, gate-held audit rows will backfill source='native' even when parent task is import-postgres. One-line follow-up: add source + imported_at to column list + bind params + ON CONFLICT. Owner decision: ship as M7.1 / defer to M9 audit/owner-action / close as N1-issue and document.",
+      "discovered_by": "M7.S4 subagent track-2 outOfScopeButFlagged"
+    },
+    {
+      "id": "OD-M7-3",
+      "subject": "M6.4 web-deps audit acceptance",
+      "detail": "M6.4 ownerDecisionRequired #1 (vite/typescript registry verification) is now retroactively resolved by M7.S3 fact-check (commit be4e0919). M6.4 #2-#6 remain valid owner decisions. Owner decision: accept M7.S3 fact-check as #1 closure / keep #1 as historical record (current state of audit JSON) / re-open #1 for further investigation.",
+      "discovered_by": "M7.S99 main agent audit-JSON preservation check"
+    }
+  ],
   "newFindings": []
 }
