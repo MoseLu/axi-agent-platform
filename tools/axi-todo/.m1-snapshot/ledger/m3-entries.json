@@ -1,6 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
-  "milestoneStatus": "in-progress",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Awaiting owner acceptance",
   "milestoneTitle": "M3: 修 M2 ledger outOfScopeButFlagged 的 3 个 latent bug",
   "milestoneAcceptance": [
     "M3.S1: M3 ledger 落地,透明记录 bug #1 误诊历史",
@@ -15,48 +16,71 @@
     {
       "tag": "M3.S1",
       "id": "TODO-m3-s1-id",
-      "status": "in-progress",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "tools/axi-todo/.m1-snapshot/ledger/m3-entries.json initially committed in commit f86d81f; outOfScopeButFlagged records bug #1 misdiagnosis (recordCompletionSummary's misleading task param was dead code, not runtime id collision)",
       "deps": []
     },
     {
       "tag": "M3.S2",
       "id": "TODO-m3-s2-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "tools/axi-todo/lib/memory-search.mjs exports frozen MEMORY_SEARCH_FIELDS constant + searchCollectionText (JSON-side) + buildPlanningMemoryLikeExpression (PG-side); 4 collections covered (planning_records / failure_analyses / completion_summaries / memory_cards); commit 626dd51",
       "deps": ["M3.S1"]
     },
     {
       "tag": "M3.S3",
       "id": "TODO-m3-s3-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "lib/store.mjs JSON searchPlanningMemory uses searchCollectionText (drops JSON.stringify); lib/postgres-store.mjs PG searchPlanningMemory uses buildPlanningMemoryLikeExpression (LIKE column set expanded); commit e93232f",
       "deps": ["M3.S2"]
     },
     {
       "tag": "M3.S4",
       "id": "TODO-m3-s4-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "lib/postgres-store.mjs recordAuditReview now wraps audit_reviews INSERT + status flip (getTaskForUpdate + upsertTask) + audit_waiting task_events row in a single withClient; mirrors completeTask's idiom; commit 150fac5",
       "deps": ["M3.S1"]
     },
     {
       "tag": "M3.S5",
       "id": "TODO-m3-s5-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "lib/postgres-store.mjs recordCompletionSummary / recordFailureAnalysis drop misleading {id: taskId} wrapper; factories (createCompletionSummaryRecord / createFailureAnalysisRecord) accept null task via taskFallback = task || {}; runtime behaviour unchanged; commit 4c7770f",
       "deps": ["M3.S1"]
     },
     {
       "tag": "M3.S6",
       "id": "TODO-m3-s6-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "test/memory-search.test.mjs (7 tests: shape, whitelist semantics, SQL contract, JSON + mocked PG parity over 5 queries, both-side UUID-leak regression); test/store.test.mjs (3 new PG parity tests: recordAuditReview rollback on audit insert failure, status flip via withClient, recordCompletionSummary PK is UUID); commit da982a2",
       "deps": ["M3.S2", "M3.S3", "M3.S4", "M3.S5"]
     },
     {
       "tag": "M3.S7",
       "id": "TODO-m3-s7-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "Full Node suite 133/133 green (12 test files); swift run AxiTodoStoreSmokeTests 11/11 pass; 7 Lore commits f86d81f / 626dd51 / e93232f / 150fac5 / 4c7770f / da982a2 / ledger close; M3 ledger closed in this commit",
       "deps": ["M3.S6"]
     }
   ],
+  "loreTrail": [
+    "f86d81f feat(axi-todo): create M3 ledger with bug-triage transparency for outOfScopeButFlagged",
+    "626dd51 feat(axi-todo): add lib/memory-search.mjs with per-collection text field whitelist",
+    "e93232f fix(axi-todo): searchPlanningMemory converges JSON + PG via canonical whitelist",
+    "150fac5 fix(axi-todo): recordAuditReview wraps audit insert + status flip in single transaction",
+    "4c7770f fix(axi-todo): recordCompletionSummary / recordFailureAnalysis drop misleading task arg",
+    "da982a2 test(axi-todo): parity tests for memory search + audit review + completion summary",
+    "<this commit> chore(axi-todo): close M3 ledger — implementation complete, awaiting owner acceptance"
+  ],
   "outOfScopeButFlagged": [
-    "BUG-#1-MISDIAGNOSIS: M2 ledger outOfScopeButFlagged 标记的 `recordCompletionSummary id bug` 实际上与代码行为不符。`lib/postgres-store.mjs:458` 调用 `this.insertCompletionSummary({id: record.taskId}, record)`,但 `insertCompletionSummary` 内部用 `createCompletionSummaryRecord(input, ...)` 派生 PK,该函数读 `input.id || crypto.randomUUID()` 而非 `task.id`。所以最终插入的 `completion_summaries.id` 列值是 fresh UUID (或 input.id),不是 taskId。原 ledger 的诊断('the id column ends up being the task id')与当前代码不符。M3 仍清理这段死代码 + 加测试断言 PK 是 UUID 不带任务语义,但 runtime 行为不变。这一笔记是为防止未来 reader 重复原 ledger 的误读。",
+    "BUG-#1-MISDIAGNOSIS (preserved from S1): M2 ledger outOfScopeButFlagged 标记的 `recordCompletionSummary id bug` 实际上与代码行为不符。`insertCompletionSummary` 内部用 `createCompletionSummaryRecord(input, ...)` 派生 PK,该函数读 `input.id || crypto.randomUUID()` 而非 `task.id`。所以最终插入的 `completion_summaries.id` 列值是 fresh UUID (或 input.id),不是 taskId。原 ledger 的诊断('the id column ends up being the task id')与当前代码不符。M3 已清理这段死代码 (commit 4c7770f) + 加测试断言 PK 是 UUID (commit da982a2),但 runtime 行为不变。这一笔记保留是为了防止未来 reader 重复原 ledger 的误读。",
     "18 pre-existing JSON `status:'completed'` 条目 recheck:M1 commit dd33478 的 directive 明确不做批量 recheck,M2.M3 同样不做。这是 owner decision,留 owner 决策。",
     "PG schema 加 `source` 字段(M2 newFindings):超出 M3 范围,需要 migration + migrator 改造,属于 M4+。",
     "warnIfDualPopulated PG probe 优化(M2 newFindings):超出 M3 范围。"
