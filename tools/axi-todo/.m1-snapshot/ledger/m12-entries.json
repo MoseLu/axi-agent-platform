@@ -1,0 +1,154 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M12: ledger template formalization + decision eviction policy",
+  "milestoneAcceptance": [
+    "M12.S1: M12 ledger lands first; locks M12 scope to (a) Track A schema-drift remediation [docs/LEDGER_TEMPLATE.md + M6 deps backfill] + (b) Track B orphan-risk remediation [OWNER_DECISIONS.md Decision Eviction Policy section + 5 eviction_status backfills + M8-NEWFINDING-1 closure]",
+    "M12.S2 (Track A — schema-drift audit): 2 subagents in parallel; Track A report at /tmp/m12-track-a-findings.md (2900 words); Track B report at /tmp/m12-track-b-findings.md (2300 words)",
+    "M12.S3 (Track A — root cause): all 4 schema-drift candidates (loreTrail string→object M6→M7, newFindings string→object M6→M7, ownerDecisionsRequired 5 variants, subTasks M6 dropped deps field) share single root cause — milestone ledger template was never formalized. Zero automated readers; all risk is human-readability",
+    "M12.S4 (Track A — remediation): docs/LEDGER_TEMPLATE.md created (~50 lines) declaring minimum-required-fields for each top-level key + documenting form-transition boundaries; m6-entries.json gains deps fields on M6.S1/S2-S6/S99 (5-line backfill restoring M7+ convention)",
+    "M12.S5 (Track B — orphan-risk audit): 9 entries × M1-M11 presence matrix built; 3 cross-milestone duplicates confirmed (TODO-m5-apply≡OD-M8-2, OD-M7-1≡OD-M8-1, TODO-m6-track-5≡M6-RES-1); 5 currently-open decisions classified by eviction eligibility (3 NOT eligible, 2 PARTIALLY eligible, 1 ELIGIBLE structured finding)",
+    "M12.S6 (Track B — prevention rule): Decision Eviction Policy section added to OWNER_DECISIONS.md (~50 lines); 3 components (trigger=S99 mandatory check, vocabulary=4 mutually-exclusive reasons, linked-doc invariant=OD-M{N}-DELEGATE 1:1 mirror with ≤1-milestone lag); 5 currently-open decisions gain eviction_status field",
+    "M12.S7 (Track B — finding closure): M8-NEWFINDING-1 closed in m7-entries.json newFindings[] via resolution.resolved: true block pointing at M12.S6 Decision Eviction Policy + M12.S6 5-entry backfill as substantive remediation",
+    "M12.S99: full Node suite 183/183 pass (no source code touched); swift run AxiTodoStoreSmokeTests pass (no Swift touched); M12 ledger closed; loreTrail commits: this ledger + LEDGER_TEMPLATE.md + M6 deps + OWNER_DECISIONS.md eviction policy + M8-NEWFINDING-1 closure (≤3 commits)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M12.S1",
+      "id": "TODO-m12-s1-id",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "this ledger file landed first",
+      "deps": []
+    },
+    {
+      "tag": "M12.S2",
+      "id": "TODO-m12-s2-id",
+      "trackTitle": "Track A + Track B parallel READ-ONLY audits",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "2 subagents launched in parallel (agent_2685db6b / agent_f3ac5764); both completed; Track A report /tmp/m12-track-a-findings.md (2900 words, file:line evidence index); Track B report /tmp/m12-track-b-findings.md (2300 words, 9-entry × 11-milestone matrix)",
+      "deps": ["M12.S1"]
+    },
+    {
+      "tag": "M12.S3",
+      "id": "TODO-m12-s3-id",
+      "trackTitle": "Track A — schema-drift root-cause analysis",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "Track A confirmed: 4 schema-drift candidates share root cause 'milestone ledger template was never formalized'. Zero automated readers (grep over lib/ bin/ test/ scripts/ Sources/ src/ — 0 hits for loreTrail/newFindings/ownerDecisionsRequired/m*-entries.json; only write-side .m1-snapshot/setup-ledger.mjs:5). All 4 candidates LOW or MEDIUM risk; no HIGH risk candidate",
+      "deps": ["M12.S2"]
+    },
+    {
+      "tag": "M12.S4",
+      "id": "TODO-m12-s4-id",
+      "trackTitle": "Track A — remediation: docs/LEDGER_TEMPLATE.md + M6 deps backfill",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "docs/LEDGER_TEMPLATE.md created (~50 lines) declaring minimum-required-fields for subTasks/loreTrail/newFindings/ownerDecisionsRequired/closedDecisions/outOfScopeButFlagged/sourceFindings/subagentTracks + documenting form-transition boundaries (M1-M2 absent / M3-M6 string / M7+ object for loreTrail+newFindings; 5 ownerDecisionsRequired variants + minimum schema; deps convention). m6-entries.json gains 5-line deps backfill on M6.S1 (deps:[]) + M6.S2-S6 (deps:[\"M6.S1\"]) + M6.S99 (deps:[\"M6.S2\",...,\"M6.S6\"])",
+      "deps": ["M12.S3"]
+    },
+    {
+      "tag": "M12.S5",
+      "id": "TODO-m12-s5-id",
+      "trackTitle": "Track B — orphan-risk pattern inventory + eviction eligibility",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "Track B built 9 entries × M1-M11 presence matrix; 3 cross-milestone duplicates confirmed (TODO-m5-apply≡OD-M8-2, OD-M7-1≡OD-M8-1, TODO-m6-track-5≡M6-RES-1); 5 currently-open decisions classified: TODO-m5-apply=NOT eligible (operator-action), TODO-m6-track-3-sync-apply=NOT eligible (operator-action), TODO-m6-track-2-swift-field-expansion=PARTIALLY eligible (superseded-by-deferral, needs owner confirmation), OD-M7-1=NOT eligible (cross-repo), OD-M8-3=PARTIALLY eligible (superseded-by-implicit-acceptance, low-risk). M8-NEWFINDING-1=ELIGIBLE for closure via resolution block",
+      "deps": ["M12.S2"]
+    },
+    {
+      "tag": "M12.S6",
+      "id": "TODO-m12-s6-id",
+      "trackTitle": "Track B — remediation: Decision Eviction Policy + 5 eviction_status backfills",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "OWNER_DECISIONS.md gained Decision Eviction Policy section (~50 lines) with 3 components: (a) trigger condition = every S99 must refresh/evict/cross-reference-only; (b) eviction reason vocabulary = 4 mutually-exclusive values (closed/supereseded/owner-no-action/out-of-scope) with required fields per value; (c) linked-doc invariant = OD-M{N}-DELEGATE.linked_decisions[] must mirror OWNER_DECISIONS.md sections 1:1 with ≤1-milestone lag. 5 currently-open decisions gain eviction_status field (3 pending/1 superseded-by-deferral-candidate/1 superseded-by-implicit-acceptance-candidate/1 out-of-scope)",
+      "deps": ["M12.S5"]
+    },
+    {
+      "tag": "M12.S7",
+      "id": "TODO-m12-s7-id",
+      "trackTitle": "Track B — close M8-NEWFINDING-1 with resolution block",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "m7-entries.json M8-NEWFINDING-1 (lines 175-181) gains resolution.resolved: true block pointing at M12.S6 Decision Eviction Policy section in OWNER_DECISIONS.md as substantive remediation + M12.S6 5-entry eviction_status backfill as application example. Closes the orphan-risk pattern flag itself",
+      "deps": ["M12.S6"]
+    },
+    {
+      "tag": "M12.S99",
+      "id": "TODO-m12-s99-id",
+      "trackTitle": "M12 ledger close + full-suite verification",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent: node --test (find test -name '*.test.mjs' | xargs) → 183/183 pass (no source code touched, expected parity); swift run AxiTodoStoreSmokeTests → pass (no Swift touched, expected parity); M12 ledger closed; ≤3 commits on dev",
+      "deps": ["M12.S4", "M12.S7"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "0b6d20b",
+      "scope": "axi-todo",
+      "track": "M12.S4+M12.S5",
+      "subject": "docs(axi-todo): LEDGER_TEMPLATE.md + M6 deps backfill — formalize milestone ledger template"
+    },
+    {
+      "sha": "937df3c",
+      "scope": "axi-todo",
+      "track": "M12.S6+M12.S7",
+      "subject": "chore(axi-todo): Decision Eviction Policy + close M8-NEWFINDING-1 — M12 Track B"
+    }
+  ],
+  "subagentTracks": [
+    {
+      "id": "m12-track-a-schema-drift",
+      "title": "4 schema-drift candidates audit + remediation plan (READ-ONLY)",
+      "scope": "11 ledgers + canonical OWNER_DECISIONS.md + consumer grep",
+      "filesTouched": [],
+      "branch": "dev",
+      "outcome": "0 automated readers; 4 candidates share root cause (no template); proposed single docs/LEDGER_TEMPLATE.md (~50 lines) + M6 5-line deps backfill; no HIGH risk candidate"
+    },
+    {
+      "id": "m12-track-b-orphan-risk",
+      "title": "M8-NEWFINDING-1 orphan-risk pattern audit + prevention rule design (READ-ONLY)",
+      "scope": "11 ledgers + canonical OWNER_DECISIONS.md",
+      "filesTouched": [],
+      "branch": "dev",
+      "outcome": "9-entry × 11-milestone presence matrix; 5 currently-open decisions classified by eviction eligibility; proposed Decision Eviction Policy section (~50 lines) for OWNER_DECISIONS.md with 3 components (trigger + vocabulary + invariant)"
+    }
+  ],
+  "sourceFindings": [
+    "Track A consumer inventory: zero automated readers (grep over lib/ bin/ test/ scripts/ Sources/ src/ for loreTrail|newFindings|ownerDecisionsRequired|m*-entries.json — 0 hits). Only write-side .m1-snapshot/setup-ledger.mjs:5 references ledger path",
+    "Track A migration boundaries: loreTrail string→object M6→M7 (intentional — M7 needed scope to distinguish governance vs axi-todo commits); newFindings string→object M6→M7 (intentional — M7 needed id for cross-milestone references like M8-NEWFINDING-1/2/3); ownerDecisionsRequired 5 variants emerged organically (M1 absent, M3+ empty array, M5 added risk for irreversible ops, M7 added subject/detail/discovered_by for cross-milestone, M10 added linked_decisions/linked_doc for delegation)",
+    "Track A M6 deps field abandonment: grep -c '\"deps\"' m6-entries.json = 0 (entire file lacks deps field). M7+ restored it (root S1 may omit, non-root MUST declare, S99 MUST deps on preceding subTracks). M6 only restoration is safe (5-line backfill on M6.S1/S2-S6/S99)",
+    "Track B 9-entry × M1-M11 presence matrix (full data in /tmp/m12-track-b-findings.md §1): 3 cross-milestone duplicates (TODO-m5-apply≡OD-M8-2, OD-M7-1≡OD-M8-1, TODO-m6-track-5≡M6-RES-1); 4 entries show STALE-CROSS-REFERENCE or STALE-OWNER-DECISION class across M6/M7/M8 boundaries",
+    "Track B eviction eligibility classification (full data in /tmp/m12-track-b-findings.md §2): TODO-m5-apply=NOT (operator-action), TODO-m6-track-3-sync-apply=NOT (operator-action), TODO-m6-track-2-swift-field-expansion=PARTIALLY (superseded-by-deferral, needs owner confirm), OD-M7-1=NOT (cross-repo), OD-M8-3=PARTIALLY (superseded-by-implicit-acceptance, low-risk), M8-NEWFINDING-1=ELIGIBLE for closure via resolution block",
+    "Track B failure-mode cost (full data in /tmp/m12-track-b-findings.md §4): observed 5 ad-hoc orphan/bookkeeping-gap closures since M8 (3 in M9, 2 in M11); projected ~10 minutes/milestone cleanup cost without rule vs ~2 minutes/milestone with rule; net savings over 10 milestones ~80 minutes subagent time + elimination of bookkeeping-gap class",
+    "Track B bonus finding: OD-M{N}-DELEGATE proliferation risk (M10+M11 both added one; future ledgers risk creating orphan-risk delegation-only entries). Recommend: OD-M{N}-DELEGATE should be REMOVED from milestone ledger once linked decisions all close or evict; ownership of delegation pointer transfers to OWNER_DECISIONS.md"
+  ],
+  "outOfScopeButFlagged": [
+    "Track A bonus finding: trackTitle field appears only in M6 (m6-entries.json:26 onwards); M7+ rely on loreTrail[].track instead. Same drift class, subsumed by template doc",
+    "Track A bonus finding: empty arrays vs absent keys convention — recommend docs/LEDGER_TEMPLATE.md declare 'key: []' over absent for forward-compatibility (no current parser, but cheap insurance)",
+    "Track B bonus finding: M3 + M4 verificationStatus say 'Accepted by owner (2026-10-02)' but newFindings format varies (covered by M10 Track C schema-drift observation #1 + #2; eviction rule does not directly fix)",
+    "Track B bonus finding: OD-M{N}-DELEGATE proliferation — see sourceFindings above; recommend future milestone M{N} DOES NOT add new OD-M{N}-DELEGATE if M{N-1} already added one and decisions still open (delegate via existing pointer)",
+    "M10 Track C 4 schema-drift candidates — 2 (loreTrail+newFindings) now resolved via docs/LEDGER_TEMPLATE.md documentation; 1 (ownerDecisionsRequired 5 variants) documented as minimum-required-fields; 1 (subTasks deps) resolved via M6 backfill. All 4 effectively closed by M12",
+    "M8-NEWFINDING-1 orphan-risk pattern — closed via M12.S7 resolution block + M12.S6 Decision Eviction Policy as substantive remediation",
+    "5 currently-open decisions remain pending owner: TODO-m5-apply (operator-action), TODO-m6-track-3-sync-apply (operator-action), TODO-m6-track-2-swift-field-expansion (PARTIALLY eligible for evicted-as-superseded, owner confirm needed), OD-M7-1 (cross-repo, owner decision), OD-M8-3 (PARTIALLY eligible for evicted-as-superseded-by-implicit-acceptance, low-risk)",
+    "Pre-existing dirty working tree (axi-agent + workspace-governance) preserved per hard constraint"
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M12-EVICT-DEFER",
+      "subject": "2 PARTIALLY-eligible evictions need owner confirmation",
+      "detail": "Track B flagged 2 of 5 currently-open decisions as PARTIALLY eligible for eviction in M12 but recommended owner confirmation before unilateral eviction: (a) TODO-m6-track-2-swift-field-expansion could be evicted as 'superseded-by-deferral' if owner confirms the M6 default-option (defer to Swift redesign) is still the active direction; (b) OD-M8-3 could be evicted as 'superseded-by-implicit-acceptance' if owner confirms no blocking signal against M5/M6/M7 verificationStatus. M12 applies the Decision Eviction Policy framework but defers these 2 actual evictions to owner",
+      "scope": "defer 2 evictions to owner action; M12 only implements the framework",
+      "linked_decisions": [
+        "TODO-m6-track-2-swift-field-expansion (PARTIALLY eligible — needs owner confirm)",
+        "OD-M8-3 (PARTIALLY eligible — low-risk, owner confirm optional)"
+      ],
+      "linked_doc": "tools/axi-todo/OWNER_DECISIONS.md#decision-eviction-policy"
+    }
+  ],
+  "newFindings": []
+}
