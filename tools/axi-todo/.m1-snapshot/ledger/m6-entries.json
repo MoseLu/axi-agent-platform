@@ -190,6 +190,7 @@
   "newFindings": [
     "audit_reviews and task_events are also provenance-less PG tables that JSON-side already exposes through state.auditReviews / state.taskEvents; same M4 sticky-upsert pattern applies; flagged for M7 (out of M6 track-1 scope per subagent)",
     "user_preferences.source is different semantics (preference origin marker, e.g. 'task' / 'user' / 'feed-default'), not import provenance; would need separate design to mirror",
-    "post-commit hook reports 'Cannot find module foundation/workspace-governance/scripts/workspace-change-ledger.mjs' — pre-existing infrastructure issue in workspace-governance repo, NOT a M6 track-5 change; durable fix lives in foundation/workspace-governance/scripts/, not in axi-agent/.githooks/"
+    "post-commit hook reports 'Cannot find module foundation/workspace-governance/scripts/workspace-change-ledger.mjs' — pre-existing infrastructure issue in workspace-governance repo, NOT a M6 track-5 change; durable fix lives in foundation/workspace-governance/scripts/, not in axi-agent/.githooks/",
+    "TODO-m5-apply-owner-confirm carried into M6 ledger for cross-reference (M8 Track D flagged it as orphaned across M6/M7). M6 did not act on the apply decision; owner-facing surface for it stays on M5 ledger."
   ]
 }
