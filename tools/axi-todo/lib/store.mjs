@@ -537,10 +537,10 @@ async completeTask(id, result, { now = nowIso() } = {}) {
 }
 
 export function createStoreFromEnv(env = process.env) {
-  const mode = String(env.AXI_TODO_STORE || "postgres").toLowerCase();
-  if (!env.AXI_TODO_STORE && env.AXI_TODO_HOME && !env.DATABASE_URL && !env.AXI_TODO_DATABASE_URL) {
-    return new TaskStore({ home: defaultAxiTodoHome(env) });
-  }
+  // JSON is the canonical cross-surface store: the Swift desktop bridge reads
+  // tasks.json directly. PostgreSQL remains available only when explicitly
+  // selected, or through the explicit `auto` mode.
+  const mode = String(env.AXI_TODO_STORE || "json").toLowerCase();
   if (mode === "postgres" || (mode === "auto" && (env.DATABASE_URL || env.AXI_TODO_DATABASE_URL))) {
     return new PostgresTaskStore({ databaseUrl: env.DATABASE_URL || env.AXI_TODO_DATABASE_URL || DEFAULT_POSTGRES_DATABASE_URL });
   }

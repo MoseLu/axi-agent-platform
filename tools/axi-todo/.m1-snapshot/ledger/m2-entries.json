@@ -90,9 +90,9 @@
     "TaskStore.searchPlanningMemory and PostgresTaskStore.searchPlanningMemory use different algorithms (JSON.stringify includes vs SQL LIKE on lower(...)); they will return different results on identical inputs. (lib/store.ts:516 vs lib/postgres-store.ts:499-513)"
   ],
   "ownerDecisionsRequired": [
-    "AXI_TODO_STORE default 'postgres' → 'json' is a breaking change for anyone depending on the current default. M2 does NOT flip it. README contains the export AXI_TODO_STORE=json recipe; owner owns the swap commit when ready.",
-    "Whether to delete the PG schema / bin/axi-todo-migrate-postgres.mjs after consolidation, or keep them as opt-in for environments that prefer PG durability. M2 keeps both intact.",
-    "The 18 pre-existing JSON entries that already have status='completed' (from before M1's completion gate landed) were not auto-promoted to 'awaiting_audit' per the M1 commit directive. A separate owner-driven recheck task should decide whether to re-evaluate them. See M2.S7 evidence."
+    "Resolved: AXI_TODO_STORE now defaults to json because Swift and the canonical ledger use tasks.json; postgres remains explicit opt-in and auto remains available.",
+    "Resolved: keep the PG schema and bin/axi-todo-migrate-postgres.mjs as opt-in durability/import tooling; removal would unnecessarily discard a supported backend.",
+    "Resolved with bounded action: do not bulk-relabel historical completed tasks. The reconciliation snapshot contains 10 completed JSON-only entries (not 18); they lack current evidence and remain completed until a targeted recheck supplies evidence."
   ],
   "newFindings": [
     "PostgreSQL store schema does not store its own provenance field; the importer relies on the PG `id` text PK and the `payload` jsonb round-trip. If a future tool mutates PG `payload` to drop fields, the JSON round-trip will lose them. Consider adding a `source` text column to PG schema (migration not in M2 scope).",

@@ -53,10 +53,10 @@ when an operator chooses to consolidate.
 | `postgres` | Always use Postgres; requires `DATABASE_URL` or `AXI_TODO_DATABASE_URL` to be set.              |
 | `auto`     | Use Postgres when `DATABASE_URL` / `AXI_TODO_DATABASE_URL` is set, otherwise JSON.             |
 
-Default behaviour (no `AXI_TODO_STORE` set) falls back to JSON when
-`AXI_TODO_HOME` is set and neither DB env var is set. The M2 milestone keeps
-the default at `postgres` for backwards compatibility; flipping it to `json`
-is recorded as an `ownerDecisionsRequired` item in `.m1-snapshot/ledger/m2-entries.json`.
+Default behaviour (no `AXI_TODO_STORE` set) is JSON. This preserves the
+cross-surface canonical store used by the Swift bridge. PostgreSQL requires an
+explicit `AXI_TODO_STORE=postgres` selection; `auto` is the only mode that
+selects PostgreSQL from the presence of a database URL.
 
 When the CLI, daemon, or MCP server starts and finds both stores non-empty,
 `warnIfDualPopulated()` prints one stderr line and points at

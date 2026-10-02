@@ -186,17 +186,17 @@ to enter the canonical JSON ledger.
 | `postgres` | Always use Postgres; requires `DATABASE_URL` or `AXI_TODO_DATABASE_URL` to be set.                        |
 | `auto`     | Use Postgres when `DATABASE_URL` / `AXI_TODO_DATABASE_URL` is set, otherwise JSON.                        |
 
-`AXI_TODO_STORE` defaults to `postgres` for backwards compatibility, but if
-`AXI_TODO_HOME` is set and neither `DATABASE_URL` nor `AXI_TODO_DATABASE_URL`
-is, the runner falls back to JSON. M2 does **not** flip the default; if you
-want JSON to win when both env vars are set, run:
+`AXI_TODO_STORE` defaults to `json`. PostgreSQL remains available as an
+explicit opt-in. To select it, run:
 
 ```bash
-export AXI_TODO_STORE=json
+export AXI_TODO_STORE=postgres
+export DATABASE_URL=postgresql://...
 ```
 
-The current default stays until the owner signs off on the swap (see M2
-ledger `ownerDecisionsRequired`).
+Use `AXI_TODO_STORE=auto` only when you intentionally want the presence of a
+database URL to select PostgreSQL; otherwise JSON remains the safe canonical
+choice.
 
 ### Dual-store startup warning
 
