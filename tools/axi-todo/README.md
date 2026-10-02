@@ -255,6 +255,22 @@ trail. Planning records currently have no PG write path — the migration only
 adds columns and the index, mirroring the JSON-side provenance the Swift
 bridge already sees through `payload`.
 
+### Provenance columns on the two event-trail PG tables (M7)
+
+M7 closes the same mirror for the runtime event tables — `audit_reviews` (one
+row per audit decision) and `task_events` (one row per state-transition
+event: claimed, completed, audit_waiting, retry_scheduled, …). The migration
+is `tools/axi-todo/migrations/005_event_provenance.sql` — same
+ADD-COLUMN / COALESCE-backfill / payload reverse-sync template, 10 statements
+(2 tables × 5 ops), idempotent on re-run. The PG writers in
+`lib/postgres-store.mjs` — `recordTaskEvent` and `recordAuditReview` — now
+bind `source` / `imported_at` on `INSERT` and use sticky `ON CONFLICT DO
+UPDATE SET` (omit the two columns, reverse-sync payload from the canonical
+column values). The audit_waiting `task_events` row written inside
+`recordAuditReview`'s M3.S4 `withClient` transaction inherits the same
+provenance so the audit trail and the history trail stay tied to a single
+origin marker across re-runs.
+
 ### Migrator and importer no longer fall back silently
 
 As of M2, `bin/axi-todo-migrate-postgres.mjs` and

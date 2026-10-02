@@ -116,6 +116,37 @@ trail. `planning_records` currently has no PG write path — the migration
 still mirrors the JSON-side provenance into PG so future PG writers can
 inherit the same shape without needing a separate migration.
 
+### Provenance columns on the two event-trail tables (M7)
+
+M7 mirrors the M4 / M6 provenance columns onto the runtime event tables:
+`audit_reviews` (one row per audit decision) and `task_events` (one row per
+state-transition event: claimed, completed, audit_waiting, retry_scheduled,
+…). The migration is `tools/axi-todo/migrations/005_event_provenance.sql` —
+same idempotent ADD-COLUMN / COALESCE-backfill / payload reverse-sync /
+source-index template, 10 statements (2 tables × 5 ops). On the PG write path,
+`lib/postgres-store.mjs` `recordTaskEvent` and `recordAuditReview` now bind
+`source` / `imported_at` on `INSERT` and use `ON CONFLICT (id) DO UPDATE`
+with sticky semantics: the SET list deliberately omits both columns so a
+later daemon-driven re-upsert preserves the original import marker; the
+`payload` jsonb column is reverse-synced from the canonical column values on
+every conflict (mirroring the M4 / M6 reverse-sync shape that keeps the
+Swift JSON bridge seeing `source` / `importedAt` without code changes).
+
+`recordAuditReview`'s `withClient` transaction wraps three writes —
+`audit_reviews` INSERT, status flip via `upsertTask`, and the audit_waiting
+`task_events` INSERT — and the latter two now bind the same `source` /
+`imported_at` as the audit row so the audit + history trail stays tied to a
+single origin marker even on rollback. The M3.S4 transaction semantics
+(commit `150fac5`) are preserved unchanged: `audit_reviews` INSERT →
+`getTaskForUpdate` + `upsertTask` (status flip) → audit_waiting `task_events`
+INSERT → COMMIT, all on the same client.
+
+`completeTask` still has an inline `audit_reviews` INSERT (the `needsAudit`
+branch) that fires when the completion gate holds a task. That path does not
+yet bind `source` / `imported_at` — it remains `inherit` outside this track's
+scope and can be migrated in a one-line follow-up if future reconcilers need
+to attribute gate-held audits to their origin.
+
 Both `bin/axi-todo-migrate-postgres.mjs` and `bin/axi-todo-import-postgres.mjs`
 require an explicit `DATABASE_URL` or `AXI_TODO_DATABASE_URL`; if both are
 missing they exit 1 with a clear stderr message instead of silently defaulting
