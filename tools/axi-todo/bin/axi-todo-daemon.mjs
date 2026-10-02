@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 import { runDaemon } from "../lib/daemon.mjs";
-import { createStoreFromEnv } from "../lib/store.mjs";
+import { createStoreFromEnv, warnIfDualPopulated } from "../lib/store.mjs";
 
 const flags = parseFlags(process.argv.slice(2));
 
+const store = createStoreFromEnv();
+warnIfDualPopulated({ store }).catch(() => {});
+
 runDaemon({
-  store: createStoreFromEnv(),
+  store,
   intervalMs: parsePositiveInt(flags["interval-ms"], 300000),
   once: Boolean(flags.once),
 }).catch((error) => {

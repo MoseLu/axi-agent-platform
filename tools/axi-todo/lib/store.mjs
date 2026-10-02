@@ -547,6 +547,63 @@ export function createStoreFromEnv(env = process.env) {
   return new TaskStore({ home: defaultAxiTodoHome(env) });
 }
 
+// M2: dual-store startup warning. When both `~/.axi-todo/tasks.json` and the
+// PG `axi_todo.tasks` table are non-empty, the operator may be about to
+// silently write to one store while reading from the other. We probe both
+// stores (best-effort, swallows errors) and emit a single stderr line that
+// names the chosen store + points at the importer. Long-running entry
+// points (CLI bin, daemon, MCP server) call this right after picking a
+// store. One-shot scripts can skip it.
+export async function warnIfDualPopulated({
+  store,
+  env = process.env,
+  stderr = process.stderr,
+  log = (...args) => stderr.write(`${args.join(" ")}\n`),
+  pgStoreFactory,
+} = {}) {
+  if (!store) return { warned: false, reason: "no-store" };
+  const chosen = store instanceof PostgresTaskStore ? "postgres" : "json";
+  try {
+    const otherKind = chosen === "postgres" ? "json" : "postgres";
+    let otherPopulated = false;
+    let otherCount = 0;
+    let otherError = null;
+    try {
+      if (otherKind === "json") {
+        const probe = new TaskStore({ home: defaultAxiTodoHome(env) });
+        const state = await probe.readState();
+        otherCount = state.tasks.length;
+        otherPopulated = otherCount > 0;
+      } else {
+        const databaseUrl = env.DATABASE_URL || env.AXI_TODO_DATABASE_URL;
+        if (!databaseUrl) {
+          otherError = "DATABASE_URL not set";
+        } else {
+          // `pgStoreFactory` lets tests inject a fake PostgresTaskStore; in
+          // production the default wires up a real one against the URL.
+          const probe = pgStoreFactory ? pgStoreFactory() : new PostgresTaskStore({ databaseUrl });
+          const state = await probe.readState();
+          otherCount = state.tasks.length;
+          otherPopulated = otherCount > 0;
+        }
+      }
+    } catch (error) {
+      otherError = error?.code === "ENOENT" ? "missing" : (error?.message || String(error));
+    }
+    if (!otherPopulated) {
+      return { warned: false, chosen, otherKind, otherCount, otherError };
+    }
+    const message = `axi-todo: detected populated JSON + PG stores; using ${chosen}. ` +
+      `Run bin/axi-todo-import-postgres.mjs to consolidate ` +
+      `(other=${otherKind} tasks=${otherCount}${otherError ? ` probe_error=${otherError}` : ""}).`;
+    log(message);
+    return { warned: true, chosen, otherKind, otherCount, otherError, message };
+  } catch (error) {
+    // The warning must never break startup; swallow everything.
+    return { warned: false, reason: "probe-failed", error: error?.message || String(error) };
+  }
+}
+
 async function withFileLock(lockPath, fn) {
   const started = Date.now();
   let handle;

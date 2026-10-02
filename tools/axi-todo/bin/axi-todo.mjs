@@ -3,10 +3,13 @@ import path from "node:path";
 import { runDaemon, runOnce } from "../lib/daemon.mjs";
 import { startMcpStdio } from "../lib/mcp-server.mjs";
 import { createSplitPlan } from "../lib/planner.mjs";
-import { createStoreFromEnv } from "../lib/store.mjs";
+import { createStoreFromEnv, warnIfDualPopulated } from "../lib/store.mjs";
 import { readVerificationLogEntries } from "../lib/verification-log.mjs";
 
 const store = createStoreFromEnv();
+// M2: best-effort dual-store startup warning. Fire-and-forget so the CLI
+// stays responsive; the probe resolves before any user-visible work.
+warnIfDualPopulated({ store }).catch(() => {});
 
 async function main() {
   const [command = "help", ...rest] = process.argv.slice(2);

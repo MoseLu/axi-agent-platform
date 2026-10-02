@@ -1,8 +1,9 @@
 import { runOnce } from "./daemon.mjs";
 import { createSplitPlan } from "./planner.mjs";
-import { createStoreFromEnv } from "./store.mjs";
+import { createStoreFromEnv, warnIfDualPopulated } from "./store.mjs";
 
 export function createMcpServer({ store = createStoreFromEnv() } = {}) {
+  warnIfDualPopulated({ store }).catch(() => {});
   return {
     async handle(request) {
       if (request.method === "initialize") {
