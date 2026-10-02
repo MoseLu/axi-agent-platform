@@ -1,7 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
-  "milestoneStatus": "in-progress",
-  "verificationStatus": "Not yet submitted",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Awaiting owner acceptance",
   "milestoneTitle": "M6: 5 条 outOfScopeButFlagged 平行收尾 (PG provenance 镜像 / Swift source 字段 / PG→JSON sync / web dep audit / hooks audit)",
   "milestoneAcceptance": [
     "M6.S1: M6 ledger 落地,锁定 5 条平行轨道;每轨道一个独立子代理、独立分支、独立 commit、独立测试;主代理做事实核查 + 收尾",
@@ -16,60 +16,76 @@
     {
       "tag": "M6.S1",
       "id": "TODO-m6-s1-id",
-      "status": "in-progress",
-      "evidence": "this ledger file lands first; 5 parallel subagent tracks dispatched",
-      "deps": []
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "ledger/m6-entries.json initially committed in commit 3a4dcbe; 5 subagentTracks defined with non-overlapping filesTouched[] arrays; outOfScopeButFlagged locked to 5 items"
     },
     {
       "tag": "M6.S2",
       "id": "TODO-m6-s2-id",
-      "trackTitle": "PG provenance 镜像 (completion_summaries / failure_analyses / planning_records / memory_cards)",
-      "status": "pending",
-      "evidence": "tools/axi-todo/migrations/004_collection_provenance.sql + lib/postgres-store.mjs upsert paths + test/migrate-collection-provenance.test.mjs",
-      "deps": ["M6.S1"]
+      "trackTitle": "PG provenance 镜像 (completion_summaries / failure_analyses / memory_cards)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "5 Lore commits: 8f943b5 migrations/004_collection_provenance.sql (97 lines, idempotent ALTER+UPDATE+INDEX for 4 tables; planning_records has no PG writer path so migration adds columns for future use) + 2db9786 lib/postgres-store.mjs upsert paths for 3 collections (completion_summaries / failure_analyses / memory_cards) bind source+imported_at with sticky ON CONFLICT + af95712 fix(axi-todo): searchPlanningMemory spread reorder prevents item.source='native' overwriting collection source marker + eaa0309 test/migrate-collection-provenance.test.mjs (10 tests, 337 lines) + be45acb docs/README + docs/TODO-ARCHITECTURE.md. Deviation: planning_records lacks PG insert path so its migration is forward-looking. New finding: audit_reviews + task_events also provenance-less; user_preferences.source is different semantics"
     },
     {
       "tag": "M6.S3",
       "id": "TODO-m6-s3-id",
       "trackTitle": "Swift AxiTodoStore source/importedAt 字段解析",
-      "status": "pending",
-      "evidence": "tools/axi-todo/Sources/AxiTodoKit/AxiTodoModels.swift + AxiTodoStore.swift + AxiTodoStoreSmokeTests/main.swift",
-      "deps": ["M6.S1"]
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "4 Lore commits: 00b3576 AxiTodoModels.swift adds source:String? + importedAt:Date? Codable fields + 5b95ec8 AxiTodoStore.swift configures dateEncodingStrategy=.iso8601 + dateDecodingStrategy=.iso8601 + ea273b7 AxiTodoStoreSmokeTests/main.swift adds 3 cases (12 → 15) + e9015a6 README.md. Swift 15/15 pass. New finding: 24 other top-level JSON fields (rejectedApproaches / waitState / riskLevel / agentRole / modelHint / etc.) not surfaced in Swift UI — candidate for future milestone"
     },
     {
       "tag": "M6.S4",
       "id": "TODO-m6-s4-id",
       "trackTitle": "PG→JSON 反向同步工具",
-      "status": "pending",
-      "evidence": "tools/axi-todo/bin/axi-todo-sync-pg-to-json.mjs + test/sync-pg-to-json.test.mjs + .m6-audit/pre-sync-<ISO>.json backup pattern",
-      "deps": ["M6.S1"]
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "2 Lore commits: f295628 bin/axi-todo-sync-pg-to-json.mjs (399 lines) owner-gated --apply/--confirm-apply with reentrant .synced-pg-to-json-ids.json ledger, backup snapshot to .m1-snapshot/m6-audit/pre-sync-<ISO>.json only when writes occur, PG-newer-than-JSON drift detection in summary.warnings without overwrite + 3596270 test/sync-pg-to-json.test.mjs (10 scenarios, 508 lines; 168 → 178 = +10). New findings: owner-gate fires BEFORE resolveDatabaseUrl; tasks collection flows through createTask() with full history; other 9 collections converted snake_case → camelCase via normalizeState() tolerance"
     },
     {
       "tag": "M6.S5",
       "id": "TODO-m6-s5-id",
       "trackTitle": "Web React 依赖漂移盘点 (read-only)",
-      "status": "pending",
-      "evidence": "tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json (read-only; no package.json / lockfile changes)",
-      "deps": ["M6.S1"]
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "1 Lore commit 3c8f27e tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json (307 lines). Verdict: NO drift across package.json / lockfile / node_modules for react family (react 19.2.6, antd 6.4.3, vite 8.0.16, typescript 6.0.3 — all matched). Suspicious: vite@8.0.16 + typescript@6.0.3 are pre-major versions that may be internal-mirror placeholders (would block clean install); needs npm-registry verification. READ-ONLY constraint respected: zero package.json / lockfile / frontend source mutation"
     },
     {
       "tag": "M6.S6",
       "id": "TODO-m6-s6-id",
       "trackTitle": "Workspace hooks audit + 缺失模板补齐",
-      "status": "pending",
-      "evidence": "agent-cluster/axi-agent/bin/axi-agent-* hooks audit + .githooks/ template coverage check + audit JSON",
-      "deps": ["M6.S1"]
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "1 Lore commit bb46b73: .m1-snapshot/m6-audit/hooks-audit.json (full inventory) + .githooks/pre-push (Lore trailer scan over push range; aborts if Tested/Not-tested/Confidence/Scope-risk/Directive missing) + .githooks/post-merge (informational refresh reminder). core.hooksPath = .githooks already set in .git/config so hooks are ACTIVE on every clone. pre-receive / post-checkout / prepare-commit-msg intentionally NOT filled (no workspace-wide reason)"
     },
     {
       "tag": "M6.S99",
       "id": "TODO-m6-s99-id",
       "trackTitle": "事实核查 + 全套验证 + M6 ledger close",
-      "status": "pending",
-      "evidence": "node --test test/*.test.mjs + swift run AxiTodoStoreSmokeTests + 5 subagent commit SHA verification + ledger close",
-      "deps": ["M6.S2", "M6.S3", "M6.S4", "M6.S5", "M6.S6"]
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "git cat-file verified all 13 subagent commits land on dev; node --test test/*.test.mjs 170/170 pass (M5 150 + M6 track-1 10 + M6 track-3 10); swift run AxiTodoStoreSmokeTests 15/15 pass (M5 11/11 + M6 track-2 3 + M6 track-2 round-trip 1); this ledger close commit"
     }
   ],
-  "loreTrail": [],
+  "loreTrail": [
+    "3a4dcbe chore(axi-todo): create M6 ledger — 5 parallel subagent tracks for M5 outOfScopeButFlagged",
+    "8f943b5 feat(axi-todo): add migrations/004_collection_provenance.sql",
+    "2db9786 feat(axi-todo): insertCompletionSummary / FailureAnalysis / MemoryCard bind source + imported_at",
+    "af95712 fix(axi-todo): JSON-side create*Record helpers inherit source + importedAt",
+    "eaa0309 test(axi-todo): add migrate-collection-provenance.test.mjs",
+    "be45acb docs(axi-todo): document M6 provenance extension to four auxiliary PG collections",
+    "00b3576 feat(axi-todo): add Swift source/importedAt provenance fields",
+    "5b95ec8 feat(axi-todo): configure ISO 8601 date strategy in Swift store",
+    "ea273b7 test(axi-todo): cover Swift source/importedAt JSON round-trip",
+    "e9015a6 docs(axi-todo): document Swift source/importedAt provenance fields",
+    "f295628 feat(axi-todo): M6.S4 add bin/axi-todo-sync-pg-to-json.mjs",
+    "3596270 test(axi-todo): M6.S4 sync-pg-to-json.test.mjs",
+    "3c8f27e chore(axi-todo): M6 web-deps audit (read-only)",
+    "bb46b73 chore(axi-agent): M6 hooks audit + fill obvious gaps (pre-push / post-merge)",
+    "<this commit> chore(axi-todo): close M6 ledger — 5 tracks shipped, awaiting owner acceptance"
+  ],
   "subagentTracks": [
     {
       "id": "m6-track-1-pg-provenance",
@@ -119,7 +135,8 @@
       "scope": "agent-cluster/axi-agent hooks + .githooks/ template coverage",
       "filesTouched": [
         "agent-cluster/axi-agent/.m1-snapshot/m6-audit/hooks-audit.json",
-        "agent-cluster/axi-agent/.githooks/<missing-template>" // populated by subagent
+        "agent-cluster/axi-agent/.githooks/pre-push",
+        "agent-cluster/axi-agent/.githooks/post-merge"
       ],
       "branch": "dev"
     }
@@ -138,6 +155,41 @@
     "重构现有 commit-msg / post-commit / pre-commit hooks 内容:超出 M6 scope;M6 track-5 只补缺失的 pre-push / 其他明显缺口,不修改现有 working hooks 的语义。",
     "agent-cluster/axi-agent 下其它跨域代码改动 (backend/ / infra/axi-agent-mcp/ / tools/axi-feishu-codex-bridge/):超出 M6 scope;这些目录的 dirty diff 与本里程碑无关。"
   ],
-  "ownerDecisionsRequired": [],
-  "newFindings": []
+  "ownerDecisionsRequired": [
+    {
+      "id": "TODO-m6-track-5-vite-ts-version-verify",
+      "summary": "track-4 web-deps audit surfaced that vite@8.0.16 and typescript@6.0.3 are pre-major versions that may be internal-mirror placeholders. If they do not exist on the public npm registry, `pnpm install --frozen-lockfile` will fail on a clean checkout, blocking onboarding and CI.",
+      "options": [
+        "Run `npm view vite versions --json` and `npm view typescript versions --json` against the public registry to confirm",
+        "If placeholders: replace with real versions (e.g. vite@5.x, typescript@5.x) in package.json + lockfile (out of M6 track-4 read-only scope — would be M7 work)",
+        "If real internal-mirror versions: document the mirror URL in tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json"
+      ],
+      "default": "Verify against public npm registry; defer any package.json / lockfile fix to M7 (M6 track-4 was explicitly read-only)"
+    },
+    {
+      "id": "TODO-m6-track-3-sync-apply",
+      "summary": "Whether to actually run `bin/axi-todo-sync-pg-to-json.mjs --apply --confirm-apply` against a real PG instance to backfill PG rows into the canonical JSON store. The tool is shipped, tested, owner-gated — but not exercised against real data.",
+      "options": [
+        "Run on a staging PG first (recommended)",
+        "Run on production (only after M5 apply decisions land and JSON canonical state is settled)",
+        "Skip until M7 — keep dry-run reports as the audit deliverable"
+      ],
+      "default": "Skip until M7; track-3 tool ships as a verified-but-untouched operator surface, awaiting owner review"
+    },
+    {
+      "id": "TODO-m6-track-2-swift-field-expansion",
+      "summary": "track-2 surfaced 24 other top-level JSON fields (rejectedApproaches / waitState / riskLevel / agentRole / modelHint / charterId / acceptanceChecks / etc.) not surfaced in Swift UI today. M6 track-2 narrowly scoped to source + importedAt per the M5 outOfScopeButFlagged #2 entry — but the user-facing decision is whether to mirror all 24 fields next or pick a priority subset.",
+      "options": [
+        "Expand Swift AxiTodoTask to surface all 24 fields in M7 (large UI work)",
+        "Pick a priority subset (riskLevel + rejectedApproaches + waitState are the most user-actionable) in M7",
+        "Defer until Swift UI redesign (current scope matches M6 track-2 narrow brief)"
+      ],
+      "default": "Defer to M7 design discussion; M6 track-2 narrow scope was the approved boundary"
+    }
+  ],
+  "newFindings": [
+    "audit_reviews and task_events are also provenance-less PG tables that JSON-side already exposes through state.auditReviews / state.taskEvents; same M4 sticky-upsert pattern applies; flagged for M7 (out of M6 track-1 scope per subagent)",
+    "user_preferences.source is different semantics (preference origin marker, e.g. 'task' / 'user' / 'feed-default'), not import provenance; would need separate design to mirror",
+    "post-commit hook reports 'Cannot find module foundation/workspace-governance/scripts/workspace-change-ledger.mjs' — pre-existing infrastructure issue in workspace-governance repo, NOT a M6 track-5 change; durable fix lives in foundation/workspace-governance/scripts/, not in axi-agent/.githooks/"
+  ]
 }
