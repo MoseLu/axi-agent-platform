@@ -1,0 +1,72 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "in-progress",
+  "verificationStatus": "Not yet submitted",
+  "milestoneTitle": "M5: 10 条历史 completed 任务证据重审 (M1/M2 遗留 JSON-only)",
+  "milestoneAcceptance": [
+    "M5.S1: 生成只读 audit snapshot (tools/axi-todo/.m1-snapshot/m5-audit/snapshot.json) 固定 10 条 completed 任务的 id / title / cwd / verifyCommand / history / verification 字段,字节级冻结 (SHA256 已记录),任务状态零修改",
+    "M5.S2: M5 ledger 落地 (本文件),锁定 5 项 outOfScope;新工具 / 测试 / 文档全部进 m5-audit/ 子目录,不混入 main bin / lib",
+    "M5.S3: 逐条 evidence 核查 (verifyCommand / cwd 路径仍存在 / VERIFICATION.md 或 completion_summary 仍可在仓库定位 / 当前代码仍满足任务目标),结果写入 audit/evidence-check.json",
+    "M5.S4: 按证据分流:有可复现证据 → 保持 completed 并补 audit note;失败证据 → failed;无法判断 → awaiting_audit;目标已撤销 → cancelled。决策写入 audit/decisions.json",
+    "M5.S5: 新增 bin/axi-todo-recheck-completed.mjs + test/recheck-completed.test.mjs (有证据保持 / 无证据转 awaiting_audit / 失败证据转 failed),历史任务重审命令可复跑",
+    "M5.S6: 全套测试全绿,Swift smoke 不变,M5 ledger close (verificationStatus: Awaiting owner acceptance)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M5.S1",
+      "id": "TODO-m5-s1-id",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "tools/axi-todo/.m1-snapshot/m5-audit/snapshot.json (88967 bytes, SHA256 8d6730ad1b80c897db8cedd706e58c3f35394e20ac30dd4fd91e4b974e3ecf3e) freezes 10 completed tasks: 27c6eafa / 5dd3a8c3 / 153c3dfc / e83da185 / a73af886 / bbe7e9aa / 48127c15 / 79afc81a / 1b11be6f / ef45ad87. Source: $HOME/.axi-todo/tasks.json (canonical JSON store, 21 total tasks). Read-only — no task status mutation.",
+      "deps": []
+    },
+    {
+      "tag": "M5.S2",
+      "id": "TODO-m5-s2-id",
+      "status": "in-progress",
+      "evidence": "this ledger file (m5-entries.json)",
+      "deps": ["M5.S1"]
+    },
+    {
+      "tag": "M5.S3",
+      "id": "TODO-m5-s3-id",
+      "status": "pending",
+      "evidence": "tools/axi-todo/.m1-snapshot/m5-audit/evidence-check.json",
+      "deps": ["M5.S2"]
+    },
+    {
+      "tag": "M5.S4",
+      "id": "TODO-m5-s4-id",
+      "status": "pending",
+      "evidence": "tools/axi-todo/.m1-snapshot/m5-audit/decisions.json",
+      "deps": ["M5.S3"]
+    },
+    {
+      "tag": "M5.S5",
+      "id": "TODO-m5-s5-id",
+      "status": "pending",
+      "evidence": "bin/axi-todo-recheck-completed.mjs + test/recheck-completed.test.mjs",
+      "deps": ["M5.S4"]
+    },
+    {
+      "tag": "M5.S6",
+      "id": "TODO-m5-s6-id",
+      "status": "pending",
+      "evidence": "this ledger file close; full suite + Swift smoke green",
+      "deps": ["M5.S5"]
+    }
+  ],
+  "loreTrail": [],
+  "sourceFindings": [
+    "M1/M2 INHERITED-FINDING (carried from M1 newFindings and M3 ledger verificationStatus): canonical JSON store at $HOME/.axi-todo/tasks.json contains 10 tasks with status:'completed' and verification.status:'passed' that lack current in-repo evidence (target worktrees removed, verifyCommand scripts no longer present, VERIFICATION.md absent). These pre-date the F02 root-cause fix and were marked completed without the evidence-contract gate."
+  ],
+  "outOfScopeButFlagged": [
+    "不接入 PG 的其他 collection provenance:超出 M5 scope;M5 只动 tasks 集合,completion_summaries / failure_analyses / planning_records / memory_cards 不动。",
+    "Swift AxiTodoStore 接 PG:超出 M5 scope;Swift 继续读 JSON,provenance 通过 M4 payload reverse-sync 已可见。",
+    "PG→JSON 反向同步:超出 M5 scope;M2 决策 JSON canonical,PG opt-in,反向同步不在任何新Finding 里。",
+    "修前端 React 依赖漂移:超出 M5 scope;M5 不触碰 tools/axi-todo/src/web 或任何前端代码。",
+    "顺手修 workspace hook 缺失模块:超出 M5 scope;M5 不触碰 agent-cluster/axi-agent/bin/axi-agent-* hooks 或 git hooks 配置。"
+  ],
+  "ownerDecisionsRequired": [],
+  "newFindings": []
+}
