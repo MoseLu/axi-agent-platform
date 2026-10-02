@@ -1,7 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
   "milestoneStatus": "implementation-complete",
-  "verificationStatus": "Awaiting owner acceptance",
+  "verificationStatus": "Accepted by owner (2026-10-02)",
   "milestoneTitle": "M4: 修 M2 newFindings (PG source provenance + warnIfDualPopulated probe cost)",
   "milestoneAcceptance": [
     "M4.S1: M4 ledger 落地,范围与 M3 ledger 互不重叠 (不涉及 M1 10-entry recheck,后者仍是 owner decision)",
@@ -68,7 +68,8 @@
     "7f679c2 feat(axi-todo): warnIfDualPopulated skips cross-store probe unless AXI_TODO_DUAL_PROBE=1",
     "60fdf48 test(axi-todo): migration idempotency + upsert sticky provenance + probe gating",
     "b316aff docs(axi-todo): document AXI_TODO_DUAL_PROBE env var + M4 source column provenance",
-    "<this commit> chore(axi-todo): close M4 ledger — M2 newFindings closed, await owner acceptance"
+    "b1d9ab4 chore(axi-todo): close M4 ledger — M2 newFindings closed, await owner acceptance",
+    "<this commit> chore(axi-todo): mark M4 ledger as owner-accepted, scope M5"
   ],
   "sourceFindings": [
     "PG-NEWFINDING-1 (from M2 newFindings): M2 schema extension 把 source + importedAt 加到 JSON tasks,axi-todo-import-postgres.mjs:96 写 source: 'import-postgres',但 PG schema (001_task_memory.sql) 没对应列,migrator 写 PG 时 provenance 丢失。M4 已关闭这个 gap:003_task_provenance.sql 加 source + imported_at 列 + 幂等 backfill + reverse-sync;upsertTask 在 INSERT 路径写,ON CONFLICT 路径不动 (sticky)。",
