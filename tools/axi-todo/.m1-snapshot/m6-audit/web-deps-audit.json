@@ -1,0 +1,307 @@
+{
+  "auditStartedAt": "2026-10-02T18:02:00Z",
+  "auditMethod": "read-only inspection of package.json + pnpm-lock.yaml + tsconfig.json + vite.config.ts + 5 dirty frontend .tsx files; no package.json / lockfile / frontend source mutations. Network calls (npm registry lookups) intentionally avoided per read-only scope.",
+  "repoPath": "tools/axi-todo/src/web",
+  "actualProjectRoot": "tools/axi-todo",
+  "note": "Coordinator brief assumed package.json and lockfile live under tools/axi-todo/src/web/, but the package is a single non-monorepo layout: package.json + pnpm-lock.yaml live at tools/axi-todo/. Frontend source is src/web/. tsconfig.json + vite.config.ts are at the project root and cover src/web/.",
+  "packageJsonPath": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/package.json",
+  "lockfilePath": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/pnpm-lock.yaml",
+  "lockfileType": "pnpm-lock.yaml",
+  "lockfileVersion": "9.0",
+  "packageManagerDeclared": "pnpm@10.33.2",
+  "viteConfigPath": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/vite.config.ts",
+  "tsconfigPath": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/tsconfig.json",
+  "packageJsonDirectDeps": {
+    "@axi/icons": "link:/Volumes/code/workspace/foundation/axi-ui/packages/icons",
+    "@vitejs/plugin-react": "^5.2.0",
+    "antd": "^6.4.3",
+    "dayjs": "^1.11.21",
+    "pg": "^8.21.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  },
+  "packageJsonDevDeps": {
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3"
+  },
+  "lockfileResolvedDeps": {
+    "@vitejs/plugin-react": "5.2.0(vite@8.0.16(esbuild@0.27.7))",
+    "antd": "6.4.3(react-dom@19.2.6(react@19.2.6))(react@19.2.6)",
+    "dayjs": "1.11.21",
+    "pg": "8.21.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6(react@19.2.6)",
+    "typescript": "6.0.3",
+    "vite": "8.0.16(esbuild@0.27.7)",
+    "@types/react": "19.2.15",
+    "@types/react-dom": "19.2.3(@types/react@19.2.15)",
+    "@axi/icons": null
+  },
+  "lockfilePackageCount": 264,
+  "nodeModulesObserved": {
+    "@axi/*": "absent — no @axi scope directory in node_modules",
+    "antd": "symlink → .pnpm/antd@6.4.3_react-dom@19.2.6_react@19.2.6__react@19.2.6/node_modules/antd",
+    "dayjs": "symlink → .pnpm/dayjs@1.11.21/node_modules/dayjs",
+    "pg": "symlink → .pnpm/pg@8.21.0/node_modules/pg",
+    "react": "symlink → .pnpm/react@19.2.6/node_modules/react",
+    "react-dom": "symlink → .pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom",
+    "typescript": "symlink → .pnpm/typescript@6.0.3/node_modules/typescript",
+    "vite": "symlink → .pnpm/vite@8.0.16_esbuild@0.27.7/node_modules/vite",
+    "@vitejs": "directory present (plugin-react symlink target lives here)"
+  },
+  "driftFindings": [
+    {
+      "package": "react",
+      "packageJsonRange": "^19.2.3",
+      "lockfilePinned": "19.2.6",
+      "driftStatus": "none",
+      "notes": "19.2.6 satisfies ^19.2.3 (3 patch levels of drift, normal semver resolution). No drift to fix."
+    },
+    {
+      "package": "react-dom",
+      "packageJsonRange": "^19.2.3",
+      "lockfilePinned": "19.2.6",
+      "driftStatus": "none",
+      "notes": "Same as react. Peer-dep satisfied against react 19.2.6."
+    },
+    {
+      "package": "antd",
+      "packageJsonRange": "^6.4.3",
+      "lockfilePinned": "6.4.3",
+      "driftStatus": "none",
+      "notes": "Exact pin. Note: antd v6 is the major version currently in use across the dirty files (message, Empty, Input, Typography); no antd v5 residue."
+    },
+    {
+      "package": "vite",
+      "packageJsonRange": "^8.0.16",
+      "lockfilePinned": "8.0.16(esbuild@0.27.7)",
+      "driftStatus": "suspicious",
+      "notes": "Exact pin. Version string '8.0.16' is well above the public Vite major series (publicly Vite is at 6.x / 7.x as of late 2025). Owner should verify whether this is (a) an internal/private registry, (b) a future/placeholder version, or (c) a real upstream release."
+    },
+    {
+      "package": "typescript",
+      "packageJsonRange": "^6.0.3",
+      "lockfilePinned": "6.0.3",
+      "driftStatus": "suspicious",
+      "notes": "Exact pin. tsconfig.json sets 'ignoreDeprecations': '6.0' which is the *future* TypeScript deprecation-warning suppression flag for TS 6 — this corroborates the typescript@6.0.3 claim but is still unusual given public TS 5.x. Owner should verify against the registry."
+    },
+    {
+      "package": "@vitejs/plugin-react",
+      "packageJsonRange": "^5.2.0",
+      "lockfilePinned": "5.2.0",
+      "driftStatus": "none",
+      "notes": "Exact pin. Compatible with vite 8.x in lockfile."
+    },
+    {
+      "package": "dayjs",
+      "packageJsonRange": "^1.11.21",
+      "lockfilePinned": "1.11.21",
+      "driftStatus": "none",
+      "notes": "Exact pin. Used in PersonalTodoPage via Dayjs type and dayjs() factory."
+    },
+    {
+      "package": "pg",
+      "packageJsonRange": "^8.21.0",
+      "lockfilePinned": "8.21.0",
+      "driftStatus": "none",
+      "notes": "Backend-only dep (postgres client). No frontend usage."
+    },
+    {
+      "package": "@types/react",
+      "packageJsonRange": "^19.2.15",
+      "lockfilePinned": "19.2.15",
+      "driftStatus": "none",
+      "notes": "Exact pin devDep."
+    },
+    {
+      "package": "@types/react-dom",
+      "packageJsonRange": "^19.2.3",
+      "lockfilePinned": "19.2.3(@types/react@19.2.15)",
+      "driftStatus": "none",
+      "notes": "Exact pin devDep. Peer satisfied."
+    },
+    {
+      "package": "@axi/icons",
+      "packageJsonRange": "link:/Volumes/code/workspace/foundation/axi-ui/packages/icons",
+      "lockfilePinned": null,
+      "driftStatus": "expected-link-omission",
+      "notes": "pnpm-lock.yaml does NOT record this entry. Expected behavior for 'link:' protocol with absolute filesystem paths when excludeLinksFromLockfile behavior is in play. Confirmed @axi/icons source exists on disk at /Volumes/code/workspace/foundation/axi-ui/packages/icons/. node_modules/@axi/* is empty because the link protocol uses symlink resolution that isn't materialized in node_modules — but the package source is reachable."
+    },
+    {
+      "package": "@axi/core / @axi/crud / @axi/shell / @axi/widgets / @axi/presets / @axi/settings / @axi/tokens",
+      "packageJsonRange": "NOT in package.json (0 entries)",
+      "lockfilePinned": "NOT in lockfile (0 entries)",
+      "driftStatus": "intentional-path-alias",
+      "notes": "These 7 @axi/* packages are NOT package deps. They are resolved via (a) tsconfig.json 'paths' entries mapping each to /Volumes/code/workspace/foundation/axi-ui/packages/<name>/src/index.ts and (b) vite.config.ts 'resolve.alias' entries mapping the same set to the same absolute filesystem targets. They will type-check / bundle only if those filesystem paths exist (verified: all 7 exist on disk). This is a deliberate design — the dirty files rely on this and would break if paths/aliases were removed. No new package.json entries needed for these."
+    },
+    {
+      "package": "lockfile-vs-node_modules parity",
+      "packageJsonRange": null,
+      "lockfilePinned": null,
+      "driftStatus": "consistent",
+      "notes": "node_modules symlinks point to .pnpm stores at exactly the versions the lockfile pins (e.g., .pnpm/typescript@6.0.3, .pnpm/vite@8.0.16_esbuild@0.27.7). Material on-disk state and lockfile agree."
+    },
+    {
+      "package": "M5 outOfScopeButFlagged claim",
+      "packageJsonRange": null,
+      "lockfilePinned": null,
+      "driftStatus": "claim-overstated",
+      "notes": "M5 audit entry #4 reported 'tools/axi-todo/src/web React deps may have drift between package.json and lockfile'. After re-inspection: package.json semver ranges and lockfile pinned versions are consistent for every react-family dep. The 5 uncommitted dirty files do NOT introduce any new transitive dep — they import only (a) already-declared packages (react, antd, dayjs) and (b) @axi/* siblings resolvable via existing tsconfig paths + vite aliases. Drift hypothesis is not supported by evidence."
+    }
+  ],
+  "dirtyFrontendFiles": [
+    {
+      "path": "tools/axi-todo/src/web/features/tasks/DashboardActions.tsx",
+      "imports": [
+        "@axi/icons (AxiIconButton, AxiSvgIcon)",
+        "@axi/widgets (AxiSelect)",
+        "../../app/constants (exportFormatOptions)",
+        "../../app/types (ExportFormat, RouteKey, StatusFilter)"
+      ],
+      "summary": "Renders per-route breadcrumb actions for items/personal/tasks routes. Pulls AxiSelect + AxiIconButton from local @axi/* workspaces; types from local types module. No new external deps."
+    },
+    {
+      "path": "tools/axi-todo/src/web/features/tasks/PersonalTodoPage.tsx",
+      "imports": [
+        "antd (Empty, Input, InputRef)",
+        "@axi/icons (AxiIconButton, AxiSvgIcon)",
+        "@axi/widgets (AxiDatePicker)",
+        "dayjs (default + Dayjs type)",
+        "react (useEffect, useMemo, useRef, useState)",
+        "../../native (AxiTodoTask type)",
+        "./useTaskLedger (isPersonalTask)",
+        "./taskUtils (formatTime)"
+      ],
+      "summary": "Personal-todo route page: quick-add form with two AxiDatePickers (due + remind), tabbed today/open/completed views, group headers (逾期 / 今天 / 即将到期 / 完成). Uses antd Input/Empty, dayjs for date math. All deps are declared."
+    },
+    {
+      "path": "tools/axi-todo/src/web/features/tasks/TodoDashboard.tsx",
+      "imports": [
+        "antd (message)",
+        "@axi/core (AxiLogoMark, useAxiTheme)",
+        "@axi/icons (AxiIconButton, AxiSvgIcon)",
+        "@axi/shell (AxiDashboardShell)",
+        "react (useCallback, useEffect, useMemo, useState, MouseEvent)",
+        "../../app/constants (statusOptions, workspaceRoot)",
+        "../../app/i18n (t)",
+        "../../app/types (ExportFormat, ProjectSelectOption, RouteKey, StatusFilter, TodoDraftItem)",
+        "../../shared/clipboard (writeClipboardText)",
+        "../todo-items/TodoItemsPage (focusTodoItem, TodoItemsPage)",
+        "../todo-items/todoItems (createTodoDraftItem, formatTodoItemsAsJson, formatTodoItemsAsMarkdown, getTodoItems)",
+        "./DashboardActions (DashboardBreadcrumbActions)",
+        "./TaskEditor, TaskListPage, PersonalTodoPage, TodoSettingsPanel",
+        "./taskUtils (formatTime, projectKey, projectLabel)",
+        "./useTaskColumns (useTaskColumns)",
+        "./useTaskLedger (isAgentTask, useTaskLedger)",
+        "./useTodoShellConfig (useTodoShellConfig)"
+      ],
+      "summary": "Top-level TodoDashboard component: routes across tasks / personal / items, global search, theme toggle, topbar config. Heavy composition layer. Imports 4 different @axi/* scopes (core, icons, shell, plus local task components) — all resolved via existing tsconfig paths / vite aliases."
+    },
+    {
+      "path": "tools/axi-todo/src/web/features/tasks/useTaskColumns.tsx",
+      "imports": [
+        "antd (Typography)",
+        "@axi/core (AxiTag)",
+        "@axi/icons (AxiSvgIcon)",
+        "@axi/crud (AxiTableActions, AxiTableButton, AxiTableColumn)",
+        "react (useMemo, MouseEvent)",
+        "../../app/constants (statusOptions)",
+        "../../native (AxiTaskStatus, AxiTodoTask)",
+        "./taskUtils (formatTime, projectLabel)"
+      ],
+      "summary": "Hook returning the 6 columns of the tasks Ant table (status / title / prompt / cwd / updatedAt / actions). Uses antd Typography, @axi/core AxiTag, @axi/crud table primitives. All resolvable."
+    },
+    {
+      "path": "tools/axi-todo/src/web/features/tasks/useTodoShellConfig.tsx",
+      "imports": [
+        "antd (message)",
+        "@axi/icons (AxiSvgIcon, axiIconNames, AxiIconName)",
+        "@axi/shell (AxiGlobalSearch, AxiGlobalSearchTrigger, AxiDashboardAvatarConfig, AxiDashboardNavGroup)",
+        "react (useMemo, MouseEvent)",
+        "../../app/types (RouteKey)",
+        "../../native (AxiTodoTask)",
+        "./taskUtils (formatTime, projectLabel)",
+        "../../app/i18n (t, setLocale, getLocale)"
+      ],
+      "summary": "Hook returning avatarConfig / globalSearchNode / navGroups / topbarActions used by TodoDashboard's AxiDashboardShell. Anticipates unknown icon names with a runtime validator + console.warn fallback. All imports resolve via existing aliases."
+    }
+  ],
+  "importsAlreadyCoveredByDeclaredDeps": {
+    "react_useState_useEffect_useMemo_useCallback_useRef": "react ^19.2.3 / pinned 19.2.6",
+    "react_MouseEvent": "react ^19.2.3",
+    "antd_Empty_Input_InputRef_Typography_message": "antd ^6.4.3 / pinned 6.4.3",
+    "dayjs_default_Dayjs_type": "dayjs ^1.11.21 / pinned 1.11.21",
+    "@axi_icons_AxiIconButton_AxiSvgIcon_axiIconNames": "@axi/icons link:/Volumes/code/workspace/foundation/axi-ui/packages/icons (declared; lockfile omits due to link: protocol — expected)",
+    "@axi/core_AxiLogoMark_useAxiTheme_AxiTag": "@axi/core via paths/alias — intentional workspace linkage, not a package dep",
+    "@axi/crud_AxiTableActions_AxiTableButton_AxiTableColumn": "@axi/crud via paths/alias — intentional workspace linkage",
+    "@axi/shell_AxiDashboardShell_AxiGlobalSearch_AxiGlobalSearchTrigger_AxiDashboardAvatarConfig_AxiDashboardNavGroup": "@axi/shell via paths/alias — intentional workspace linkage",
+    "@axi/widgets_AxiSelect_AxiDatePicker": "@axi/widgets via paths/alias — intentional workspace linkage"
+  },
+  "importsNOTCoveredAndMissing": [],
+  "viteAliasesThatResolve": [
+    "@axi/core/styles.css",
+    "@axi/core",
+    "@axi/crud/styles.css",
+    "@axi/crud",
+    "@axi/settings/styles.css",
+    "@axi/settings",
+    "@axi/widgets/styles.css",
+    "@axi/widgets",
+    "@axi/shell/styles.css",
+    "@axi/shell",
+    "@axi/tokens/brand/app-icons/<name>.svg",
+    "@axi/tokens/css",
+    "@axi/tokens/ts"
+  ],
+  "tsconfigPathMappingsThatResolve": [
+    "@axi/core",
+    "@axi/core/styles.css",
+    "@axi/crud",
+    "@axi/crud/styles.css",
+    "@axi/presets",
+    "@axi/settings",
+    "@axi/settings/styles.css",
+    "@axi/widgets",
+    "@axi/widgets/styles.css",
+    "@axi/shell",
+    "@axi/shell/styles.css",
+    "@axi/tokens/brand/app-icons/*",
+    "@axi/tokens/css",
+    "@axi/tokens/ts"
+  ],
+  "axiUiSourcePathsExistOnDisk": [
+    "/Volumes/code/workspace/foundation/axi-ui/packages/core",
+    "/Volumes/code/workspace/foundation/axi-ui/packages/crud",
+    "/Volumes/code/workspace/foundation/axi-ui/packages/icons",
+    "/Volumes/code/workspace/foundation/axi-ui/packages/shell",
+    "/Volumes/code/workspace/foundation/axi-ui/packages/widgets",
+    "/Volumes/code/workspace/foundation/axi-ui/packages/presets",
+    "/Volumes/code/workspace/foundation/axi-ui/packages/settings",
+    "/Volumes/code/workspace/foundation/axi-ui/packages/tokens",
+    "/Volumes/code/workspace/foundation/axi-ui/packages/vite-plugin"
+  ],
+  "ownerDecisionRequired": [
+    "Whether to verify the versions 'vite@8.0.16', 'typescript@6.0.3', 'react@19.2.3/19.2.6', '@vitejs/plugin-react@5.2.0' against the upstream npm registry. As-of-late-2025 public versions are Vite 6.x / 7.x, TypeScript 5.x, React 19.2, @vitejs/plugin-react 5.x — Vite 8 and TypeScript 6 are forward of public. Confirm if axi-todo installs from an internal/private registry or if these are placeholders. If placeholders, the lockfile will not reproduce on a clean install.",
+    "Whether to bump antd to a patch beyond 6.4.3 once verified (semver caret currently pins at exactly 6.4.3 — if antd publishes 6.4.4 the lockfile will not pick it up without a manual 'pnpm update antd' + lockfile write). If the team prefers floating patch updates, the lockfile discipline needs to include 'pnpm update'.",
+    "Whether to align the packageManager field (pnpm@10.33.2) with the actual installed pnpm. If developers run different pnpm minors, lockfile drift will accumulate.",
+    "Whether the 5 uncommitted files represent intended-active-dev work that should land in a feature branch + PR (they are reachable, type-checkable, but currently absent from any commit). They do NOT need a separate package.json / lockfile change to land — only their source files + types review.",
+    "Whether the @axi/* path-alias strategy should be promoted into actual 'link:' package deps (one per @axi/* package in package.json + pnpm-lock entries). Current state works but couples to absolute filesystem paths under /Volumes/code/workspace/foundation/axi-ui/packages/* — any move of axi-ui breaks the build.",
+    "Whether 'pg' (Postgres driver) should remain in package.json dependencies or move to devDependencies / peerDependencies — it is backend-only and not used by the frontend bundle."
+  ],
+  "outOfScope": [
+    "M6 track-4 is READ-ONLY; no package.json / lockfile / frontend source mutation",
+    "M6 track-4 does NOT install / upgrade / downgrade any package (no pnpm install, pnpm add, pnpm update, npm install, pnpm audit)",
+    "M6 track-4 does NOT touch any unrelated dirty diff (backend/ / docs/ / etc.)",
+    "M6 track-4 does NOT modify the 5 dirty .tsx files",
+    "M6 track-4 does NOT regenerate or modify pnpm-lock.yaml",
+    "M6 track-4 does NOT verify npm registry availability of suspicious versions (would require network access; deferred to owner)"
+  ],
+  "scopeLeakageCheck": {
+    "filesReadBeyondScope": [],
+    "filesModifiedBeyondScope": [],
+    "filesOutsideScopeTouched": [],
+    "notes": "Only read package.json, pnpm-lock.yaml, tsconfig.json, vite.config.ts, the 5 dirty .tsx files, and a few ls/grep calls against tools/axi-todo/node_modules to verify symlink targets. Wrote ONLY web-deps-audit.json. Did NOT touch the 5 dirty .tsx files. Did NOT run pnpm/npm/vitest."
+  }
+}
