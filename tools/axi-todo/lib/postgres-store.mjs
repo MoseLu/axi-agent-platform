@@ -245,8 +245,16 @@ export class PostgresTaskStore {
       );
       await this.upsertTask(task, client);
       if (needsAudit) {
+        // M8: mirror the M4 / M6 / M7 sticky source/imported_at provenance
+        // pattern onto the inline gate-held audit_reviews INSERT. Without
+        // this, migration 005 backfills the row's source='native' even when
+        // the parent task is import-postgres — so the audit trail loses its
+        // import provenance. Bind defaults match the migration so native
+        // rows carry source='native' and a fresh `now` timestamp; the new
+        // audit_review's id is always fresh (crypto.randomUUID()), so no
+        // ON CONFLICT clause is needed — sticky-on-insert is the default.
         await client.query(
-          "insert into audit_reviews (id, task_id, run_id, audit_level, verdict, reason, evidence_gaps, release_conditions, evidence_refs, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+          "insert into audit_reviews (id, task_id, run_id, audit_level, verdict, reason, evidence_gaps, release_conditions, evidence_refs, created_at, source, imported_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
           [
             crypto.randomUUID(),
             id,
@@ -269,6 +277,8 @@ export class PostgresTaskStore {
             ),
             JSON.stringify(result?.outputPath ? [result.outputPath] : []),
             now,
+            task.source || "native",
+            task.importedAt || null,
           ],
         );
       }
