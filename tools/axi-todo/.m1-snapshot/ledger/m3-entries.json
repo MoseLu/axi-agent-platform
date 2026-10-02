@@ -1,0 +1,66 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "in-progress",
+  "milestoneTitle": "M3: 修 M2 ledger outOfScopeButFlagged 的 3 个 latent bug",
+  "milestoneAcceptance": [
+    "M3.S1: M3 ledger 落地,透明记录 bug #1 误诊历史",
+    "M3.S2: lib/memory-search.mjs 提供 MEMORY_SEARCH_FIELDS 常量 + JSON / PG 共享 helper",
+    "M3.S3: searchPlanningMemory JSON + PG 算法收敛,同 query 返回完全相同的 row 集,UUID 不再泄漏",
+    "M3.S4: recordAuditReview 在 PG 端把 audit insert + status flip 包在同一个 withClient 里(rollback 覆盖两者)",
+    "M3.S5: recordCompletionSummary / recordFailureAnalysis 清理误导性的 {id: taskId} 第一参数",
+    "M3.S6: 新增 test/memory-search.test.mjs parity test + store.test.mjs PG parity for audit / completion summary",
+    "M3.S7: 全测试套件全绿,Swift 11/11 保持,Lore commits 落地,M3 ledger close"
+  ],
+  "subTasks": [
+    {
+      "tag": "M3.S1",
+      "id": "TODO-m3-s1-id",
+      "status": "in-progress",
+      "deps": []
+    },
+    {
+      "tag": "M3.S2",
+      "id": "TODO-m3-s2-id",
+      "status": "pending",
+      "deps": ["M3.S1"]
+    },
+    {
+      "tag": "M3.S3",
+      "id": "TODO-m3-s3-id",
+      "status": "pending",
+      "deps": ["M3.S2"]
+    },
+    {
+      "tag": "M3.S4",
+      "id": "TODO-m3-s4-id",
+      "status": "pending",
+      "deps": ["M3.S1"]
+    },
+    {
+      "tag": "M3.S5",
+      "id": "TODO-m3-s5-id",
+      "status": "pending",
+      "deps": ["M3.S1"]
+    },
+    {
+      "tag": "M3.S6",
+      "id": "TODO-m3-s6-id",
+      "status": "pending",
+      "deps": ["M3.S2", "M3.S3", "M3.S4", "M3.S5"]
+    },
+    {
+      "tag": "M3.S7",
+      "id": "TODO-m3-s7-id",
+      "status": "pending",
+      "deps": ["M3.S6"]
+    }
+  ],
+  "outOfScopeButFlagged": [
+    "BUG-#1-MISDIAGNOSIS: M2 ledger outOfScopeButFlagged 标记的 `recordCompletionSummary id bug` 实际上与代码行为不符。`lib/postgres-store.mjs:458` 调用 `this.insertCompletionSummary({id: record.taskId}, record)`,但 `insertCompletionSummary` 内部用 `createCompletionSummaryRecord(input, ...)` 派生 PK,该函数读 `input.id || crypto.randomUUID()` 而非 `task.id`。所以最终插入的 `completion_summaries.id` 列值是 fresh UUID (或 input.id),不是 taskId。原 ledger 的诊断('the id column ends up being the task id')与当前代码不符。M3 仍清理这段死代码 + 加测试断言 PK 是 UUID 不带任务语义,但 runtime 行为不变。这一笔记是为防止未来 reader 重复原 ledger 的误读。",
+    "18 pre-existing JSON `status:'completed'` 条目 recheck:M1 commit dd33478 的 directive 明确不做批量 recheck,M2.M3 同样不做。这是 owner decision,留 owner 决策。",
+    "PG schema 加 `source` 字段(M2 newFindings):超出 M3 范围,需要 migration + migrator 改造,属于 M4+。",
+    "warnIfDualPopulated PG probe 优化(M2 newFindings):超出 M3 范围。"
+  ],
+  "ownerDecisionsRequired": [],
+  "newFindings": []
+}
