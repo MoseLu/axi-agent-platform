@@ -1,0 +1,168 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M8: governance reconciliation + completeTask provenance closure + branch alignment audit",
+  "milestoneAcceptance": [
+    "M8.S1: ledger created and committed first; locks M8 scope to (a) completeTask inline audit_reviews INSERT provenance fix, (b) M5/M6/M7 ledger acceptance audit (read-only), (c) M1-M7 summary audit (read-only), (d) cross-repo branch alignment audit (read-only)",
+    "M8.S2 (Track A): lib/postgres-store.mjs completeTask needsAudit branch binds task.source || 'native' + task.importedAt || null on the inline audit_reviews INSERT; column list extended 10→12; bind-param array extended 10→12; no ON CONFLICT clause (each insert is a fresh crypto.randomUUID() id, sticky-on-insert default). Test: test/complete-task-audit-provenance.test.mjs (2/2 pass) — static column-list + bind-param-array structural assertions. OD-M7-2 resolved.",
+    "M8.S3 (Track B): M5/M6/M7 ledger acceptance matrix delivered as read-only fact-check. 1 internal contradiction surfaced: M7.S4 evidence typo short-SHA 8302801 (real: 8302807). M7 ledger corrected.",
+    "M8.S4 (Track C): 72d30d9 cross-repo branch alignment audit. Confirmed: 72d30d9 exists only on feature/audit-docs, byte-identical to 395f171; dev HEAD f60a741 has no merge/cherry-pick referencing 72d30d9 — post-commit-hook gap still unfixed on dev. OD-M7-1 detail refreshed.",
+    "M8.S5 (Track D): M1-M7 summary audit surfaced 3 newFindings (M8-NEWFINDING-1: M5 apply orphaned; M8-NEWFINDING-2: M2 ledger Resolved-in-required defect; M8-NEWFINDING-3: M6 acceptance bullet overstates surface). All 40 loreTrail SHAs across M2-M7 verified live as `commit`. M1-M7 cross-milestone owner-decision matrix confirms no duplicate decisions; M6-track-5 vite-ts verified retroactively by M7.S3.",
+    "M8.S99: full Node suite 183/183 pass (+2 from M8 Track A); swift run AxiTodoStoreSmokeTests pass; M7 OD-M7-2 closed; M6 verificationStatus updated; TODO-m5-apply cross-referenced on M6 ledger to prevent future orphaned state"
+  ],
+  "subTasks": [
+    {
+      "tag": "M8.S1",
+      "id": "TODO-m8-s1-id",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "this ledger file landed first",
+      "deps": []
+    },
+    {
+      "tag": "M8.S2",
+      "id": "TODO-m8-s2-id",
+      "trackTitle": "Track A: completeTask inline audit_reviews INSERT source/imported_at fix",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "axi-agent commit 7b3cafc — lib/postgres-store.mjs inline INSERT extended to 12 columns + 12 bind params binding task.source/task.importedAt; test/complete-task-audit-provenance.test.mjs (2/2 pass). Resolves OD-M7-2.",
+      "deps": ["M8.S1"]
+    },
+    {
+      "tag": "M8.S3",
+      "id": "TODO-m8-s3-id",
+      "trackTitle": "Track B: M5/M6/M7 ledger acceptance audit (read-only)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M8 Track B subagent reported acceptance matrix: M5 6/6 subTasks ✓ / M6 7/7 ✓ / M7 5/5 ✓; all 40 loreTrail SHAs verified live as `commit`; 1 internal contradiction (M7.S4 SHA typo 8302801→8302807); M7 ledger updated.",
+      "deps": ["M8.S1"]
+    },
+    {
+      "tag": "M8.S4",
+      "id": "TODO-m8-s4-id",
+      "trackTitle": "Track C: cross-repo branch alignment audit (72d30d9 only)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M8 Track C subagent confirmed: 72d30d9 exists only on feature/audit-docs; byte-identical to 395f171; dev HEAD f60a741 has no merge/cherry-pick referencing 72d30d9; post-commit-hook gap remains unfixed on dev. OD-M7-1 detail refreshed in M7 ledger.",
+      "deps": ["M8.S1"]
+    },
+    {
+      "tag": "M8.S5",
+      "id": "TODO-m8-s5-id",
+      "trackTitle": "Track D: M1-M7 summary audit (read-only)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M8 Track D subagent reported per-milestone table + cross-milestone owner-decision matrix + 3 newFindings (M8-NEWFINDING-1/2/3). TODO-m5-apply-owner-confirm cross-referenced on M6 ledger (commit 7be2b70) to prevent future orphaned state.",
+      "deps": ["M8.S1"]
+    },
+    {
+      "tag": "M8.S99",
+      "id": "TODO-m8-s99-id",
+      "trackTitle": "M8 ledger close + M8 owner decisions",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent fact-check + integration: node --test test/*.test.mjs → 183/183 pass; swift run AxiTodoStoreSmokeTests → pass; 5 commits on dev (7b3cafc / 9b77e74 / 7be2b70 / 041f898 / plus this ledger); M6/M7 verificationStatus updated to 'Locally verified (M8 closure)'",
+      "deps": ["M8.S2", "M8.S3", "M8.S4", "M8.S5"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "7b3cafc",
+      "scope": "axi-todo",
+      "track": "M8.S2",
+      "subject": "fix(axi-todo): mirror task provenance in completeTask gate-held audit rows"
+    },
+    {
+      "sha": "9b77e74",
+      "scope": "axi-todo",
+      "track": "M8.S3",
+      "subject": "chore(axi-todo): M8 close M7 ledger — OD-M7-2 resolved + verificationStatus=locally verified"
+    },
+    {
+      "sha": "7be2b70",
+      "scope": "axi-todo",
+      "track": "M8.S5",
+      "subject": "chore(axi-todo): M8 cross-reference TODO-m5-apply-owner-confirm on M6 ledger"
+    },
+    {
+      "sha": "041f898",
+      "scope": "axi-todo",
+      "track": "M8.S4",
+      "subject": "chore(axi-todo): M8 close M6 ledger — TODO-m6-track-5 verified, sync-apply + Swift 24-field still open"
+    }
+  ],
+  "subagentTracks": [
+    {
+      "id": "m8-track-a-complete-task-fix",
+      "title": "completeTask inline audit_reviews INSERT source/imported_at fix",
+      "scope": "axi-todo only; lib/postgres-store.mjs + new test file; do NOT touch lib/schema.mjs; do NOT touch M3.S4 withClient transaction wrapper",
+      "filesTouched": [
+        "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/lib/postgres-store.mjs",
+        "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/test/complete-task-audit-provenance.test.mjs"
+      ],
+      "branch": "dev on axi-agent repo",
+      "outcome": "committed 7b3cafc; 2/2 new tests pass; full suite 183/183"
+    },
+    {
+      "id": "m8-track-b-ledger-acceptance-audit",
+      "title": "M5/M6/M7 ledger acceptance audit (READ-ONLY)",
+      "scope": "audit only; no source modifications",
+      "filesTouched": [],
+      "branch": "n/a",
+      "outcome": "acceptance matrix delivered; 1 internal contradiction (M7.S4 SHA typo) corrected by main agent"
+    },
+    {
+      "id": "m8-track-c-branch-alignment",
+      "title": "72d30d9 cross-repo branch alignment audit (READ-ONLY)",
+      "scope": "audit only; foundation/workspace-governance repo only",
+      "filesTouched": [],
+      "branch": "n/a",
+      "outcome": "72d30d9 confirmed only on feature/audit-docs; byte-identical to 395f171; cherry-pick-needed; OD-M7-1 detail refreshed"
+    },
+    {
+      "id": "m8-track-d-summary-audit",
+      "title": "M1-M7 summary audit (READ-ONLY)",
+      "scope": "audit only; 7 ledger files + source spot-checks",
+      "filesTouched": [],
+      "branch": "n/a",
+      "outcome": "3 newFindings + cross-milestone owner-decision matrix + TODO-m5-apply cross-referenced on M6 ledger"
+    }
+  ],
+  "sourceFindings": [
+    "M7.S4 outOfScopeButFlagged: completeTask inline audit_reviews INSERT missing source + imported_at → M8.S2 closure (commit 7b3cafc)",
+    "M7.S4 evidence SHA typo 8302801 (real: 8302807) → M8.S3 corrected in M7 ledger",
+    "M5 TODO-m5-apply-owner-confirm orphaned across M6/M7 → M8.S5 cross-referenced on M6 ledger",
+    "OD-M7-1 branch alignment: 72d30d9 not on dev → still owner-pending (cherry-pick / merge / accept-as-feature-branch)"
+  ],
+  "outOfScopeButFlagged": [
+    "TODO-m6-track-3-sync-apply (real PG sync-apply): deferred — operator action",
+    "TODO-m6-track-2-swift-field-expansion (24-field UI work): deferred — design",
+    "OD-M7-1 (cherry-pick 72d30d9 → dev): cross-repo decision still pending owner",
+    "M8-NEWFINDING-2 (M2 ledger categorization defect): historical, no action required but flagged for future ledger-template cleanup",
+    "M8-NEWFINDING-3 (M6 acceptance bullet overstates surface): historical, no action required but flagged for future ledger review",
+    "Pre-existing dirty working tree (backend/app/*.py + web tsx + .build/ + .m1-snapshot/* + submit logs): out of M8 scope — preserved per hard constraint"
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M8-1",
+      "subject": "OD-M7-1 cherry-pick decision for 72d30d9",
+      "detail": "M7 track-1 subagent committed 72d30d9 on branch feature/audit-docs (NOT dev). M8 Track C audit confirmed the post-commit-hook gap is still unfixed on dev. Owner must decide: (a) cherry-pick 72d30d9 → dev, (b) merge feature/audit-docs → dev, (c) keep feature/audit-docs as long-lived. Without this decision, the post-commit-hook fix lives on a non-dev branch and is unreachable from mainline. M8 does not touch workspace-governance repo per scope (cross-repo decision).",
+      "discovered_by": "M8 Track C branch-alignment audit",
+      "scope": "foundation/workspace-governance repo"
+    },
+    {
+      "id": "OD-M8-2",
+      "subject": "TODO-m5-apply-owner-confirm (carried from M5)",
+      "detail": "M5 produced an owner-gated --apply --confirm-apply tool (recheck-completed) with 4 options: Apply all 10 / Apply only cancelled / Dry-run / Cancel. M8 Track D flagged this as orphaned across M6/M7. M8 cross-referenced it on M6 ledger. The decision itself is still pending owner input — owner should pick one of the 4 M5 options before further milestones.",
+      "discovered_by": "M8 Track D summary audit"
+    },
+    {
+      "id": "OD-M8-3",
+      "subject": "M5/M6/M7 owner-acceptance sweep",
+      "detail": "M8 verified the engineering implementation of M5/M6/M7 and updated their verificationStatus to 'Locally verified (M8 closure)'. M5 still has 1 open decision (TODO-m5-apply-owner-confirm, surfaced as OD-M8-2). M6 still has 2 open decisions (TODO-m6-track-3-sync-apply + TODO-m6-track-2-swift-field-expansion). M7 still has 1 open decision (OD-M7-1, surfaced as OD-M8-1). Owner decision: accept M5 + M6 + M7 milestones as 'owner-accepted' / defer until those decisions close / partial-accept.",
+      "discovered_by": "M8.S99 main agent close"
+    }
+  ],
+  "newFindings": []
+}
