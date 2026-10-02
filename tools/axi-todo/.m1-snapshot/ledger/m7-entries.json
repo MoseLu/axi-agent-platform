@@ -1,0 +1,103 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "in-progress",
+  "verificationStatus": "Not yet submitted",
+  "milestoneTitle": "M7: post-commit hook 阻断修复 + newFindings 收尾 + M6.4 fact-check 修正",
+  "milestoneAcceptance": [
+    "M7.S1: M7 ledger 落地,锁定 3 条轨道 (workspace-change-ledger.mjs 阻断修复 / audit_reviews + task_events provenance / M6.4 audit fact-check 修正)",
+    "M7.S2 (post-commit hook 阻断修复): foundation/workspace-governance/scripts/workspace-change-ledger.mjs 从 commit 395f171 恢复到 working tree + commit 进 governance repo;相应 test 文件 (workspace-change-ledger.test.mjs) 同步恢复;axi-agent 的 .githooks/post-commit 不变 (它本来就引用正确路径),但触发时不再报 'Cannot find module';workspace-change-propagation.mjs 同步检查确认",
+    "M7.S3 (M6.4 fact-check 修正): .m1-snapshot/m6-audit/web-deps-audit.json 的 driftFindings 移除 vite@8.0.16 + typescript@6.0.3 的 suspicious 标记 (npm view 确认两者真实存在);其余 ownerDecisionRequired 保留",
+    "M7.S4 (audit_reviews + task_events provenance): migrations/005_event_provenance.sql + lib/postgres-store.mjs insertAuditReview + insertTaskEvent 路径绑定 source/imported_at;test/migrate-event-provenance.test.mjs 覆盖幂等 + sticky upsert",
+    "M7.S99: 全套测试全绿 (Node 170+delta + Swift 15+delta);3 轨道 commit SHA 验证;M7 ledger close (verificationStatus: Awaiting owner acceptance)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M7.S1",
+      "id": "TODO-m7-s1-id",
+      "status": "in-progress",
+      "evidence": "this ledger file lands first",
+      "deps": []
+    },
+    {
+      "tag": "M7.S2",
+      "id": "TODO-m7-s2-id",
+      "trackTitle": "Post-commit hook 阻断修复 (workspace-change-ledger.mjs 恢复)",
+      "status": "in-progress",
+      "evidence": "foundation/workspace-governance/scripts/workspace-change-ledger.mjs + workspace-change-ledger.test.mjs restored from commit 395f171 + new commit on governance repo",
+      "deps": ["M7.S1"]
+    },
+    {
+      "tag": "M7.S3",
+      "id": "TODO-m7-s3-id",
+      "trackTitle": "M6.4 web-deps audit fact-check 修正",
+      "status": "pending",
+      "evidence": ".m1-snapshot/m6-audit/web-deps-audit.json updated; npm view verification evidence recorded in audit",
+      "deps": ["M7.S1"]
+    },
+    {
+      "tag": "M7.S4",
+      "id": "TODO-m7-s4-id",
+      "trackTitle": "audit_reviews + task_events PG provenance 镜像",
+      "status": "pending",
+      "evidence": "tools/axi-todo/migrations/005_event_provenance.sql + lib/postgres-store.mjs insert paths + test/migrate-event-provenance.test.mjs",
+      "deps": ["M7.S1"]
+    },
+    {
+      "tag": "M7.S99",
+      "id": "TODO-m7-s99-id",
+      "trackTitle": "事实核查 + 全套验证 + M7 ledger close",
+      "status": "pending",
+      "evidence": "git cat-file on all subagent commits + node --test + swift run + ledger close",
+      "deps": ["M7.S2", "M7.S3", "M7.S4"]
+    }
+  ],
+  "loreTrail": [],
+  "subagentTracks": [
+    {
+      "id": "m7-track-1-post-commit-fix",
+      "title": "Post-commit hook 阻断修复 — workspace-change-ledger.mjs 恢复",
+      "scope": "foundation/workspace-governance repo ONLY; restore deleted scripts; do NOT touch .githooks/ in axi-agent (it is already correct)",
+      "filesTouched": [
+        "/Volumes/code/workspace/foundation/workspace-governance/scripts/workspace-change-ledger.mjs (restored from 395f171)",
+        "/Volumes/code/workspace/foundation/workspace-governance/scripts/workspace-change-ledger.test.mjs (restored from 395f171)"
+      ],
+      "branch": "dev on foundation/workspace-governance repo",
+      "priority": "HIGH (blocks every post-commit)"
+    },
+    {
+      "id": "m7-track-2-event-provenance",
+      "title": "audit_reviews + task_events PG provenance 镜像",
+      "scope": "axi-todo PG schema extension mirroring M6 track-1",
+      "filesTouched": [
+        "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/migrations/005_event_provenance.sql",
+        "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/lib/postgres-store.mjs",
+        "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/test/migrate-event-provenance.test.mjs"
+      ],
+      "branch": "dev on axi-agent repo"
+    },
+    {
+      "id": "m7-track-3-web-deps-factcheck",
+      "title": "M6.4 web-deps audit fact-check 修正 (vite + typescript verification)",
+      "scope": "tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json update only",
+      "filesTouched": [
+        "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json"
+      ],
+      "branch": "dev on axi-agent repo",
+      "constraint": "Update audit JSON only; do NOT touch package.json / lockfile / frontend source"
+    }
+  ],
+  "sourceFindings": [
+    "M6-NEWFINDING-1 (carried from M6 ledger newFindings): audit_reviews + task_events are provenance-less PG tables. M7 track-2 mirrors the M6 track-1 pattern.",
+    "M6-NEWFINDING-3 (carried from M6 ledger newFindings): workspace-change-ledger.mjs is referenced by .githooks/post-commit but the file is missing from foundation/workspace-governance working tree and git index (added in 395f171 but later removed without a deletion commit). M7 track-1 restores it from 395f171.",
+    "M6.4-OWNER-DECISION-1 (verified in M7.S0): vite@8.0.16 and typescript@6.0.3 DO exist on public npm registry (verified via `npm view vite@8.0.16 version` and `npm view typescript@6.0.3 version` returning the exact versions). Latest public vite is 8.3.2, latest typescript is 7.0.2. M6.4 audit JSON flagged these as 'suspicious' based on stale knowledge of public major versions; fact-check correction recorded in M7 track-3."
+  ],
+  "outOfScopeButFlagged": [
+    "M6.4 audit ownerDecisionRequired #2 (antd patch updates) / #3 (packageManager alignment) / #5 (@axi/* link: deps) / #6 (pg move to devDeps): deferred — these are owner-side engineering preferences, not blocking; flagged for future milestone.",
+    "M6.4 audit ownerDecisionRequired #4 (5 uncommitted dirty .tsx files land in feature branch): out of M7 scope — these are separate scratch work, not part of any M-series milestone.",
+    "Swift AxiTodoTask 24-field expansion (M6 ownerDecisionRequired #3): out of M7 scope — track-2 narrowly follows the M6 pattern; future design discussion deferred.",
+    "user_preferences.source disambiguation (M6 newFinding #2): out of M7 scope — different semantics, needs separate design.",
+    "M6 track-5 post-commit hook side-finding (Cannot find module workspace-change-ledger.mjs) was a stale report — the actual post-commit hook calls axi-submit-log-post-commit.mjs (works) + workspace-change-ledger.mjs (missing) + workspace-change-propagation.mjs (works). M7 track-1 fixes the missing one."
+  ],
+  "ownerDecisionsRequired": [],
+  "newFindings": []
+}
