@@ -18,7 +18,8 @@
       "id": "TODO-m6-s1-id",
       "status": "completed",
       "completedAt": "2026-10-02",
-      "evidence": "ledger/m6-entries.json initially committed in commit 3a4dcbe; 5 subagentTracks defined with non-overlapping filesTouched[] arrays; outOfScopeButFlagged locked to 5 items"
+      "evidence": "ledger/m6-entries.json initially committed in commit 3a4dcbe; 5 subagentTracks defined with non-overlapping filesTouched[] arrays; outOfScopeButFlagged locked to 5 items",
+      "deps": []
     },
     {
       "tag": "M6.S2",
@@ -26,7 +27,8 @@
       "trackTitle": "PG provenance 镜像 (completion_summaries / failure_analyses / memory_cards)",
       "status": "completed",
       "completedAt": "2026-10-02",
-      "evidence": "5 Lore commits: 8f943b5 migrations/004_collection_provenance.sql (97 lines, idempotent ALTER+UPDATE+INDEX for 4 tables; planning_records has no PG writer path so migration adds columns for future use) + 2db9786 lib/postgres-store.mjs upsert paths for 3 collections (completion_summaries / failure_analyses / memory_cards) bind source+imported_at with sticky ON CONFLICT + af95712 fix(axi-todo): searchPlanningMemory spread reorder prevents item.source='native' overwriting collection source marker + eaa0309 test/migrate-collection-provenance.test.mjs (10 tests, 337 lines) + be45acb docs/README + docs/TODO-ARCHITECTURE.md. Deviation: planning_records lacks PG insert path so its migration is forward-looking. New finding: audit_reviews + task_events also provenance-less; user_preferences.source is different semantics"
+      "evidence": "5 Lore commits: 8f943b5 migrations/004_collection_provenance.sql (97 lines, idempotent ALTER+UPDATE+INDEX for 4 tables; planning_records has no PG writer path so migration adds columns for future use) + 2db9786 lib/postgres-store.mjs upsert paths for 3 collections (completion_summaries / failure_analyses / memory_cards) bind source+imported_at with sticky ON CONFLICT + af95712 fix(axi-todo): searchPlanningMemory spread reorder prevents item.source='native' overwriting collection source marker + eaa0309 test/migrate-collection-provenance.test.mjs (10 tests, 337 lines) + be45acb docs/README + docs/TODO-ARCHITECTURE.md. Deviation: planning_records lacks PG insert path so its migration is forward-looking. New finding: audit_reviews + task_events also provenance-less; user_preferences.source is different semantics",
+      "deps": ["M6.S1"]
     },
     {
       "tag": "M6.S3",
@@ -34,7 +36,8 @@
       "trackTitle": "Swift AxiTodoStore source/importedAt 字段解析",
       "status": "completed",
       "completedAt": "2026-10-02",
-      "evidence": "4 Lore commits: 00b3576 AxiTodoModels.swift adds source:String? + importedAt:Date? Codable fields + 5b95ec8 AxiTodoStore.swift configures dateEncodingStrategy=.iso8601 + dateDecodingStrategy=.iso8601 + ea273b7 AxiTodoStoreSmokeTests/main.swift adds 3 cases (12 → 15) + e9015a6 README.md. Swift 15/15 pass. New finding: 24 other top-level JSON fields (rejectedApproaches / waitState / riskLevel / agentRole / modelHint / etc.) not surfaced in Swift UI — candidate for future milestone"
+      "evidence": "4 Lore commits: 00b3576 AxiTodoModels.swift adds source:String? + importedAt:Date? Codable fields + 5b95ec8 AxiTodoStore.swift configures dateEncodingStrategy=.iso8601 + dateDecodingStrategy=.iso8601 + ea273b7 AxiTodoStoreSmokeTests/main.swift adds 3 cases (12 → 15) + e9015a6 README.md. Swift 15/15 pass. New finding: 24 other top-level JSON fields (rejectedApproaches / waitState / riskLevel / agentRole / modelHint / etc.) not surfaced in Swift UI — candidate for future milestone",
+      "deps": ["M6.S1"]
     },
     {
       "tag": "M6.S4",
@@ -42,7 +45,8 @@
       "trackTitle": "PG→JSON 反向同步工具",
       "status": "completed",
       "completedAt": "2026-10-02",
-      "evidence": "2 Lore commits: f295628 bin/axi-todo-sync-pg-to-json.mjs (399 lines) owner-gated --apply/--confirm-apply with reentrant .synced-pg-to-json-ids.json ledger, backup snapshot to .m1-snapshot/m6-audit/pre-sync-<ISO>.json only when writes occur, PG-newer-than-JSON drift detection in summary.warnings without overwrite + 3596270 test/sync-pg-to-json.test.mjs (10 scenarios, 508 lines; 168 → 178 = +10). New findings: owner-gate fires BEFORE resolveDatabaseUrl; tasks collection flows through createTask() with full history; other 9 collections converted snake_case → camelCase via normalizeState() tolerance"
+      "evidence": "2 Lore commits: f295628 bin/axi-todo-sync-pg-to-json.mjs (399 lines) owner-gated --apply/--confirm-apply with reentrant .synced-pg-to-json-ids.json ledger, backup snapshot to .m1-snapshot/m6-audit/pre-sync-<ISO>.json only when writes occur, PG-newer-than-JSON drift detection in summary.warnings without overwrite + 3596270 test/sync-pg-to-json.test.mjs (10 scenarios, 508 lines; 168 → 178 = +10). New findings: owner-gate fires BEFORE resolveDatabaseUrl; tasks collection flows through createTask() with full history; other 9 collections converted snake_case → camelCase via normalizeState() tolerance",
+      "deps": ["M6.S1"]
     },
     {
       "tag": "M6.S5",
@@ -50,7 +54,8 @@
       "trackTitle": "Web React 依赖漂移盘点 (read-only)",
       "status": "completed",
       "completedAt": "2026-10-02",
-      "evidence": "1 Lore commit 3c8f27e tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json (307 lines). Verdict: NO drift across package.json / lockfile / node_modules for react family (react 19.2.6, antd 6.4.3, vite 8.0.16, typescript 6.0.3 — all matched). Suspicious: vite@8.0.16 + typescript@6.0.3 are pre-major versions that may be internal-mirror placeholders (would block clean install); needs npm-registry verification. READ-ONLY constraint respected: zero package.json / lockfile / frontend source mutation"
+      "evidence": "1 Lore commit 3c8f27e tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json (307 lines). Verdict: NO drift across package.json / lockfile / node_modules for react family (react 19.2.6, antd 6.4.3, vite 8.0.16, typescript 6.0.3 — all matched). Suspicious: vite@8.0.16 + typescript@6.0.3 are pre-major versions that may be internal-mirror placeholders (would block clean install); needs npm-registry verification. READ-ONLY constraint respected: zero package.json / lockfile / frontend source mutation",
+      "deps": ["M6.S1"]
     },
     {
       "tag": "M6.S6",
@@ -58,7 +63,8 @@
       "trackTitle": "Workspace hooks audit + 缺失模板补齐",
       "status": "completed",
       "completedAt": "2026-10-02",
-      "evidence": "1 Lore commit bb46b73: .m1-snapshot/m6-audit/hooks-audit.json (full inventory) + .githooks/pre-push (Lore trailer scan over push range; aborts if Tested/Not-tested/Confidence/Scope-risk/Directive missing) + .githooks/post-merge (informational refresh reminder). core.hooksPath = .githooks already set in .git/config so hooks are ACTIVE on every clone. pre-receive / post-checkout / prepare-commit-msg intentionally NOT filled (no workspace-wide reason)"
+      "evidence": "1 Lore commit bb46b73: .m1-snapshot/m6-audit/hooks-audit.json (full inventory) + .githooks/pre-push (Lore trailer scan over push range; aborts if Tested/Not-tested/Confidence/Scope-risk/Directive missing) + .githooks/post-merge (informational refresh reminder). core.hooksPath = .githooks already set in .git/config so hooks are ACTIVE on every clone. pre-receive / post-checkout / prepare-commit-msg intentionally NOT filled (no workspace-wide reason)",
+      "deps": ["M6.S1"]
     },
     {
       "tag": "M6.S99",
@@ -66,7 +72,8 @@
       "trackTitle": "事实核查 + 全套验证 + M6 ledger close",
       "status": "completed",
       "completedAt": "2026-10-02",
-      "evidence": "git cat-file verified all 13 subagent commits land on dev; node --test test/*.test.mjs 170/170 pass (M5 150 + M6 track-1 10 + M6 track-3 10); swift run AxiTodoStoreSmokeTests 15/15 pass (M5 11/11 + M6 track-2 3 + M6 track-2 round-trip 1); this ledger close commit"
+      "evidence": "git cat-file verified all 13 subagent commits land on dev; node --test test/*.test.mjs 170/170 pass (M5 150 + M6 track-1 10 + M6 track-3 10); swift run AxiTodoStoreSmokeTests 15/15 pass (M5 11/11 + M6 track-2 3 + M6 track-2 round-trip 1); this ledger close commit",
+      "deps": ["M6.S2", "M6.S3", "M6.S4", "M6.S5", "M6.S6"]
     }
   ],
   "loreTrail": [
