@@ -1,0 +1,131 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M15: 2-track READ-ONLY multi-subagent audit (OWNER_DECISIONS.md doc-consistency + M14 ledger retrospective) + Track C doc-only remediation",
+  "milestoneAcceptance": [
+    "M15.S1: M15 ledger lands first; locks M15 scope to (a) Track A OWNER_DECISIONS.md full audit (READ-ONLY), (b) Track B M14 ledger retrospective (READ-ONLY), (c) Track C bounded doc-only fix on OWNER_DECISIONS.md per Track A F1+F8+F9+F10+F15+F17 (~18-line net)",
+    "M15.S2 (Track A — OWNER_DECISIONS.md audit, READ-ONLY): 23 findings flagged (4 HIGH / 7 MEDIUM / 12 LOW); 4 HIGH = R7 duplicate table confirmed (F1) + Component 2 vocabulary missing `pending` (F9) + `candidate-superseded-*` values not in vocabulary (F10) + anti-pattern violation by M13+M14 OD-DELEGATE re-assertion (F12, interpretation split with M14 Track A)",
+    "M15.S3 (Track B — M14 ledger retrospective, READ-ONLY): M14 ledger fully complies with post-M14 LEDGER_TEMPLATE.md; M13/M14 clean of pre-M12 bookkeeping defects; OD-DELEGATE 1:1 mirror maintained; outOfScopeButFlagged growth natural (M14:11 vs M13:4 is 2-track audit growth); F1 (R7 duplicate table) confirmed",
+    "M15.S4 (Track C — applied): 6 bounded doc edits landed in OWNER_DECISIONS.md per Track A recommendations: F1 (delete 7-line R7 duplicate table) + F8 (5 'Latest touched' fields refreshed M8/M9 → M12) + F9 (add `pending` row to Component 2 vocabulary) + F10 (add 2 `candidate-superseded-*` rows + update heading 4→6) + F15 (trackTitle stale 'M6-only' → 'M6+ optional') + F17 (add M8-NEWFINDING-2/3 closures section). Net +18/-16 lines, 1 file, 0 source code, 0 test impact",
+    "M15.S99: full Node suite 183/183 pass (zero source code touched, expected parity); swift run AxiTodoStoreSmokeTests pass (zero Swift touched, expected parity); M15 ledger closed; 2 commits on dev (Track C doc fix + this ledger)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M15.S1",
+      "id": "TODO-m15-s1-id",
+      "trackTitle": "M15 ledger lands first — scope lock",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "this ledger file landed first; M15 scope locked to 2-track READ-ONLY multi-subagent audit + Track C doc-only remediation; all 5 subTasks declared",
+      "deps": []
+    },
+    {
+      "tag": "M15.S2",
+      "id": "TODO-m15-s2-id",
+      "trackTitle": "Track A: OWNER_DECISIONS.md full audit (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "M15 Track A subagent reported (full report /tmp/m15-track-a-findings.md, ~2644 words): 23 findings (F1-F23); Q1 R7 duplicate table confirmed (F1); Q2 cross-references mostly clean (F4 m6 line ranges + F5 f60a741 SHA stale); Q3 vocabulary incomplete — Component 2 missing `pending` (F9) + `candidate-superseded-*` values not in vocabulary (F10); Q4 anti-pattern violated by M13+M14 re-assertion (F12, HIGH); Q5 schema drift observation trackTitle stale (F15) + source provenance stale (F16) + M8-NEWFINDING-2/3 undocumented (F17). Recommended F1+F9+F10 bundled in Track C",
+      "deps": ["M15.S1"]
+    },
+    {
+      "tag": "M15.S3",
+      "id": "TODO-m15-s3-id",
+      "trackTitle": "Track B: M14 ledger retrospective + post-M14 bookkeeping gap audit (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "M15 Track B subagent reported (full report /tmp/m15-track-b-findings.md, ~3300 words): 0 HIGH / 1 MEDIUM / 5 LOW / 3 INFO; F1 = R7 duplicate table confirmed (matches Track A); F2 closedDecisions top-level key absent (template says 'prefer [] over absent', M12/M13/M14 all omit); F3 OD-M{N}-DELEGATE lacks eviction_status field; F4 loreTrail[1].sha='pending' placeholder; F5 M14 ledger fully complies with post-M14 LEDGER_TEMPLATE.md; F8 OD-M14-DELEGATE 1:1 mirror maintained; F9 M13+M14 clean of pre-M12 bookkeeping defects. Recommended F1 dedup + reduce outOfScopeButFlagged by 2 items",
+      "deps": ["M15.S1"]
+    },
+    {
+      "tag": "M15.S4",
+      "id": "TODO-m15-s4-id",
+      "trackTitle": "Track C: OWNER_DECISIONS.md doc-only remediation — F1+F8+F9+F10+F15+F17",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "main agent applied 6 bounded doc edits per Track A F1+F8+F9+F10+F15+F17 (commit pending): (F1) OWNER_DECISIONS.md:85-91 delete 7-line R7 duplicate Field/Value table (orphaned by F8 line 80 refresh + consistent with lines 76-83 canonical M12 entry); (F8) 5 'Latest touched' fields refreshed M8/M9 → 'M12 (eviction_status applied via Decision Eviction Policy)'; (F9) Component 2 vocabulary gains `pending` row at line 167 (new default); (F10) Component 2 vocabulary gains `candidate-superseded-by-deferral` + `candidate-superseded-by-implicit-acceptance` rows at lines 172-173, heading '4 mutually-exclusive values' → '6 mutually-exclusive values', out-of-row note clarifies 'still pending owner action despite out-of-scope classification'; (F15) line 289 stale 'trackTitle M6-only field documented as historical' → 'trackTitle field documented as M6+ optional (29 occurrences across M7-M13 per docs/LEDGER_TEMPLATE.md §trackTitle field; M14 Track C R2 corrected this description)'; (F17) Open NewFindings section gains 5-line M8-NEWFINDING-2/3 closure summary at line 258. Net +18/-16 lines, 1 file, 0 source code, 0 test impact. F4/F5/F12/F13/F16 + 12 LOW deferred to outOfScopeButFlagged per M-series 'do not expand scope' constraint",
+      "deps": ["M15.S1"]
+    },
+    {
+      "tag": "M15.S99",
+      "id": "TODO-m15-s99-id",
+      "trackTitle": "M15 ledger close + full-suite verification",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "main agent: node --test (find test -name '*.test.mjs' -print0 | xargs -0 node --test) → 183/183 pass (no source code touched, expected parity); swift run AxiTodoStoreSmokeTests → pass (no Swift touched, expected parity); M15 ledger closed; 2 commits on dev (Track C doc fix + this ledger)",
+      "deps": ["M15.S2", "M15.S3", "M15.S4"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "4bb9027",
+      "scope": "axi-todo",
+      "track": "M15.S4",
+      "subject": "docs(axi-todo): M15 Track C OWNER_DECISIONS.md doc-only remediation — F1+F8+F9+F10+F15+F17"
+    },
+    {
+      "sha": "pending",
+      "scope": "axi-todo",
+      "track": "M15.S99",
+      "subject": "chore(axi-todo): close M15 ledger — 2-track audit + Track C doc-only remediation complete"
+    }
+  ],
+  "subagentTracks": [
+    {
+      "id": "m15-track-a-owner-decisions-audit",
+      "title": "OWNER_DECISIONS.md doc-consistency audit (READ-ONLY)",
+      "scope": "OWNER_DECISIONS.md + 14 ledgers + LEDGER_TEMPLATE.md + AGENTS.md; no modifications",
+      "filesTouched": [],
+      "branch": "dev",
+      "outcome": "23 findings (F1-F23): 4 HIGH (R7 dup table + vocabulary missing `pending` + `candidate-superseded-*` not in vocabulary + anti-pattern violation by M13/M14) + 7 MEDIUM + 12 LOW. Recommended F1+F9+F10 bundled in Track C (~10 lines doc edits); F12 interpretation split with M14 Track A noted"
+    },
+    {
+      "id": "m15-track-b-m14-ledger-retrospective",
+      "title": "M14 ledger retrospective + post-M14 bookkeeping gap audit (READ-ONLY)",
+      "scope": "14 ledgers + 3 docs + bin/lib/test/scripts grep; no modifications",
+      "filesTouched": [],
+      "branch": "dev",
+      "outcome": "M14 ledger fully complies with post-M14 LEDGER_TEMPLATE.md; M13+M14 clean of pre-M12 defects; OD-DELEGATE 1:1 mirror maintained; outOfScopeButFlagged growth natural (M14:11 vs M13:4 = 2-track audit). 0 HIGH / 1 MEDIUM / 5 LOW / 3 INFO. Recommended F1 dedup + reduce outOfScopeButFlagged by 2 items"
+    }
+  ],
+  "sourceFindings": [
+    "M15 Track A: Component 2 vocabulary table at OWNER_DECISIONS.md:175-182 declared '4 mutually-exclusive values' but actual usage in M12 application table (lines 199-203) plus LEDGER_TEMPLATE.md:70 schema table references 5 values (pending/closed/superseded/owner-no-action/out-of-scope) + 2 candidate-superseded-* intermediates — vocabulary can never be self-consistent. Fixed in M15.S4 (F9+F10)",
+    "M15 Track A: R7 duplicate Field/Value table at OWNER_DECISIONS.md:85-91 was the ONLY duplicate table in the entire 317-line file (F2 verification result). Single-fix scope confirmed. Fixed in M15.S4 (F1)",
+    "M15 Track A: anti-pattern at OWNER_DECISIONS.md:215-217 ('every milestone must NOT add a new OD-M{N}-DELEGATE if previous one exists') is in tension with M13/M14 re-asserting same 5 linked_decisions. M14 Track A interpretation: re-assertion is correct anti-pattern avoidance. M15 Track A interpretation: re-assertion is itself the anti-pattern violation. Tension deferred to F12 owner decision (out of M15 scope)",
+    "M15 Track B: M14 ledger fully complies with post-M14 LEDGER_TEMPLATE.md schema — first ledger created after Track C R1+R2+R3 corrections. M14.S4 evidence references post-M14 template correctly. M14 OD-M14-DELEGATE 1:1 mirror maintained (5 ↔ 5)",
+    "M15 Track B: zero automated readers of any ledger key confirmed (2 grep hits are docstring comments referencing 'M2 ledger outOfScopeButFlagged', not actual reads). Ledgers remain pure human/agent metadata per M12 Track A conclusion",
+    "M15 Track B: outOfScopeButFlagged growth from M13:4 to M14:11 is natural consequence of M14 = 2-track audit (Track B produced 6 new outOfScope items). No blanket reduction needed; F1 + F4 addressable now",
+    "M15 Track A: M8-NEWFINDING-2/3 closures (committed by M9.S1/S2 at commit 4a43356) were only documented in m7-entries.json:189-209 but missing from canonical OWNER_DECISIONS.md. Asymmetric to M8-NEWFINDING-1 which had a dedicated section. Fixed in M15.S4 (F17)"
+  ],
+  "outOfScopeButFlagged": [
+    "F4 (Track A MEDIUM): m6-entries.json line ranges in OWNER_DECISIONS.md:70 + :100 bleed into neighboring entries — tighten to 'line 167-175' and 'line 177-185'. Mechanical edit, deferred to maintain M15 focus",
+    "F5 (Track A MEDIUM): SHA `f60a741` referenced at OWNER_DECISIONS.md:119 is M8 Track C snapshot stale — needs replacement with 'as of M8 Track C snapshot' OR live SHA re-verification. Deferred — requires SHA verification across governance dev branch",
+    "F12 (Track A HIGH): anti-pattern at OWNER_DECISIONS.md:215-217 interpretation split between M14 Track A (re-assertion correct) and M15 Track A (re-assertion is violation). M13/M14 OD-DELEGATE entries already shipped. Retroactive edit would touch dirty working tree (out of scope). Deferred to M16+ for owner direction on whether to soften anti-pattern wording OR retro-edit M13/M14",
+    "F13 (Track A MEDIUM): OD-M12-EVICT-DEFER (m12-entries.json:141-152) missing `eviction_status` field per its own M12+ schema. Adding `eviction_status: 'owner-no-action'` requires small m12 ledger edit (out of scope per 'leave as-is' policy for pre-M15 ledgers). Deferred to M16+",
+    "F16 (Track A MEDIUM): Source Provenance section at OWNER_DECISIONS.md:295-303, 315-316 stale (claims m{1..9} base; 'Last updated 2026-10-02 M12' / 'Next planned refresh' stale). Bigger rewrite needed. Deferred to M16+",
+    "F18-F23 (Track A LOW): closedDecisions history count wording + section 4 'M7 closed without resolution' conflation + section 5 out-of-scope semantic conflict + closedDecisions M2-RES-3 parenthetical ambiguity + Component 1 bonus trigger weakly applied + Component 3 forward-compat SHOULD unimplemented in M13/M14. All cosmetic, deferred",
+    "B2 (M14 Track B LOW): M14 loreTrail[1].sha='pending' placeholder — Track B noted real SHA 9631799 now known but M13 precedent kept 'pending' for self-reference. Acceptable per established pattern",
+    "5 currently-open decisions remain pending owner (no change from M14): TODO-m5-apply (operator-action) + TODO-m6-track-3-sync-apply (operator-action) + TODO-m6-track-2-swift-field-expansion (candidate-superseded-by-deferral, owner confirm needed) + OD-M7-1 (cross-repo, handoff to foundation/workspace-governance) + OD-M8-3 (candidate-superseded-by-implicit-acceptance, low-risk). All 5 now correctly classified in Component 2 vocabulary post-M15 Track C F9+F10",
+    "OD-M{N}-DELEGATE proliferation question (Track A F12): M13+M14 re-asserted existing DELEGATE rather than creating narrower ones — interpretation split. If M15 Track A is correct (anti-pattern violated), M16+ should NOT re-assert DELEGATE; if M14 Track A is correct (re-assertion OK), M16+ can continue re-asserting",
+    "OD-M12-EVICT-DEFER (m12-entries.json ownerDecid[Required]) — meta-deferral, now correctly classified as 'candidate-superseded-by-*' intermediate state (post-M15.S4 vocabulary fix)",
+    "Pre-existing dirty working tree (axi-agent + workspace-governance, 11 M-tracked + 87 untracked) preserved per hard constraint — M15 verified no new dirty files introduced (Track C doc edits only touched 1 doc file; 0 source code)"
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M15-DELEGATE",
+      "subject": "All 5 remaining open owner decisions documented in tools/axi-todo/OWNER_DECISIONS.md",
+      "detail": "M15 ledger does NOT duplicate the 5 open decisions. OD-M15-DELEGATE continues M10/M11/M12/M13/M14 delegation pattern, pointing owner to tools/axi-todo/OWNER_DECISIONS.md as the single canonical entrypoint. Update that file directly when a decision resolves (or after a future M16+ audit refresh).",
+      "scope": "delegation only — no new decision",
+      "linked_decisions": [
+        "TODO-m5-apply-owner-confirm (≡ OD-M8-2)",
+        "TODO-m6-track-3-sync-apply",
+        "TODO-m6-track-2-swift-field-expansion",
+        "OD-M7-1 (≡ OD-M8-1)",
+        "OD-M8-3"
+      ],
+      "linked_doc": "tools/axi-todo/OWNER_DECISIONS.md"
+    }
+  ],
+  "newFindings": []
+}
