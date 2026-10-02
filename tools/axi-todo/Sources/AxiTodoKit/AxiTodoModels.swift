@@ -122,6 +122,18 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
     public var evidenceMissing: Bool?
     public var evidenceContractSeen: String?
 
+    // M6 track-2: Swift mirror of the JSON source/importedAt provenance
+    // fields. lib/schema.mjs already lifts these to the top level of the
+    // normalized task JSON (`normalizeExistingTask`), and M4 reverses the
+    // PG `tasks.source` / `tasks.imported_at` columns into the payload via
+    // `jsonb_strip_nulls(jsonb_build_object('source', ..., 'importedAt', ...))`.
+    // The Swift desktop UI can now distinguish natively-created tasks
+    // (`source = nil`) from PG-imported rows (`source = "import-postgres"`,
+    // with `importedAt` set). Older store files without these fields decode
+    // as `nil` so the bridge stays backward-compatible.
+    public var source: String?
+    public var importedAt: Date?
+
     public init(
         id: String = UUID().uuidString.lowercased(),
         title: String,
@@ -154,7 +166,9 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         evidenceContract: String? = nil,
         auditLevel: String? = nil,
         evidenceMissing: Bool? = nil,
-        evidenceContractSeen: String? = nil
+        evidenceContractSeen: String? = nil,
+        source: String? = nil,
+        importedAt: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -188,6 +202,8 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         self.auditLevel = auditLevel
         self.evidenceMissing = evidenceMissing
         self.evidenceContractSeen = evidenceContractSeen
+        self.source = source
+        self.importedAt = importedAt
     }
 
     public init(from decoder: Decoder) throws {
@@ -251,6 +267,14 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
             evidenceMissing = try container.decode(Bool.self, forKey: .evidenceMissing)
         }
         evidenceContractSeen = try container.decodeOptionalTrimmedString(forKey: .evidenceContractSeen)
+        // M6 track-2: source/importedAt are written at the top level of the
+        // normalized task JSON by lib/schema.mjs `normalizeExistingTask`
+        // (see also `createTask`). Older store files without these fields
+        // decode as `nil` so the desktop stays backward-compatible. The
+        // configured decoder uses `.iso8601` for `Date` fields — see
+        // AxiTodoStore.readState.
+        source = try container.decodeOptionalTrimmedString(forKey: .source)
+        importedAt = try container.decodeIfPresent(Date.self, forKey: .importedAt)
     }
 
     public static func create(
