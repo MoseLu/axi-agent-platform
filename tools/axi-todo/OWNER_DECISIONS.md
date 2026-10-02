@@ -28,7 +28,7 @@
 |---|---|
 | Category | operator-action |
 | First seen | M5 (`TODO-m5-apply-owner-confirm`) |
-| Latest touched | M8 (`OD-M8-2`, re-surfaced by Track D) |
+| Latest touched | M12 (eviction_status applied via Decision Eviction Policy) |
 | Orphan risk | YES (orphaned across M6/M7) |
 | Default | Dry-run only |
 | **Eviction status (M12)** | `pending` — operator-action; agent has no authority to apply on owner's behalf |
@@ -53,7 +53,7 @@
 |---|---|
 | Category | operator-action |
 | First seen | M6 |
-| Latest touched | M9 (still in `outOfScopeButFlagged`) |
+| Latest touched | M12 (eviction_status applied via Decision Eviction Policy) |
 | Orphan risk | YES (carried M6 → M8 → M9 without owner action) |
 | Default | Skip until M7; track-3 tool ships as a verified-but-untouched operator surface |
 | **Eviction status (M12)** | `pending` — operator-action; running against real PG is owner decision |
@@ -77,18 +77,10 @@
 |---|---|
 | Category | design |
 | First seen | M6 |
-| Latest touched | M9 (still in `outOfScopeButFlagged`) |
+| Latest touched | M12 (eviction_status applied via Decision Eviction Policy) |
 | Orphan risk | NO (stable, no cross-milestone drift) |
 | Default | Defer to M7 Swift redesign discussion |
 | **Eviction status (M12)** | `candidate-superseded-by-deferral` — M12 Track B flagged as PARTIALLY eligible for evicted-as-`superseded` if owner confirms the M6 default-option (defer to Swift redesign) is still the active direction. Not unilaterally evicted in M12 |
-
-| Field | Value |
-|---|---|
-| Category | design |
-| First seen | M6 |
-| Latest touched | M9 (still in `outOfScopeButFlagged`) |
-| Orphan risk | YES (carried M6 → M8 → M9 without owner action) |
-| Default | Defer to M7 design discussion |
 
 **Subject**: Surface 24 other top-level JSON fields (rejectedApproaches / waitState / riskLevel / agentRole / modelHint / charterId / acceptanceChecks / etc.) in Swift UI. M6 track-2 narrowly scoped to `source` + `importedAt` per the M5 `outOfScopeButFlagged #2` entry.
 
@@ -107,7 +99,7 @@
 |---|---|
 | Category | cross-repo (`foundation/workspace-governance` repo) |
 | First seen | M7 |
-| Latest touched | M8 (refreshed by M8 Track C) |
+| Latest touched | M12 (eviction_status applied via Decision Eviction Policy) |
 | Orphan risk | YES (cross-repo decision; M7 closed without resolution, refreshed by M8 Track C) |
 | Default | none specified |
 | **Eviction status (M12)** | `out-of-scope` — handoff_repo=`foundation/workspace-governance`; handoff_decision_id lives in that repo's owner-decision doc. This entry MUST stay pending until owner acts (cherry-pick / merge / accept-as-feature-branch) |
@@ -136,7 +128,7 @@
 |---|---|
 | Category | acceptance-sweep |
 | First seen | M8 |
-| Latest touched | M9 |
+| Latest touched | M12 (eviction_status applied via Decision Eviction Policy) |
 | Orphan risk | NO |
 | Default | none specified |
 | **Eviction status (M12)** | `candidate-superseded-by-implicit-acceptance` — M12 Track B flagged as PARTIALLY eligible for evicted-as-`superseded` if owner confirms no blocking signal against M5/M6/M7 `verificationStatus` updates. M9/M10/M11 explicitly built on M5/M6/M7 closures without raising "not accepted" gates. Low-risk to evict unilaterally but M12 defers to owner |
@@ -172,14 +164,17 @@ Every milestone close (`S99` sub-task) MUST apply exactly one of the following t
 
 **Bonus trigger**: if a milestone closes WITHOUT touching any prior-N or prior-N+1 owner-decision entry, the close-agent MUST document in `outOfScopeButFlagged` the reason no eviction was required (e.g. "M{N+1} addresses disjoint scope; no prior-N decisions touch this work").
 
-### Component 2: Eviction Reason Vocabulary (4 mutually-exclusive values)
+### Component 2: Eviction Reason Vocabulary (6 mutually-exclusive values)
 
 | Value | When to use | Required fields |
 |---|---|---|
+| `pending` | Decision known to M-series but not yet eligible for eviction (typically operator-action or owner-gated). This is the **default** for any entry that has not yet been substantively resolved. | `rationale` (why pending) |
 | `closed` | Substantive resolution already occurred (commit SHA + which milestone track did the work). Example: TODO-m6-track-5 closed as M6-RES-1 (commit `be4e0919`). | `commit_sha`, `resolved_by_milestone`, `resolution_summary` |
 | `superseded` | Replaced by a newer entry ID OR by an explicit deferral choice (default-option). Example: TODO-m6-track-2-swift-field-expansion candidate-superseded-by-deferral. | `superseded_by` (entry ID OR `"deferral-default"`), `rationale` |
 | `owner-no-action` | Owner explicitly declined or chose to defer via documented communication (commit, chat, or doc). | `owner_communication_ref`, `date` |
-| `out-of-scope` | Cross-repo or upstream dependency; handoff to another repo. Example: OD-M7-1 handoff to `foundation/workspace-governance`. | `handoff_repo`, `handoff_decision_id` (in the other repo's docs) |
+| `out-of-scope` | Cross-repo or upstream dependency; handoff to another repo. Example: OD-M7-1 handoff to `foundation/workspace-governance`. **Still pending owner action despite the `out-of-scope` classification** — this value signals "not eligible for agent-driven closure", NOT "decision is closed". | `handoff_repo`, `handoff_decision_id` (in the other repo's docs) |
+| `candidate-superseded-by-deferral` | Intermediate state between `pending` and `superseded`: PARTIALLY eligible for eviction-as-`superseded` if owner confirms the M6 default-option is still the active direction. Used by TODO-m6-track-2-swift-field-expansion (M12). | `superseded_by` (`"deferral-default"`), `rationale`, `owner_confirm_needed: true` |
+| `candidate-superseded-by-implicit-acceptance` | Intermediate state: PARTIALLY eligible for eviction-as-`superseded` if owner confirms no blocking signal. Used by OD-M8-3 (M12). Low-risk to evict unilaterally but defers to owner. | `superseded_by` (`"implicit-acceptance"`), `rationale`, `owner_confirm_optional: true` |
 
 ### Component 3: Linked-Doc Invariant
 
@@ -260,6 +255,13 @@ Sourced from `closedDecisions[]` arrays across ledgers. Now 5 entries (added M6-
 - Substantive remediation: **Decision Eviction Policy** (this file, section below) + 5-entry eviction_status backfill on the 5 currently-open decisions. Future S99 subTasks must apply eviction-check on every prior-N or prior-N+1 owner-decision entry, preventing the orphan-risk pattern from recurring.
 - Ledger source: `m7-entries.json` `newFindings[]` `M8-NEWFINDING-1` (post-M12: with resolution block).
 
+#### M8-NEWFINDING-2 / M8-NEWFINDING-3 (in M7 ledger)
+- Subject: M2 ownerDecid categorization (NEWFINDING-2) + M6 acceptance bullet wording (NEWFINDING-3)
+- Discovered by: M8 Track D summary audit
+- Status: **CLOSED by M9.S1 + M9.S2** (commit `4a43356`) — `resolution.resolved: true` blocks added to `m7-entries.json` `newFindings[]` entries
+- Substantive remediation: M9 bookkeeping cleanup applied M12-style resolution blocks retroactively. See `m7-entries.json` `newFindings[]` `M8-NEWFINDING-2/3` (post-M9: with resolution block).
+- Ledger source: `m7-entries.json` `newFindings[]` `M8-NEWFINDING-2/3`.
+
 ### Unstructured (informational, no resolution block)
 
 These are state reports / code-observations, not pending owner decisions:
@@ -286,7 +288,7 @@ The Track C audit identified schema-drift candidates that are NOT blocking decis
 1. `loreTrail`: M6 uses string entries, M7+ uses objects — historical evolution → **documented in LEDGER_TEMPLATE.md §"loreTrail form-transition"**; intentional, no normalization
 2. `newFindings`: M6 uses string entries, M7+ uses objects — same pattern → **documented in LEDGER_TEMPLATE.md §"newFindings form-transition"**; intentional, no normalization
 3. `ownerDecisionsRequired`: **5 field-shape variants** across M5/M6/M7/M8 (mixed string / object / id+subject / id+summary / id+summary+options+default+risk) → **documented in LEDGER_TEMPLATE.md §"OwnerDecision schema"**; minimum-required-fields declared; no data migration
-4. `subTasks`: M6.S1/M6.S99 missing `deps`; M6.S2-S6 add `trackTitle` → **M6.S1/S2-S6/S99 backfilled with `deps` field** (M12.S5 commit); `trackTitle` M6-only field documented as historical
+4. `subTasks`: M6.S1/M6.S99 missing `deps`; M6.S2-S6 add `trackTitle` → **M6.S1/S2-S6/S99 backfilled with `deps` field** (M12.S5 commit); `trackTitle` field documented as M6+ optional (29 occurrences across M7-M13 per `docs/LEDGER_TEMPLATE.md` §`trackTitle` field; M14 Track C R2 corrected this description)
 5. M1 + M2 missing `loreTrail` (pre-loreTrail format) → **documented in LEDGER_TEMPLATE.md §"loreTrail form-transition"**; intentional
 6. 1 ledger entry (`TODO-m6-track-5-vite-ts-version-verify`) was substantively resolved but lacked formal `resolution` block → **closed by M11 bookkeeping-gap cleanup** (commit `eca972c`, M6-RES-1)
 
