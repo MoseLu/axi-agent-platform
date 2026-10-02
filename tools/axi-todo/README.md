@@ -234,6 +234,27 @@ or its `auto` default) and skips the cross-store IO. Set
 `AXI_TODO_DUAL_PROBE=1` to force the warning to fire even when only the
 chosen side is populated.
 
+### Provenance columns on the four auxiliary PG tables (M6)
+
+M4 added `source` (`text NOT NULL DEFAULT 'native'`) and `imported_at`
+(`timestamptz`) to the PG `tasks` table and bound them through `upsertTask`
+with sticky `ON CONFLICT` semantics. M6 extends that mirror to the four
+auxiliary tables the ledger carries alongside `tasks`:
+`completion_summaries`, `failure_analyses`, `planning_records`, and
+`memory_cards`. The migration is
+`tools/axi-todo/migrations/004_collection_provenance.sql` — idempotent, same
+ADD-COLUMN / COALESCE-backfill / payload reverse-sync pattern, 20 statements
+(4 tables × 5 ops). The PG upserts in `lib/postgres-store.mjs` —
+`insertCompletionSummary`, `insertFailureAnalysis`, and `insertMemoryCard` —
+now bind `source` / `imported_at` on `INSERT` and deliberately omit them from
+`ON CONFLICT DO UPDATE SET`, so re-imported or re-synced rows preserve their
+original provenance marker. The per-record `create*Record` helpers in
+`lib/store.mjs` and `lib/postgres-store.mjs` inherit provenance from the
+parent task so an imported task keeps a fully-provenance-tagged child-record
+trail. Planning records currently have no PG write path — the migration only
+adds columns and the index, mirroring the JSON-side provenance the Swift
+bridge already sees through `payload`.
+
 ### Migrator and importer no longer fall back silently
 
 As of M2, `bin/axi-todo-migrate-postgres.mjs` and
@@ -243,6 +264,39 @@ clear stderr message instead of silently defaulting to
 `postgresql:///axi_todo` (the previous behaviour caused real "looks connected,
 actually empty DB" incidents; see `.m1-snapshot/ledger/m2-entries.json`
 `outOfScopeButFlagged`).
+
+### PG → JSON reverse sync (M6)
+
+The importer above is one-way (PG → JSON). When a JSON-only Swift install
+runs without it, PG data stays orphaned in the Swift install. The reverse
+direction is covered by `bin/axi-todo-sync-pg-to-json.mjs` (added in M6):
+
+```bash
+node bin/axi-todo-sync-pg-to-json.mjs                              # dry-run (default)
+node bin/axi-todo-sync-pg-to-json.mjs --apply --confirm-apply
+node bin/axi-todo-sync-pg-to-json.mjs --apply --confirm-apply \
+  --only-collections=tasks,completion_summaries
+```
+
+The reverse sync is strictly owner-gated: dry-run by default; `--apply`
+requires BOTH `--apply` AND `--confirm-apply` (double-flag confirmation
+matching the M5.S5 pattern). `--apply` without `--confirm-apply` exits 1
+with a stderr message — there is no silent fallback. The tool also
+requires `DATABASE_URL` / `AXI_TODO_DATABASE_URL` to be set (no implicit
+default, same as the importer).
+
+**JSON is canonical.** When a row already exists in JSON (regardless of
+which side has the newer `updatedAt`), the tool skips without
+overwriting. Drift between PG and JSON is surfaced through a `warnings`
+array in the summary so operators can audit divergence without the tool
+silently clobbering local state.
+
+The reverse sync is **reentrant**. Synced ids are recorded in
+`$AXI_TODO_HOME/.synced-pg-to-json-ids.json` (parallel to
+`.imported-pg-ids.json`); re-running skips them. Before any mutation the
+tool writes a pre-sync backup snapshot to
+`$AXI_TODO_HOME/.m1-snapshot/m6-audit/pre-sync-<ISO>.json` so the operator
+has a recoverable point if anything goes wrong.
 
 ## CLI Reference
 

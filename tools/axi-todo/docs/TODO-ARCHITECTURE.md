@@ -89,12 +89,105 @@ Both columns are reverse-synced into the `payload` jsonb column so JSON-side
 consumers (e.g. the Swift `AxiTodoStore` reading `$AXI_TODO_HOME/tasks.json`)
 continue to see `source` / `importedAt` without code changes.
 
+### Provenance columns on the four auxiliary collections (M6)
+
+M6 extends the M4 mirror to the four planning-memory collections the ledger
+carries alongside `tasks`: `completion_summaries`, `failure_analyses`,
+`planning_records`, and `memory_cards`. The migration is
+`tools/axi-todo/migrations/004_collection_provenance.sql` and follows the
+exact same ADD-COLUMN / COALESCE-backfill / payload reverse-sync / source-index
+template as M4 — 20 statements total, idempotent on re-run.
+
+`lib/postgres-store.mjs` `insertCompletionSummary`, `insertFailureAnalysis`,
+and `insertMemoryCard` now use `INSERT … ON CONFLICT (id) DO UPDATE` with
+sticky provenance semantics: the first `INSERT` writes `source` /
+`imported_at`; the `ON CONFLICT DO UPDATE SET` list deliberately omits both
+columns so re-upserts (e.g. `memory_cards.sync_status` flips from `pending`
+to `synced`) preserve the original import marker. `payload` is rebuilt from the
+canonical column values on every conflict, mirroring the M4 reverse-sync shape
+that keeps the Swift JSON bridge seeing `source` / `importedAt` without code
+changes.
+
+The per-record `createCompletionSummaryRecord`, `createFailureAnalysisRecord`,
+and `normalizeMemoryCards` helpers in both `lib/store.mjs` (JSON-side) and
+`lib/postgres-store.mjs` (PG-side) inherit `source` / `importedAt` from the
+parent task so an imported task keeps a fully-provenance-tagged child-record
+trail. `planning_records` currently has no PG write path — the migration
+still mirrors the JSON-side provenance into PG so future PG writers can
+inherit the same shape without needing a separate migration.
+
 Both `bin/axi-todo-migrate-postgres.mjs` and `bin/axi-todo-import-postgres.mjs`
 require an explicit `DATABASE_URL` or `AXI_TODO_DATABASE_URL`; if both are
 missing they exit 1 with a clear stderr message instead of silently defaulting
 to `postgresql:///axi_todo` (the previous behaviour caused real "looks
 connected, actually empty DB" incidents; see the M2 ledger
 `outOfScopeButFlagged`).
+
+### PG → JSON reverse sync tool (M6)
+
+The importer above is one-way (PG → JSON). When a JSON-only Swift install
+runs without it, PG data stays orphaned in the Swift install's stale JSON.
+The reverse direction is closed by `bin/axi-todo-sync-pg-to-json.mjs`
+(M6 track-4 / S4 evidence):
+
+```bash
+node bin/axi-todo-sync-pg-to-json.mjs                              # dry-run (default)
+node bin/axi-todo-sync-pg-to-json.mjs --apply --confirm-apply
+node bin/axi-todo-sync-pg-to-json.mjs --apply --confirm-apply \
+  --only-collections=tasks,completion_summaries
+```
+
+Strict rules:
+
+- **JSON is canonical.** A row already present in JSON is NEVER silently
+  overwritten, regardless of which side has the newer `updatedAt`. Drift
+  between PG and JSON is surfaced through a `warnings` array in the
+  summary; the owner decides how to resolve divergence manually.
+- **Owner-gated.** `--apply` requires BOTH `--apply` AND `--confirm-apply`
+  (double-flag confirmation, mirroring the M5.S5 pattern). `--apply`
+  without `--confirm-apply` exits 1 with stderr message — there is no
+  silent fallback. The owner-gate check fires BEFORE any `pg.Client`
+  connect, so a typo never burns a network round-trip.
+- **Reentrant.** Synced ids are recorded in
+  `$AXI_TODO_HOME/.synced-pg-to-json-ids.json` (parallel to
+  `.imported-pg-ids.json`); re-running skips them. The ledger acts as a
+  second-line guard: if a previously-synced row was later deleted from
+  JSON, the ledger still records "we've seen this id" so a re-run will
+  not silently re-import it.
+- **No implicit DATABASE_URL default.** Same env-var contract as the
+  importer and the migrator.
+- **Pre-sync backup.** Before any mutation the tool writes a snapshot of
+  the current JSON state to
+  `$AXI_TODO_HOME/.m1-snapshot/m6-audit/pre-sync-<ISO>.json` so the
+  operator has a recoverable point if anything goes wrong.
+- **Provenance.** New tasks land in JSON with `source: 'import-postgres'`
+  and `importedAt` set, matching the M2 importer convention so downstream
+  reconcilers can distinguish them from native rows. Non-task collections
+  (e.g. `completion_summaries`) get the same `source` / `importedAt` fields
+  on the resulting JSON record.
+
+Like the importer, the sync tool's `runSync()` orchestrator is testable
+without a live PG — tests pass `pgState` directly. Coverage in
+`test/sync-pg-to-json.test.mjs`:
+
+- `--apply` without `--confirm-apply` is refused at both the CLI (exit 1)
+  and `runSync()` (throws `AXI_TODO_SYNC_OWNER_GATE`).
+- Dry-run on empty PG state: zero changes, no JSON mutation, no
+  `.synced-pg-to-json-ids.json` ledger.
+- Dry-run with new ids: lists them as `wouldAddIds` without writing.
+- `--apply --confirm-apply` with new ids: writes to JSON with
+  `source='import-postgres'` + `importedAt`, writes backup snapshot, writes
+  reentrant ledger.
+- `--apply --confirm-apply` with ids already in JSON (JSON newer than PG):
+  skips with no overwrite.
+- PG row newer than JSON: same skip action, with a `warnings` entry so the
+  operator can audit drift.
+- Reentrant: a second run (dry-run or apply) reports zero new adds because
+  the synced-ledger check fires first.
+- `--only-collections=tasks,...` limits the scan to one or more
+  collections, leaving the rest of the plan untouched.
+- Rows with missing top-level `id` are skipped with `skip-missing-id`
+  rather than throwing.
 
 ### Other Systems Are Not Interchangeable
 
@@ -129,4 +222,9 @@ node bin/axi-todo.mjs daemon --interval-ms 300000
 
 # List ready tasks
 node bin/axi-todo.mjs ready --limit 16
+
+# PG → JSON reverse sync (M6 track-4 / S4 evidence)
+node bin/axi-todo-sync-pg-to-json.mjs                                # dry-run
+node bin/axi-todo-sync-pg-to-json.mjs --apply --confirm-apply        # apply
+node --test test/sync-pg-to-json.test.mjs                            # sync orchestrator tests
 ```
