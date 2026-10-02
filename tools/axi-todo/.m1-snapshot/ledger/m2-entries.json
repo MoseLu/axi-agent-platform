@@ -1,6 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
-  "milestoneStatus": "in-progress",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Awaiting owner acceptance",
   "milestoneTitle": "M2: 统一任务账本入口 (JSON canonical + PG opt-in)",
   "milestoneAcceptance": [
     "新增 bin/axi-todo-import-postgres.mjs 可重入将 PG 任务导入 JSON，并保留 provenance",
@@ -14,51 +15,74 @@
     {
       "tag": "M2.S1",
       "id": "TODO-m2-s1-id",
-      "status": "in-progress",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "tools/axi-todo/.m1-snapshot/ledger/m2-entries.json committed",
       "deps": []
     },
     {
       "tag": "M2.S2",
       "id": "TODO-m2-s2-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "tools/axi-todo/bin/axi-todo-import-postgres.mjs; --dry-run exits 1 cleanly without DATABASE_URL; schema extended with source + importedAt in lib/schema.mjs",
       "deps": ["M2.S1"]
     },
     {
       "tag": "M2.S3",
       "id": "TODO-m2-s3-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "warnIfDualPopulated exported from lib/store.mjs; wired into bin/axi-todo.mjs, bin/axi-todo-daemon.mjs, lib/mcp-server.mjs; 3 unit tests cover both/silent-one-side/silent-other",
       "deps": ["M2.S1"]
     },
     {
       "tag": "M2.S4",
       "id": "TODO-m2-s4-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "bin/axi-todo-migrate-postgres.mjs requires DATABASE_URL or AXI_TODO_DATABASE_URL; missing-both → exit 1 with explicit stderr",
       "deps": ["M2.S1"]
     },
     {
       "tag": "M2.S5",
       "id": "TODO-m2-s5-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "tools/axi-todo/README.md + tools/axi-todo/docs/TODO-ARCHITECTURE.md document AXI_TODO_STORE json/postgres/auto, dual-store warning, importer, and migrator env-var requirement",
       "deps": ["M2.S1"]
     },
     {
       "tag": "M2.S6",
       "id": "TODO-m2-s6-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "test/import-postgres.test.mjs (5 tests: fresh import with provenance, idempotent re-run, skip-already-in-json, dry-run no-writes, mid-run failure recovery) + 3 dual-store warning tests in test/store.test.mjs",
       "deps": ["M2.S2", "M2.S3"]
     },
     {
       "tag": "M2.S7",
       "id": "TODO-m2-s7-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "node --test test/*.test.mjs → 123/123 pass; swift run AxiTodoStoreSmokeTests → 11/11 pass; node bin/axi-todo-import-postgres.mjs (no env) exits 1; bin/axi-todo-migrate-postgres.mjs (no env) exits 1",
       "deps": ["M2.S2", "M2.S3", "M2.S4", "M2.S5", "M2.S6"]
     },
     {
       "tag": "M2.S8",
       "id": "TODO-m2-s8-id",
-      "status": "pending",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "5 Lore-commit-protocol commits: 04be510 (importer) + e21b588 (warning) + 4ab8653 (migrator fallback) + 74e74a3 (docs) + 393d6ee (warning tests); this ledger update is the 6th",
       "deps": ["M2.S7"]
     }
+  ],
+  "commits": [
+    "04be510 feat(axi-todo): add bin/axi-todo-import-postgres.mjs",
+    "e21b588 feat(axi-todo): warn when both JSON and PG stores are populated",
+    "4ab8653 fix(axi-todo): require explicit DATABASE_URL for PG migrator",
+    "74e74a3 docs(axi-todo): document AXI_TODO_STORE json/postgres/auto options",
+    "393d6ee test(axi-todo): cover dual-store startup warning"
   ],
   "outOfScopeButFlagged": [
     "PostgresTaskStore.recordCompletionSummary passes {id: taskId} into insertCompletionSummary — the id column ends up being the task id, not the summary's UUID. Latent; affects any reconciler that compares per-record UUIDs. (lib/postgres-store.mjs:445)",
@@ -66,7 +90,12 @@
     "TaskStore.searchPlanningMemory and PostgresTaskStore.searchPlanningMemory use different algorithms (JSON.stringify includes vs SQL LIKE on lower(...)); they will return different results on identical inputs. (lib/store.ts:516 vs lib/postgres-store.ts:499-513)"
   ],
   "ownerDecisionsRequired": [
-    "AXI_TODO_STORE default 'postgres' → 'json' is a breaking change for anyone depending on the current default. M2 does NOT flip it. README must contain a '切换默认前请运行 ...' operation note; owner owns the swap commit.",
-    "Whether to delete the PG schema / bin/axi-todo-migrate-postgres.mjs after consolidation, or keep them as opt-in for environments that prefer PG durability. M2 keeps both intact."
+    "AXI_TODO_STORE default 'postgres' → 'json' is a breaking change for anyone depending on the current default. M2 does NOT flip it. README contains the export AXI_TODO_STORE=json recipe; owner owns the swap commit when ready.",
+    "Whether to delete the PG schema / bin/axi-todo-migrate-postgres.mjs after consolidation, or keep them as opt-in for environments that prefer PG durability. M2 keeps both intact.",
+    "The 18 pre-existing JSON entries that already have status='completed' (from before M1's completion gate landed) were not auto-promoted to 'awaiting_audit' per the M1 commit directive. A separate owner-driven recheck task should decide whether to re-evaluate them. See M2.S7 evidence."
+  ],
+  "newFindings": [
+    "PostgreSQL store schema does not store its own provenance field; the importer relies on the PG `id` text PK and the `payload` jsonb round-trip. If a future tool mutates PG `payload` to drop fields, the JSON round-trip will lose them. Consider adding a `source` text column to PG schema (migration not in M2 scope).",
+    "warnIfDualPopulated reads BOTH stores on every startup; for an empty other-store the JSON read is cheap (single fs.readFile), but the PG read opens a real connection. For daemons that boot repeatedly this could add startup latency. M2 does not optimise; consider a 'probe once and cache' option if it becomes a real issue."
   ]
 }
