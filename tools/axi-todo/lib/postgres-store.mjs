@@ -563,26 +563,78 @@ export class PostgresTaskStore {
 
   async insertCompletionSummary(task, input = {}, client = this.pool, now = nowIso()) {
     const record = createCompletionSummaryRecord(task, input, now);
+    // M6: mirror the M4 sticky-provenance pattern onto completion_summaries.
+    // INSERT writes source + imported_at on first write; ON CONFLICT DO UPDATE
+    // DELIBERATELY omits them so re-upserts do not erase the original import
+    // marker. payload is reverse-synced from the existing column values so the
+    // JSON-side reader keeps seeing source / importedAt without code changes.
     await client.query(
-      "insert into completion_summaries (id, task_id, run_id, status, summary, duration_ms, verification, evidence_refs, audit_verdict, next_time_notes, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
-      [record.id, record.taskId, record.runId, record.status, record.summary, record.durationMs, jsonb(record.verification || {}), jsonb(record.evidenceRefs), record.auditVerdict, record.nextTimeNotes, record.createdAt],
+      `insert into completion_summaries (id, task_id, run_id, status, summary, duration_ms, verification, evidence_refs, audit_verdict, next_time_notes, created_at, source, imported_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+       on conflict (id) do update set
+         task_id = excluded.task_id,
+         run_id = excluded.run_id,
+         status = excluded.status,
+         summary = excluded.summary,
+         duration_ms = excluded.duration_ms,
+         verification = excluded.verification,
+         evidence_refs = excluded.evidence_refs,
+         audit_verdict = excluded.audit_verdict,
+         next_time_notes = excluded.next_time_notes,
+         payload = excluded.payload || jsonb_strip_nulls(jsonb_build_object('source', completion_summaries.source, 'importedAt', completion_summaries.imported_at))`,
+      [record.id, record.taskId, record.runId, record.status, record.summary, record.durationMs, jsonb(record.verification || {}), jsonb(record.evidenceRefs), record.auditVerdict, record.nextTimeNotes, record.createdAt, record.source || "native", record.importedAt || null],
     );
     return record;
   }
 
   async insertFailureAnalysis(task, input = {}, client = this.pool, now = nowIso()) {
     const record = createFailureAnalysisRecord(task, input, now);
+    // M6: see insertCompletionSummary above for the full provenance contract.
+    // Failure analyses follow the same sticky-import semantics: first INSERT
+    // sets source + imported_at; later upserts leave them alone and only
+    // reverse-sync payload from the existing columns.
     await client.query(
-      "insert into failure_analyses (id, task_id, run_id, root_cause, trigger, failure_stage, recovery_action, avoid_next_time, retryable, evidence, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
-      [record.id, record.taskId, record.runId, record.rootCause, record.trigger, record.failureStage, record.recoveryAction, record.avoidNextTime, record.retryable, jsonb(record.evidence || {}), record.createdAt || now],
+      `insert into failure_analyses (id, task_id, run_id, root_cause, trigger, failure_stage, recovery_action, avoid_next_time, retryable, evidence, created_at, source, imported_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+       on conflict (id) do update set
+         task_id = excluded.task_id,
+         run_id = excluded.run_id,
+         root_cause = excluded.root_cause,
+         trigger = excluded.trigger,
+         failure_stage = excluded.failure_stage,
+         recovery_action = excluded.recovery_action,
+         avoid_next_time = excluded.avoid_next_time,
+         retryable = excluded.retryable,
+         evidence = excluded.evidence,
+         payload = excluded.payload || jsonb_strip_nulls(jsonb_build_object('source', failure_analyses.source, 'importedAt', failure_analyses.imported_at))`,
+      [record.id, record.taskId, record.runId, record.rootCause, record.trigger, record.failureStage, record.recoveryAction, record.avoidNextTime, record.retryable, jsonb(record.evidence || {}), record.createdAt || now, record.source || "native", record.importedAt || null],
     );
     return record;
   }
 
   async insertMemoryCard(card, client = this.pool) {
+    // M6: sticky-provenance mirror for memory_cards — see insertCompletionSummary
+    // for the full contract. Daemon-driven re-syncs (e.g. when syncStatus flips
+    // from "pending" to "synced") MUST NOT clear the original source marker,
+    // so source + imported_at are deliberately excluded from the ON CONFLICT
+    // SET list.
     await client.query(
-      "insert into memory_cards (id, task_id, run_id, type, title, content, concepts, files, sync_status, synced_at, sync_error, created_at, updated_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
-      [card.id, card.taskId, card.runId, card.type, card.title, card.content, jsonb(card.concepts), jsonb(card.files), card.syncStatus, card.syncedAt, card.syncError, card.createdAt, card.updatedAt],
+      `insert into memory_cards (id, task_id, run_id, type, title, content, concepts, files, sync_status, synced_at, sync_error, created_at, updated_at, source, imported_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+       on conflict (id) do update set
+         task_id = excluded.task_id,
+         run_id = excluded.run_id,
+         type = excluded.type,
+         title = excluded.title,
+         content = excluded.content,
+         concepts = excluded.concepts,
+         files = excluded.files,
+         sync_status = excluded.sync_status,
+         synced_at = excluded.synced_at,
+         sync_error = excluded.sync_error,
+         updated_at = excluded.updated_at,
+         payload = excluded.payload || jsonb_strip_nulls(jsonb_build_object('source', memory_cards.source, 'importedAt', memory_cards.imported_at))`,
+      [card.id, card.taskId, card.runId, card.type, card.title, card.content, jsonb(card.concepts), jsonb(card.files), card.syncStatus, card.syncedAt, card.syncError, card.createdAt, card.updatedAt, card.source || "native", card.importedAt || null],
     );
     return card;
   }
@@ -621,6 +673,14 @@ function createCompletionSummaryRecord(task, input = {}, now) {
     auditVerdict: input.auditVerdict,
     nextTimeNotes: input.nextTimeNotes,
     createdAt: input.createdAt || now,
+    // M6: provenance — see createTask in lib/schema.mjs for the matching
+    // shape. Falls back to the parent task's `source` (typically "native" for
+    // native rows, "import-postgres" for imported ones) and the parent
+    // task's `importedAt` when the caller did not pass one explicitly. The
+    // PG upsert (`insertCompletionSummary` above) defaults these to "native"
+    // / null only when both the record and the parent task are silent.
+    source: input.source || taskFallback.source || "native",
+    importedAt: input.importedAt || taskFallback.importedAt || null,
   };
 }
 
@@ -638,11 +698,17 @@ function createFailureAnalysisRecord(task, input = {}, now) {
     retryable: Boolean(input.retryable),
     evidence: input.evidence && typeof input.evidence === "object" ? input.evidence : {},
     createdAt: input.createdAt || now,
+    // M6 provenance — see createCompletionSummaryRecord above. Failure
+    // analyses inherit source / importedAt from the parent task so an
+    // imported task keeps an imported failure analysis attached.
+    source: input.source || taskFallback.source || "native",
+    importedAt: input.importedAt || taskFallback.importedAt || null,
   };
 }
 
 function normalizeMemoryCards(cards, task, now) {
   const raw = Array.isArray(cards) ? cards : cards ? [cards] : [];
+  const taskFallback = task || {};
   return raw.map((card) => ({
     id: card.id || crypto.randomUUID(),
     taskId: card.taskId || task.id,
@@ -657,6 +723,12 @@ function normalizeMemoryCards(cards, task, now) {
     syncError: card.syncError,
     createdAt: card.createdAt || now,
     updatedAt: card.updatedAt || now,
+    // M6 provenance — see createCompletionSummaryRecord. Memory cards
+    // default to the task's source marker so an imported task's memory
+    // cards stay traceable to the import run across the
+    // pending → synced re-upsert cycle.
+    source: card.source || taskFallback.source || "native",
+    importedAt: card.importedAt || taskFallback.importedAt || null,
   }));
 }
 
