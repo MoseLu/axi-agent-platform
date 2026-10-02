@@ -384,10 +384,27 @@ export class PostgresTaskStore {
       message: input.message,
       payload: input.payload && typeof input.payload === "object" ? input.payload : {},
       createdAt: input.createdAt || now,
+      // M7: mirror the M4 / M6 sticky source/imported_at provenance pattern
+      // onto task_events. Defaults match the migration (source='native' /
+      // imported_at=null) so native rows carry no provenance marker until
+      // the importer writes 'import-postgres'. The ON CONFLICT DO UPDATE SET
+      // below deliberately omits source / imported_at so re-upserts preserve
+      // the original import marker.
+      source: input.source || "native",
+      importedAt: input.importedAt || null,
     };
     await this.pool.query(
-      "insert into task_events (id, task_id, run_id, event_type, actor, message, payload, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8)",
-      [record.id, record.taskId, record.runId, record.eventType, record.actor, record.message, jsonb(record.payload), record.createdAt],
+      `insert into task_events (id, task_id, run_id, event_type, actor, message, payload, created_at, source, imported_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+       on conflict (id) do update set
+         task_id = excluded.task_id,
+         run_id = excluded.run_id,
+         event_type = excluded.event_type,
+         actor = excluded.actor,
+         message = excluded.message,
+         payload = excluded.payload || jsonb_strip_nulls(jsonb_build_object('source', task_events.source, 'importedAt', task_events.imported_at)),
+         created_at = excluded.created_at`,
+      [record.id, record.taskId, record.runId, record.eventType, record.actor, record.message, jsonb(record.payload), record.createdAt, record.source || "native", record.importedAt || null],
     );
     return record;
   }
@@ -410,11 +427,32 @@ export class PostgresTaskStore {
       releaseConditions: normalizeStringArray(input.releaseConditions || input.release_conditions),
       evidenceRefs: normalizeStringArray(input.evidenceRefs || input.evidence_refs),
       createdAt: input.createdAt || now,
+      // M7: mirror the M4 / M6 sticky source/imported_at provenance pattern
+      // onto audit_reviews. Both the audit_reviews row and the audit_waiting
+      // task_events row written inside the M3.S4 withClient transaction use
+      // the same `source` / `imported_at` so an imported audit trail stays
+      // traceable to its origin even after a re-upsert. ON CONFLICT DO UPDATE
+      // SET on both inserts deliberately omits source / imported_at; the
+      // payload reverse-sync keeps JSON-side readers in sync.
+      source: input.source || "native",
+      importedAt: input.importedAt || null,
     };
     return this.withClient(async (client) => {
       await client.query(
-        "insert into audit_reviews (id, task_id, run_id, audit_level, verdict, reason, evidence_gaps, release_conditions, evidence_refs, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
-        [record.id, record.taskId, record.runId, record.auditLevel, record.verdict, record.reason, jsonb(record.evidenceGaps), jsonb(record.releaseConditions), jsonb(record.evidenceRefs), record.createdAt],
+        `insert into audit_reviews (id, task_id, run_id, audit_level, verdict, reason, evidence_gaps, release_conditions, evidence_refs, created_at, source, imported_at)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+         on conflict (id) do update set
+           task_id = excluded.task_id,
+           run_id = excluded.run_id,
+           audit_level = excluded.audit_level,
+           verdict = excluded.verdict,
+           reason = excluded.reason,
+           evidence_gaps = excluded.evidence_gaps,
+           release_conditions = excluded.release_conditions,
+           evidence_refs = excluded.evidence_refs,
+           payload = excluded.payload || jsonb_strip_nulls(jsonb_build_object('source', audit_reviews.source, 'importedAt', audit_reviews.imported_at)),
+           created_at = excluded.created_at`,
+        [record.id, record.taskId, record.runId, record.auditLevel, record.verdict, record.reason, jsonb(record.evidenceGaps), jsonb(record.releaseConditions), jsonb(record.evidenceRefs), record.createdAt, record.source || "native", record.importedAt || null],
       );
       if (record.taskId && record.verdict && record.verdict !== "pass") {
         const task = await this.getTaskForUpdate(client, record.taskId);
@@ -422,9 +460,23 @@ export class PostgresTaskStore {
         task.updatedAt = now;
         await this.upsertTask(task, client);
         const historyId = crypto.randomUUID();
+        // Same sticky provenance mirror as the audit_reviews row above: this
+        // audit_waiting task_events row inherits the record's source /
+        // imported_at so the event trail stays traceable to the import run
+        // that surfaced it. ON CONFLICT (id) DO UPDATE keeps re-upserts from
+        // clobbering the original import marker.
         await client.query(
-          "insert into task_events (id, task_id, run_id, event_type, actor, message, payload, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8)",
-          [historyId, record.taskId, record.runId, "audit_waiting", "system", record.reason || "Task is waiting for audit approval", jsonb({ verdict: record.verdict }), now],
+          `insert into task_events (id, task_id, run_id, event_type, actor, message, payload, created_at, source, imported_at)
+           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+           on conflict (id) do update set
+             task_id = excluded.task_id,
+             run_id = excluded.run_id,
+             event_type = excluded.event_type,
+             actor = excluded.actor,
+             message = excluded.message,
+             payload = excluded.payload || jsonb_strip_nulls(jsonb_build_object('source', task_events.source, 'importedAt', task_events.imported_at)),
+             created_at = excluded.created_at`,
+          [historyId, record.taskId, record.runId, "audit_waiting", "system", record.reason || "Task is waiting for audit approval", jsonb({ verdict: record.verdict }), now, record.source || "native", record.importedAt || null],
         );
       }
       return record;
