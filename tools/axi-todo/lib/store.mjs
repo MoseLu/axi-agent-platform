@@ -546,13 +546,19 @@ export function createStoreFromEnv(env = process.env) {
   return new TaskStore({ home: defaultAxiTodoHome(env) });
 }
 
-// M2: dual-store startup warning. When both `~/.axi-todo/tasks.json` and the
+// M4: dual-store startup warning. When both `~/.axi-todo/tasks.json` and the
 // PG `axi_todo.tasks` table are non-empty, the operator may be about to
-// silently write to one store while reading from the other. We probe both
-// stores (best-effort, swallows errors) and emit a single stderr line that
-// names the chosen store + points at the importer. Long-running entry
-// points (CLI bin, daemon, MCP server) call this right after picking a
-// store. One-shot scripts can skip it.
+// silently write to one store while reading from the other. Long-running
+// entry points (CLI bin, daemon, MCP server) call this right after picking a
+// store; one-shot scripts can skip it.
+//
+// M2 unconditionally probed both stores on every boot. M4 gates the other-side
+// probe behind AXI_TODO_DUAL_PROBE=1 — by default, when the caller has already
+// declared a chosen side via AXI_TODO_STORE (or via the `auto` resolution
+// picking one store), we trust that decision and skip the cross-store probe.
+// This removes a PG connect on every JSON-only boot and a JSON file read on
+// every PG-only boot. Set AXI_TODO_DUAL_PROBE=1 to force the M2 behavior
+// (probe both sides) for debugging dual-store divergence.
 export async function warnIfDualPopulated({
   store,
   env = process.env,
@@ -562,6 +568,15 @@ export async function warnIfDualPopulated({
 } = {}) {
   if (!store) return { warned: false, reason: "no-store" };
   const chosen = store instanceof PostgresTaskStore ? "postgres" : "json";
+  // M4: probe gating. Skip the cross-store probe unless the operator opts in
+  // via AXI_TODO_DUAL_PROBE=1. The caller has already declared a chosen side
+  // (via AXI_TODO_STORE or via `auto` resolution), so by default we trust
+  // that decision and avoid the cross-store IO. env is the resolved object
+  // passed by the caller — defaults to process.env in production.
+  const forceProbe = env && String(env.AXI_TODO_DUAL_PROBE || "") === "1";
+  if (!forceProbe) {
+    return { warned: false, chosen, reason: "probe-skipped" };
+  }
   try {
     const otherKind = chosen === "postgres" ? "json" : "postgres";
     let otherPopulated = false;

@@ -91,7 +91,7 @@ test("warnIfDualPopulated emits stderr when both stores are populated", async ()
   const messages = [];
   const result = await warnIfDualPopulated({
     store: fakePg,
-    env: { AXI_TODO_HOME: home },
+    env: { AXI_TODO_HOME: home, AXI_TODO_DUAL_PROBE: "1" },
     log: (...args) => messages.push(args.join(" ")),
   });
   assert.equal(result.warned, true);
@@ -120,7 +120,7 @@ test("warnIfDualPopulated stays silent when only JSON is populated", async () =>
   const messages = [];
   const result = await warnIfDualPopulated({
     store: jsonStore,
-    env: { AXI_TODO_HOME: home, DATABASE_URL: "postgres://user:pass@localhost/db" },
+    env: { AXI_TODO_HOME: home, DATABASE_URL: "postgres://user:pass@localhost/db", AXI_TODO_DUAL_PROBE: "1" },
     log: (...args) => messages.push(args.join(" ")),
     pgStoreFactory: () => fakePg,
   });
@@ -152,7 +152,7 @@ test("warnIfDualPopulated stays silent when only PG is populated", async () => {
   const messages = [];
   const result = await warnIfDualPopulated({
     store: fakePg,
-    env: { AXI_TODO_HOME: home },
+    env: { AXI_TODO_HOME: home, AXI_TODO_DUAL_PROBE: "1" },
     log: (...args) => messages.push(args.join(" ")),
   });
   assert.equal(result.warned, false);
