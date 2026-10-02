@@ -1,0 +1,73 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M9: ledger-template cleanup — close M8-NEWFINDING-2/3",
+  "milestoneAcceptance": [
+    "M9.S1: M2 ledger ownerDecisionsRequired array emptied; 3 Resolved entries relocated to a new closedDecisions array with id/resolved_at/resolved_by for audit traceability",
+    "M9.S2: M6 milestoneAcceptance M6.2 bullet rewritten — '5 个新表 (... + 一个备选)' → '4 个表 (... + planning_records migration-only forward-looking — no PG insert path)'. Bullet text now consistent with M6.S2 evidence 'Deviation' line.",
+    "M9.S3: M7 ledger newFindings[] resolution blocks added for M8-NEWFINDING-2/3, pointing at commit 4a43356",
+    "M9.S99: full Node suite 183/183 pass; swift run AxiTodoStoreSmokeTests pass; 3 commits on dev (4a43356 + 660a98f + this ledger)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M9.S1",
+      "id": "TODO-m9-s1-id",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "axi-agent commit 4a43356 — M2 ledger ownerDecisionsRequired emptied (3 Resolved entries moved to closedDecisions array with id M2-RES-1/2/3)",
+      "deps": []
+    },
+    {
+      "tag": "M9.S2",
+      "id": "TODO-m9-s2-id",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "axi-agent commit 4a43356 — M6 ledger milestoneAcceptance M6.2 bullet rewritten (5 个新表 → 4 个表, planning_records migration-only forward-looking)",
+      "deps": []
+    },
+    {
+      "tag": "M9.S3",
+      "id": "TODO-m9-s3-id",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "axi-agent commit 660a98f — M7 ledger newFindings[] resolution blocks for M8-NEWFINDING-2/3 pointing at 4a43356",
+      "deps": ["M9.S1", "M9.S2"]
+    },
+    {
+      "tag": "M9.S99",
+      "id": "TODO-m9-s99-id",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent fact-check: node --test test/*.test.mjs → 183/183 pass; swift run AxiTodoStoreSmokeTests → pass; this ledger close committed",
+      "deps": ["M9.S3"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "4a43356",
+      "scope": "axi-todo",
+      "track": "M9.S1+S2",
+      "subject": "chore(axi-todo): M9 close M8-NEWFINDING-2 + M8-NEWFINDING-3 — ledger cleanup"
+    },
+    {
+      "sha": "660a98f",
+      "scope": "axi-todo",
+      "track": "M9.S3",
+      "subject": "chore(axi-todo): M9 close M8-NEWFINDING-2/3 resolution trail on M7 ledger"
+    }
+  ],
+  "subagentTracks": [],
+  "sourceFindings": [
+    "M8-NEWFINDING-2 (M2 ledger ownerDecisionsRequired contains Resolved entries) → RESOLVED by M9.S1 commit 4a43356",
+    "M8-NEWFINDING-3 (M6 acceptance bullet overstates surface) → RESOLVED by M9.S2 commit 4a43356"
+  ],
+  "outOfScopeButFlagged": [
+    "M8 owner decisions still pending owner: OD-M8-1 (OD-M7-1 cherry-pick 72d30d9 → dev) / OD-M8-2 (TODO-m5-apply-owner-confirm) / OD-M8-3 (M5/M6/M7 owner-acceptance sweep)",
+    "M6 owner decisions still pending: TODO-m6-track-3-sync-apply (real PG sync) + TODO-m6-track-2-swift-field-expansion (24-field UI)",
+    "M8-NEWFINDING-1 (TODO-m5-apply orphaned across M6/M7): cross-referenced on M6 ledger via M8 Track D; not a defect, just a future-milestone-orphan risk pattern. Flagged for future ledger-template improvement (e.g. explicit decision-eviction when milestone closes).",
+    "Pre-existing dirty working tree (backend/app/*.py + web tsx + .build/ + .m1-snapshot/* + submit logs): out of M9 scope — preserved per hard constraint"
+  ],
+  "ownerDecisionsRequired": [],
+  "newFindings": []
+}
