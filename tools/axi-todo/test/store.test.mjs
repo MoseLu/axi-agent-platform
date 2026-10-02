@@ -554,3 +554,122 @@ test("PG recordCompletionSummary inserts a fresh UUID id, not taskId", async () 
   assert.equal(inserted.id, out.id);
   assert.equal(inserted.taskId, "task-abc");
 });
+
+test("warnIfDualPopulated skips cross-store probe when chosen=JSON without AXI_TODO_DUAL_PROBE", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-probe-gate-json-"));
+  const jsonStore = new TaskStore({ home });
+  let factoryCalls = 0;
+  let readStateCalls = 0;
+  const fakePg = Object.create(PostgresTaskStore.prototype);
+  fakePg.readState = async () => {
+    readStateCalls += 1;
+    return { version: 3, tasks: [], taskCharters: [], planningRecords: [],
+      taskRuns: [], taskEvents: [], failureAnalyses: [], auditReviews: [],
+      userPreferences: [], completionSummaries: [], memoryCards: [] };
+  };
+  const result = await warnIfDualPopulated({
+    store: jsonStore,
+    env: { AXI_TODO_HOME: home, DATABASE_URL: "postgres://user:pass@localhost/db" },
+    log: () => {},
+    pgStoreFactory: () => {
+      factoryCalls += 1;
+      return fakePg;
+    },
+  });
+  assert.equal(result.warned, false);
+  assert.equal(result.chosen, "json");
+  assert.equal(result.reason, "probe-skipped");
+  assert.equal(factoryCalls, 0, "pgStoreFactory must not be called when probe is gated");
+  assert.equal(readStateCalls, 0, "PG readState must not be called when probe is gated");
+});
+
+test("warnIfDualPopulated skips cross-store probe when chosen=PG without AXI_TODO_DUAL_PROBE", async () => {
+  const fakePg = Object.create(PostgresTaskStore.prototype);
+  // The fake is the chosen store, so it doesn't get its readState called by
+  // the probe path. The probe would normally instantiate `new TaskStore(...)`
+  // to read JSON state — with the gate active, that constructor must not run.
+  // We prove this by setting AXI_TODO_HOME to a path that would throw if
+  // touched; if the gate short-circuits, no error fires.
+  const result = await warnIfDualPopulated({
+    store: fakePg,
+    env: { AXI_TODO_HOME: "/nonexistent-path-that-would-throw-if-read" },
+    log: () => {},
+  });
+  assert.equal(result.warned, false);
+  assert.equal(result.chosen, "postgres");
+  assert.equal(result.reason, "probe-skipped");
+});
+
+test("warnIfDualPopulated still probes both sides when AXI_TODO_DUAL_PROBE=1 (M2 behavior preserved)", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-probe-force-"));
+  const jsonStore = new TaskStore({ home });
+  await jsonStore.addTask({ title: "JSON fixture", prompt: "x", cwd: home });
+  const fakePg = Object.create(PostgresTaskStore.prototype);
+  fakePg.readState = async () => ({
+    version: 3,
+    tasks: [{
+      id: "pg-1", title: "PG", prompt: "x", cwd: home, status: "pending",
+      priority: 0, attempts: 0, maxAttempts: 3, dueAt: new Date().toISOString(),
+      acceptanceChecks: [], auditLevel: "none", riskLevel: "medium", taskKind: "task",
+      dependsOn: [], resourceKeys: [], rejectedApproaches: [], waitState: {},
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      verification: {}, history: [],
+    }],
+    taskCharters: [], planningRecords: [], taskRuns: [], taskEvents: [],
+    failureAnalyses: [], auditReviews: [], userPreferences: [],
+    completionSummaries: [], memoryCards: [],
+  });
+  const messages = [];
+  const result = await warnIfDualPopulated({
+    store: jsonStore,
+    env: { AXI_TODO_HOME: home, AXI_TODO_DUAL_PROBE: "1", DATABASE_URL: "postgres://x/y" },
+    log: (...args) => messages.push(args.join(" ")),
+    pgStoreFactory: () => fakePg,
+  });
+  assert.equal(result.warned, true);
+  assert.equal(result.chosen, "json");
+  assert.equal(result.otherKind, "postgres");
+  assert.equal(result.otherCount, 1);
+  assert.equal(messages.length, 1);
+  assert.match(messages[0], /detected populated JSON \+ PG stores/);
+});
+
+test("PG upsertTask binds source + imported_at columns from the task object", async () => {
+  const pg = Object.create(PostgresTaskStore.prototype);
+  let capturedSql = null;
+  let capturedParams = null;
+  pg.pool = {
+    async query(sql, params) {
+      capturedSql = sql;
+      capturedParams = params;
+      return { rows: [] };
+    },
+  };
+  await pg.upsertTask({
+    id: "task-prov",
+    title: "Provenance task",
+    source: "import-postgres",
+    importedAt: "2026-10-02T16:00:00.000Z",
+  });
+  assert.match(capturedSql, /insert into tasks \(.*source, imported_at\)/i);
+  assert.match(capturedSql, /on conflict \(id\) do update set/i);
+  assert.ok(!/source = excluded\.source/.test(capturedSql), "sticky semantics: ON CONFLICT must NOT overwrite source");
+  assert.ok(!/imported_at = excluded\.imported_at/.test(capturedSql), "sticky semantics: ON CONFLICT must NOT overwrite imported_at");
+  // Find source + imported_at positions in the bound params (last two).
+  assert.equal(capturedParams.at(-2), "import-postgres");
+  assert.equal(capturedParams.at(-1), "2026-10-02T16:00:00.000Z");
+});
+
+test("PG upsertTask defaults source to 'native' when task omits it", async () => {
+  const pg = Object.create(PostgresTaskStore.prototype);
+  let capturedParams = null;
+  pg.pool = {
+    async query(_sql, params) {
+      capturedParams = params;
+      return { rows: [] };
+    },
+  };
+  await pg.upsertTask({ id: "task-no-prov", title: "No provenance" });
+  assert.equal(capturedParams.at(-2), "native");
+  assert.equal(capturedParams.at(-1), null);
+});
