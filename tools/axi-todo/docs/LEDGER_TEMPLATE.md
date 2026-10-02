@@ -6,7 +6,7 @@
 
 ---
 
-## Top-level keys (8 keys)
+## Top-level keys (13 keys)
 
 | Key | Type | Required? | Form (M12+) |
 |---|---|---|---|
@@ -34,7 +34,7 @@
 {
   "tag": "M{N}.S{nn}",                       // required; dot-separated milestone + sub-task number
   "id": "TODO-m{N}-s{nn}-id",                // required; TODO-tracking id (placeholder ok)
-  "trackTitle": "...",                       // optional (M6 only — see note)
+  "trackTitle": "...",                       // optional (M6+, used per parallel-track subTask — see note)
   "status": "completed" | "in-progress",     // required
   "completedAt": "YYYY-MM-DD",               // required when status=completed
   "evidence": "...",                         // required; concrete ref (commit SHA, file:line, or subagent output)
@@ -67,6 +67,7 @@
 | `resolution` | object | when closing — `{resolved: bool, resolved_at: ISO-8601 date, resolved_by: string, rationale: string}` |
 | `linked_decisions` | string[] | M10+ OD-DELEGATE pattern — IDs of decisions delegated to OWNER_DECISIONS.md |
 | `linked_doc` | string | M10+ OD-DELEGATE pattern — path to canonical doc |
+| `eviction_status` | string | M12+ style — see OWNER_DECISIONS.md §"Decision Eviction Policy" Component 2 for vocabulary (`pending` / `closed` / `superseded` / `owner-no-action` / `out-of-scope`) |
 
 **Minimum required fields**: `id`, `subject` (or `summary` for legacy M5/M6 style), and at least one of `detail` or `options`.
 
@@ -95,9 +96,9 @@ The M6→M7 migration was deliberate — M7 introduced `id` so cross-milestone r
 
 ---
 
-## M6-only `trackTitle` field (historical)
+## `trackTitle` field (M6+, optional, used per parallel-track subTask)
 
-`trackTitle` appears on M6 subTask entries (`m6-entries.json:22, 26, 33, 41, 49, 57, 65`). M7+ subTasks do NOT carry `trackTitle` — they rely on `loreTrail[].track` instead. The field is M6-only; treat as legacy. Do NOT add `trackTitle` to M7+ subTasks.
+`trackTitle` first appeared on M6 subTask entries (`m6-entries.json:22, 26, 33, 41, 49, 57, 65`) as a human-readable track title. From M7 onward, every parallel-track milestone also uses it: M7 (4), M8 (5), M10 (6), M11 (4), M12 (7), M13 (1) — 29 subTasks across M6-M13. `trackTitle` complements `loreTrail[].track` (which holds short track-id like `"M7.S2"`) by giving each track a descriptive label. Single-track milestones (M1, M2, M3, M4, M5, M9) typically omit it.
 
 ---
 

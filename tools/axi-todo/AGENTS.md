@@ -33,7 +33,7 @@ See [docs/TODO-ARCHITECTURE.md](./docs/TODO-ARCHITECTURE.md) for the full landsc
 Per-M-series work is recorded in `.m1-snapshot/ledger/m{N}-entries.json` files (M1-M12+). These ledgers are pure human/agent metadata (verified by M12 Track A: zero automated readers across `lib/`, `bin/`, `test/`, `scripts/`, `Sources/`, `src/`).
 
 **Authoritative references** (added in M12):
-- [`docs/LEDGER_TEMPLATE.md`](./docs/LEDGER_TEMPLATE.md) — formal schema for all 11 top-level ledger keys; minimum-required-fields + intentional form-transition boundaries (loreTrail / newFindings / ownerDecisionsRequired / subTasks deps); M13+ ledgers MUST follow this template
+- [`docs/LEDGER_TEMPLATE.md`](./docs/LEDGER_TEMPLATE.md) — formal schema for all 13 top-level ledger keys; minimum-required-fields + intentional form-transition boundaries (loreTrail / newFindings / ownerDecisionsRequired / subTasks deps); M13+ ledgers MUST follow this template
 - [`OWNER_DECISIONS.md`](./OWNER_DECISIONS.md) — canonical owner-decision index; the M12 Track B "Decision Eviction Policy" section defines mandatory S99 eviction-check + 4-value vocabulary (`closed` / `superseded` / `owner-no-action` / `out-of-scope`) + linked-doc invariant (≤1-milestone lag between canonical-doc changes and originating-ledger updates)
 
 **Mandatory M{N}.S99 step** (per Decision Eviction Policy):
