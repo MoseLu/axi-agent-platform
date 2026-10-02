@@ -1,0 +1,89 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M11: close M10 Track C bookkeeping gap — TODO-m6-track-5 resolution + OD-M7-3 meta-duplicate",
+  "milestoneAcceptance": [
+    "M11.S1: TODO-m6-track-5-vite-ts-version-verify moved from M6 ownerDecisionsRequired to M6 closedDecisions[M6-RES-1] with resolution block referencing commit be4e0919 (substantive fact-check) and M10 Track D default-option acceptance",
+    "M11.S2: OD-M7-3 (M6.4 web-deps audit meta-confirmation) given resolution.resolved: true block — same defect class as M9.S1 ledger-template fix, applied for ledger symmetry (substantive resolution = commit be4e0919 already accepted in M7.S3)",
+    "M11.S3: OWNER_DECISIONS.md refreshed to reflect 7 → 5 distinct open decisions (TODO-m6-track-5 + OD-M7-3 closed) and 3 → 5 closed decisions (added M6-RES-1 vite/typescript verification + M7-RES-1 OD-M7-3 meta-confirmation)",
+    "M11.S99: full Node suite 183/183 pass; swift run AxiTodoStoreSmokeTests pass; M11 ledger closed; loreTrail commits: eca972c (S1+S2 ledger-only) + this M11.S3+S99 commit"
+  ],
+  "subTasks": [
+    {
+      "tag": "M11.S1",
+      "id": "TODO-m11-s1-id",
+      "trackTitle": "TODO-m6-track-5 bookkeeping gap fix",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "commit eca972c: TODO-m6-track-5-vite-ts-version-verify moved from m6-entries.json ownerDecisionsRequired to closedDecisions[M6-RES-1] with resolved_at=2026-10-02 + resolved_by=M11 bookkeeping-gap cleanup; substantive resolution reference = commit be4e0919 (M7.S3 fact-check)",
+      "deps": []
+    },
+    {
+      "tag": "M11.S2",
+      "id": "TODO-m11-s2-id",
+      "trackTitle": "OD-M7-3 meta-confirmation closure",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "commit eca972c: OD-M7-3 in m7-entries.json ownerDecisionsRequired gained resolution.resolved: true block (resolved_at=2026-10-02 + resolved_by=M11 meta-confirmation closure + rationale='Accept M7.S3 fact-check as #1 closure (default option)'); closed together with TODO-m6-track-5 for ledger symmetry",
+      "deps": ["M11.S1"]
+    },
+    {
+      "tag": "M11.S3",
+      "id": "TODO-m11-s3-id",
+      "trackTitle": "OWNER_DECISIONS.md refresh — reflect 2 bookkeeping-gap closures",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "OWNER_DECISIONS.md updated: status snapshot now 5 distinct open (down from 7) + 5 closed (up from 3); TODO-m6-track-5 + OD-M7-3 sections removed from open decisions; new Closed Decisions (history) entries M6-RES-1 + M7-RES-1 added; category table updated (acceptance-sweep 3 → 1); last-updated footer refreshed; M11 bookkeeping-gap-cleanup note appended at bottom",
+      "deps": ["M11.S1", "M11.S2"]
+    },
+    {
+      "tag": "M11.S99",
+      "id": "TODO-m11-s99-id",
+      "trackTitle": "M11 ledger close + full-suite verification",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent: node --test (find test -name '*.test.mjs' | xargs) → 183/183 pass; swift run AxiTodoStoreSmokeTests → pass; M11 ledger closed; this commit (M11.S3 + M11.S99 combined) lands OWNER_DECISIONS.md refresh + m11-entries.json",
+      "deps": ["M11.S3"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "eca972c",
+      "scope": "axi-todo",
+      "track": "M11.S1+M11.S2",
+      "subject": "chore(axi-todo): M11 close TODO-m6-track-5 bookkeeping gap + OD-M7-3 meta-duplicate"
+    }
+  ],
+  "subagentTracks": [],
+  "sourceFindings": [
+    "M10 Track C originally flagged: 'TODO-m6-track-5-vite-ts-version-verify substantively resolved by commit be4e0919 but lacks formal resolution.resolved: true block (bookkeeping gap, same defect class as M2 entries fixed by M9.S1)'",
+    "M11.S1 inspection: M6 ledger ownerDecisionsRequired[] had TODO-m6-track-5 entry without resolution block; substantive resolution occurred in M7.S3 (commit be4e0919: npm view vite@8.0.16 / typescript@6.0.3 both real public npm versions; audit JSON driftStatus flipped from 'suspicious' to 'verified')",
+    "M11.S2 inspection: M7 ledger ownerDecisionsRequired[] had OD-M7-3 (M6.4 web-deps audit meta-confirmation) without resolution block; OD-M7-3 is a meta-confirmation decision over the same fact-check as TODO-m6-track-5 (substantive duplicate)",
+    "M11.S3 inspection: OWNER_DECISIONS.md (M10 Track D canonical doc) listed both as open decisions; closing both keeps the canonical doc and ledger entries symmetric"
+  ],
+  "outOfScopeButFlagged": [
+    "M10 Track C 4 schema-drift candidates (loreTrail / newFindings / ownerDecisionsRequired / subTasks) remain flagged for future ledger-template cleanup — not addressed in M11",
+    "M8-NEWFINDING-1 orphan-risk pattern remains flagged for future ledger-template improvement — not addressed in M11",
+    "OD-M10-DELEGATE in M10 ledger still active; canonical doc reference remains tools/axi-todo/OWNER_DECISIONS.md",
+    "5 distinct open decisions still pending owner (1 cross-repo + 2 operator-action + 1 design + 1 acceptance-sweep)",
+    "Pre-existing dirty working tree (axi-agent + workspace-governance) preserved per hard constraint"
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M11-DELEGATE",
+      "subject": "All 5 remaining open owner decisions documented in tools/axi-todo/OWNER_DECISIONS.md",
+      "detail": "M11 ledger does NOT duplicate the 5 open decisions. OD-M11-DELEGATE continues M10's delegation pattern, pointing owner to tools/axi-todo/OWNER_DECISIONS.md as the single canonical entrypoint. Update that file directly when a decision resolves (or after a future M12+ audit refresh).",
+      "scope": "delegation only — no new decision",
+      "linked_decisions": [
+        "TODO-m5-apply-owner-confirm (≡ OD-M8-2)",
+        "TODO-m6-track-3-sync-apply",
+        "TODO-m6-track-2-swift-field-expansion",
+        "OD-M7-1 (≡ OD-M8-1)",
+        "OD-M8-3"
+      ],
+      "linked_doc": "tools/axi-todo/OWNER_DECISIONS.md"
+    }
+  ],
+  "newFindings": []
+}
