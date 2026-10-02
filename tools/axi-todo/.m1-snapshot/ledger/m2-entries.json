@@ -89,10 +89,26 @@
     "PostgresTaskStore.recordAuditReview inserts the audit row first, then conditionally calls updateTask outside the original withClient transaction. If the updateTask transaction fails after the audit row committed, you end up with verdict:'pending' but task still in 'completed'. (lib/postgres-store.mjs:401-426)",
     "TaskStore.searchPlanningMemory and PostgresTaskStore.searchPlanningMemory use different algorithms (JSON.stringify includes vs SQL LIKE on lower(...)); they will return different results on identical inputs. (lib/store.ts:516 vs lib/postgres-store.ts:499-513)"
   ],
-  "ownerDecisionsRequired": [
-    "Resolved: AXI_TODO_STORE now defaults to json because Swift and the canonical ledger use tasks.json; postgres remains explicit opt-in and auto remains available.",
-    "Resolved: keep the PG schema and bin/axi-todo-migrate-postgres.mjs as opt-in durability/import tooling; removal would unnecessarily discard a supported backend.",
-    "Resolved with bounded action: do not bulk-relabel historical completed tasks. The reconciliation snapshot contains 10 completed JSON-only entries (not 18); they lack current evidence and remain completed until a targeted recheck supplies evidence."
+  "ownerDecisionsRequired": [],
+  "closedDecisions": [
+    {
+      "id": "M2-RES-1",
+      "summary": "AXI_TODO_STORE now defaults to json because Swift and the canonical ledger use tasks.json; postgres remains explicit opt-in and auto remains available.",
+      "resolved_at": "2026-10-02",
+      "resolved_by": "M2.S4 ledger close"
+    },
+    {
+      "id": "M2-RES-2",
+      "summary": "Keep the PG schema and bin/axi-todo-migrate-postgres.mjs as opt-in durability/import tooling; removal would unnecessarily discard a supported backend.",
+      "resolved_at": "2026-10-02",
+      "resolved_by": "M2.S4 ledger close"
+    },
+    {
+      "id": "M2-RES-3",
+      "summary": "Do not bulk-relabel historical completed tasks. The reconciliation snapshot contains 10 completed JSON-only entries (not 18); they lack current evidence and remain completed until a targeted recheck supplies evidence.",
+      "resolved_at": "2026-10-02",
+      "resolved_by": "M2.S4 ledger close; M5 produced recheck-completed tool (TODO-m5-apply-owner-confirm surfaced as OD-M8-2)"
+    }
   ],
   "newFindings": [
     "PostgreSQL store schema does not store its own provenance field; the importer relies on the PG `id` text PK and the `payload` jsonb round-trip. If a future tool mutates PG `payload` to drop fields, the JSON round-trip will lose them. Consider adding a `source` text column to PG schema (migration not in M2 scope).",

@@ -5,7 +5,7 @@
   "milestoneTitle": "M6: 5 条 outOfScopeButFlagged 平行收尾 (PG provenance 镜像 / Swift source 字段 / PG→JSON sync / web dep audit / hooks audit)",
   "milestoneAcceptance": [
     "M6.S1: M6 ledger 落地,锁定 5 条平行轨道;每轨道一个独立子代理、独立分支、独立 commit、独立测试;主代理做事实核查 + 收尾",
-    "M6.2 (PG provenance 镜像): migrations/004_collection_provenance.sql + lib/postgres-store.mjs 5 个新表 (completion_summaries / failure_analyses / planning_records / memory_cards + 一个备选) 加 source/imported_at 列,upsert 改 sticky ON CONFLICT,JSON→PG importer 写 source: 'import-postgres',测试覆盖幂等迁移 + sticky ON CONFLICT",
+    "M6.2 (PG provenance 镜像): migrations/004_collection_provenance.sql + lib/postgres-store.mjs 4 个表 (completion_summaries / failure_analyses / memory_cards + planning_records migration-only forward-looking — no PG insert path) 加 source/imported_at 列,upsert 改 sticky ON CONFLICT,JSON→PG importer 写 source: 'import-postgres',测试覆盖幂等迁移 + sticky ON CONFLICT",
     "M6.3 (Swift source 字段): AxiTodoModels.swift 加 source/importedAt 可选 Codable 字段,AxiTodoStore.swift 读取 payload 时 parse 出顶层 source/importedAt,AxiTodoStoreSmokeTests 加 2-3 测试覆盖 JSON round-trip 解析",
     "M6.4 (PG→JSON 反向同步): bin/axi-todo-sync-pg-to-json.mjs,reentrant ledger 类似 .imported-pg-ids.json,含 --dry-run / --apply / --confirm-apply owner gate + 备份 snapshot 到 .m1-snapshot/m6-audit/pre-sync-<ISO>.json",
     "M6.5 (web dep audit): tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json 报告 React 依赖漂移;不修改 package.json / lockfile;不动前端代码;提供 owner-decision recommendation",
