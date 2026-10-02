@@ -1,0 +1,159 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M10: dirty-tree + cross-repo + 9-ledger consistency audit + canonical OWNER_DECISIONS.md",
+  "milestoneAcceptance": [
+    "M10.S1: M10 ledger lands first; locks M10 scope to (a) OWNER_DECISIONS.md canonical doc + (b) dirty-tree audit (axi-agent + workspace-governance, read-only) + (c) 9-ledger consistency audit (read-only) + (d) canonical owner-decision list compilation (read-only)",
+    "M10.S2 (Track A — axi-agent dirty): 11 M-tracked dirty files + 87 untracked paths documented; cross-reference to M-series shows zero M10-introduced dirty; all out of M10 scope per hard constraint",
+    "M10.S3 (Track B — workspace-governance dirty): 7 M-tracked + 3 untracked on feature/audit-docs branch, all predates 72d30d9; 72d30d9 NOT reachable from dev (re-confirmed); no M10-introduced dirty",
+    "M10.S4 (Track C — 9-ledger consistency): 40 unique loreTrail SHAs verified (39 on axi-agent dev + 1 on governance feature/audit-docs); 4 schema-drift candidates identified; 2 cross-milestone duplicate decisions found; 1 bookkeeping gap (TODO-m6-track-5 missing resolution block)",
+    "M10.S5 (Track D — canonical owner-decision list): 7 distinct open decisions (after dedup from 9 raw) + 3 closed decisions + 1 structured open finding + 10 unstructured informational findings compiled",
+    "M10.S6: OWNER_DECISIONS.md created at tools/axi-todo/OWNER_DECISIONS.md with all 7 deduped open decisions categorized by cross-repo / operator-action / design / acceptance-sweep; M10 ledger ownerDecisionsRequired links back to OWNER_DECISIONS.md to avoid duplication",
+    "M10.S99: full Node suite 183/183 pass; swift run AxiTodoStoreSmokeTests pass; M10 ledger closed; 2 commits on dev (OWNER_DECISIONS.md + this ledger)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M10.S1",
+      "id": "TODO-m10-s1-id",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "this ledger file landed first",
+      "deps": []
+    },
+    {
+      "tag": "M10.S2",
+      "id": "TODO-m10-s2-id",
+      "trackTitle": "Track A: axi-agent dirty file audit (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M10 Track A subagent reported: 11 M-tracked files (+66/-14 lines) — backend OBSERVABILITY_TRACE_SINK work + web tsx import-source splits + docs/HANDOFF.md obsolete pytest line removal + ADR-008 path rewrite + submodule pointer advance; 87 untracked paths (1 .build/ + 1 disclose dir + 82 submit logs + 3 .m1-snapshot dumps + 2 scripts); zero M-series in dirty tree; all out of M10 scope",
+      "deps": ["M10.S1"]
+    },
+    {
+      "tag": "M10.S3",
+      "id": "TODO-m10-s3-id",
+      "trackTitle": "Track B: workspace-governance dirty file audit (READ-ONLY, cross-repo)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M10 Track B subagent reported: 7 M-tracked files (.github org rename + dependabot + 3 workflows + commit-history-baseline regen + CHANGELOG) + 3 untracked (SECURITY.md + axi-file-preview admission + agent-governance-phase0-baseline) on feature/audit-docs; 72d30d9 confirmed NOT on dev (M8 Track C re-verified); all predates 72d30d9; cross-repo decision OD-M7-1/OD-M8-1 still pending owner",
+      "deps": ["M10.S1"]
+    },
+    {
+      "tag": "M10.S4",
+      "id": "TODO-m10-s4-id",
+      "trackTitle": "Track C: 9-ledger consistency audit (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M10 Track C subagent reported: 40 unique loreTrail SHAs verified live; 4 schema-drift candidates (loreTrail string→object M6→M7, newFindings string→object M6→M7, ownerDecisionsRequired 5 field-shape variants, subTasks M6.S1/S99 missing deps); 2 cross-milestone duplicate decisions (TODO-m5-apply≡OD-M8-2, OD-M7-1≡OD-M8-1); 1 bookkeeping gap (TODO-m6-track-5 missing resolution block — same defect class as M2 entries fixed by M9.S1)",
+      "deps": ["M10.S1"]
+    },
+    {
+      "tag": "M10.S5",
+      "id": "TODO-m10-s5-id",
+      "trackTitle": "Track D: canonical owner-decision list compilation (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M10 Track D subagent reported: 7 distinct open decisions (deduplicated from 9 raw; categorized 1 cross-repo + 2 operator-action + 1 design + 3 acceptance-sweep); 3 closed decisions (M2-RES-1/2/3); 1 structured open finding (M8-NEWFINDING-1); 10 unstructured informational findings (M1: 4, M2: 2, M6: 4)",
+      "deps": ["M10.S1"]
+    },
+    {
+      "tag": "M10.S6",
+      "id": "TODO-m10-s6-id",
+      "trackTitle": "OWNER_DECISIONS.md canonical doc + M10 ledger ownerDecisionsRequired link-back",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "tools/axi-todo/OWNER_DECISIONS.md created with 7 deduped open decisions + 3 closed decisions + 1 structured open finding + 10 unstructured informational findings + Track C schema-drift observations. M10 ledger ownerDecisionsRequired delegates to OWNER_DECISIONS.md (avoiding duplication).",
+      "deps": ["M10.S2", "M10.S3", "M10.S4", "M10.S5"]
+    },
+    {
+      "tag": "M10.S99",
+      "id": "TODO-m10-s99-id",
+      "trackTitle": "M10 ledger close + full-suite verification",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent: node --test test/*.test.mjs → 183/183 pass; swift run AxiTodoStoreSmokeTests → pass; 2 commits on dev (OWNER_DECISIONS.md + this ledger)",
+      "deps": ["M10.S6"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "<pending>",
+      "scope": "axi-todo",
+      "track": "M10.S6",
+      "subject": "docs(axi-todo): add OWNER_DECISIONS.md canonical owner-decision index"
+    },
+    {
+      "sha": "<pending>",
+      "scope": "axi-todo",
+      "track": "M10.S99",
+      "subject": "chore(axi-todo): create + close M10 ledger — 4 subagent tracks + OWNER_DECISIONS.md shipped"
+    }
+  ],
+  "subagentTracks": [
+    {
+      "id": "m10-track-a-axi-agent-dirty",
+      "title": "axi-agent repo dirty file audit (READ-ONLY)",
+      "scope": "axi-agent repo working tree only; no modifications",
+      "filesTouched": [],
+      "branch": "dev",
+      "outcome": "11 M-tracked dirty files + 87 untracked paths documented; all out of M10 scope per hard constraint; zero M10-introduced dirty"
+    },
+    {
+      "id": "m10-track-b-workspace-governance-dirty",
+      "title": "foundation/workspace-governance repo dirty file audit (READ-ONLY, cross-repo)",
+      "scope": "workspace-governance repo working tree only; no modifications",
+      "filesTouched": [],
+      "branch": "feature/audit-docs",
+      "outcome": "7 M-tracked dirty files + 3 untracked on feature/audit-docs; 72d30d9 NOT on dev (re-confirmed); cross-repo decision OD-M7-1 still pending owner"
+    },
+    {
+      "id": "m10-track-c-ledger-consistency",
+      "title": "9-ledger consistency audit (READ-ONLY)",
+      "scope": "9 ledger JSON files only; no modifications",
+      "filesTouched": [],
+      "branch": "n/a",
+      "outcome": "40 loreTrail SHAs verified; 4 schema-drift candidates; 2 cross-milestone duplicate decisions; 1 bookkeeping gap (TODO-m6-track-5 missing resolution block)"
+    },
+    {
+      "id": "m10-track-d-canonical-owner-decisions",
+      "title": "canonical owner-decision list compilation (READ-ONLY)",
+      "scope": "9 ledger JSON files only; no modifications",
+      "filesTouched": [],
+      "branch": "n/a",
+      "outcome": "7 distinct open decisions + 3 closed decisions + 1 structured open finding + 10 unstructured informational findings compiled — primary input for OWNER_DECISIONS.md"
+    }
+  ],
+  "sourceFindings": [
+    "M10 Track A: 11 M-tracked + 87 untracked paths on axi-agent dev; 0 M-series in dirty tree; per `git show 0f14273` 'Director: keep pre-existing dirty tree intact' directive",
+    "M10 Track B: 72d30d9 NOT reachable from workspace-governance dev (re-confirmed); branch `feature/audit-docs` HEAD = 72d30d9 itself; `dev..feature/audit-docs` diverged by 19 commits",
+    "M10 Track C: TODO-m5-apply-owner-confirm ≡ OD-M8-2 (cross-milestone duplicate); OD-M7-1 ≡ OD-M8-1 (cross-milestone duplicate); TODO-m6-track-5-vite-ts-version-verify substantively resolved by commit be4e0919 but lacks formal `resolution.resolved: true` block (bookkeeping gap, same defect class as M2 entries fixed by M9.S1)",
+    "M10 Track D: 7 distinct open decisions categorized 1 cross-repo + 2 operator-action + 1 design + 3 acceptance-sweep; 3 closed decisions (M2-RES-1/2/3); 1 structured open finding (M8-NEWFINDING-1) + 10 unstructured informational findings"
+  ],
+  "outOfScopeButFlagged": [
+    "M10 Track A: all 11 M-tracked dirty files + 87 untracked paths preserved per hard constraint",
+    "M10 Track B: all 7 M-tracked + 3 untracked on workspace-governance preserved; OD-M7-1/OD-M8-1 still pending owner",
+    "M10 Track C: 4 schema-drift candidates (loreTrail / newFindings / ownerDecisionsRequired / subTasks) flagged for future ledger-template cleanup but not blocking; bookkeeping gap (TODO-m6-track-5 missing resolution block) could be fixed in M11 if owner wants symmetric template",
+    "M8-NEWFINDING-1 orphan-risk pattern: cross-referenced on M6 ledger (commit 7be2b70) as mitigation; orphan-risk pattern itself remains flagged for future ledger-template improvement",
+    "Pre-existing dirty working tree (axi-agent + workspace-governance) preserved per hard constraint"
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M10-DELEGATE",
+      "subject": "All 7 open owner decisions documented in tools/axi-todo/OWNER_DECISIONS.md",
+      "detail": "M10 ledger does NOT duplicate the 7 open decisions. Instead, OD-M10-DELEGATE points owner to tools/axi-todo/OWNER_DECISIONS.md as the single canonical entrypoint. Update that file directly when a decision resolves (or after a future M11+ audit refresh).",
+      "scope": "delegation only — no new decision",
+      "linked_decisions": [
+        "TODO-m5-apply-owner-confirm (≡ OD-M8-2)",
+        "TODO-m6-track-5-vite-ts-version-verify",
+        "TODO-m6-track-3-sync-apply",
+        "TODO-m6-track-2-swift-field-expansion",
+        "OD-M7-1 (≡ OD-M8-1)",
+        "OD-M7-3",
+        "OD-M8-3"
+      ],
+      "linked_doc": "tools/axi-todo/OWNER_DECISIONS.md"
+    }
+  ],
+  "newFindings": []
+}
