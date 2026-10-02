@@ -175,15 +175,25 @@
     },
     {
       "id": "M8-NEWFINDING-2",
-      "subject": "M2 ownerDecisionsRequired contains Resolved entries",
-      "detail": "M2 ledger places 3 explicitly-Resolved entries in ownerDecisionsRequired (lib/postgres-store.mjs line 92-95 etc.). Semantically these belong in a closedDecisions array, not the 'required' list. Naming/categorization defect, no operational contradiction. M2 is locally verified; no action required, but flagged for future ledger-template cleanup.",
-      "discovered_by": "M8 Track D summary audit"
+      "subject": "M2 ownerDecisionsRequired contains Resolved entries — RESOLVED by M9.S1",
+      "detail": "M2 ledger places 3 explicitly-Resolved entries in ownerDecisionsRequired. Semantically these belong in a closedDecisions array, not the 'required' list. Naming/categorization defect, no operational contradiction.",
+      "discovered_by": "M8 Track D summary audit",
+      "resolution": {
+        "resolved": true,
+        "resolved_at": "2026-10-02",
+        "resolved_by": "M9.S1 commit 4a43356 — relocated 3 entries to new closedDecisions array with id/resolved_at/resolved_by"
+      }
     },
     {
       "id": "M8-NEWFINDING-3",
-      "subject": "M6 acceptance bullet overstates provenance surface",
+      "subject": "M6 acceptance bullet overstates provenance surface — RESOLVED by M9.S2",
       "detail": "M6 milestoneAcceptance says '5 个新表' but M6.S2 evidence documents 4 tables (planning_records is migration-only forward-looking). Self-flagged in M6.S2 evidence under 'Deviation'. No hidden contradiction, but the acceptance bullet text should be tightened when M6 is closed.",
-      "discovered_by": "M8 Track B ledger audit"
+      "discovered_by": "M8 Track B ledger audit",
+      "resolution": {
+        "resolved": true,
+        "resolved_at": "2026-10-02",
+        "resolved_by": "M9.S2 commit 4a43356 — bullet rewritten to '4 个表 (... + planning_records migration-only forward-looking — no PG insert path)'"
+      }
     }
   ]
 }
