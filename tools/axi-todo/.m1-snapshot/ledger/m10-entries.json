@@ -78,16 +78,10 @@
   ],
   "loreTrail": [
     {
-      "sha": "<pending>",
+      "sha": "6722fba",
       "scope": "axi-todo",
       "track": "M10.S6",
-      "subject": "docs(axi-todo): add OWNER_DECISIONS.md canonical owner-decision index"
-    },
-    {
-      "sha": "<pending>",
-      "scope": "axi-todo",
-      "track": "M10.S99",
-      "subject": "chore(axi-todo): create + close M10 ledger — 4 subagent tracks + OWNER_DECISIONS.md shipped"
+      "subject": "docs(axi-todo): OWNER_DECISIONS.md + M10 ledger — canonical owner-decision index"
     }
   ],
   "subagentTracks": [
