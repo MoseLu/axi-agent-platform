@@ -18,6 +18,7 @@ import {
   synchronizeTaskState,
   taskSort,
 } from "./schema.mjs";
+import { searchCollectionText } from "./memory-search.mjs";
 
 const COMPLETION_STATUS = "completed";
 const AWAITING_AUDIT_STATUS = "awaiting_audit";
@@ -505,16 +506,14 @@ async completeTask(id, result, { now = nowIso() } = {}) {
 
   async searchPlanningMemory({ query = "", limit = 20 } = {}) {
     const state = await this.readState();
-    const needle = String(query || "").toLowerCase();
+    const needle = String(query || "");
     const records = [
       ...state.planningRecords.map((item) => ({ source: "planning_records", ...item })),
       ...state.failureAnalyses.map((item) => ({ source: "failure_analyses", ...item })),
       ...state.completionSummaries.map((item) => ({ source: "completion_summaries", ...item })),
       ...state.memoryCards.map((item) => ({ source: "memory_cards", ...item })),
     ];
-    return records
-      .filter((item) => !needle || JSON.stringify(item).toLowerCase().includes(needle))
-      .slice(-limit);
+    return records.filter((item) => searchCollectionText(item, item.source, needle)).slice(-limit);
   }
 
   async appendRecord(collection, record) {

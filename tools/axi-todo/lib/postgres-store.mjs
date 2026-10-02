@@ -15,6 +15,7 @@ import {
   taskSort,
 } from "./schema.mjs";
 import { evaluateCompletion, describeGateDecision } from "./completion-gate.mjs";
+import { buildPlanningMemoryLikeExpression } from "./memory-search.mjs";
 import crypto from "node:crypto";
 
 const { Pool } = pg;
@@ -498,17 +499,8 @@ export class PostgresTaskStore {
 
   async searchPlanningMemory({ query = "", limit = 20 } = {}) {
     const like = `%${String(query || "").toLowerCase()}%`;
-    const result = await this.pool.query(
-      `select 'planning_records' as source, to_jsonb(planning_records.*) as payload from planning_records where lower(planning_summary || ' ' || coalesce(split_rationale, '')) like $1
-       union all
-       select 'failure_analyses' as source, to_jsonb(failure_analyses.*) as payload from failure_analyses where lower(root_cause || ' ' || coalesce(avoid_next_time, '')) like $1
-       union all
-       select 'completion_summaries' as source, to_jsonb(completion_summaries.*) as payload from completion_summaries where lower(summary || ' ' || coalesce(next_time_notes, '')) like $1
-       union all
-       select 'memory_cards' as source, to_jsonb(memory_cards.*) as payload from memory_cards where lower(content || ' ' || coalesce(title, '')) like $1
-       limit $2`,
-      [like, limit],
-    );
+    const { sql, params } = buildPlanningMemoryLikeExpression({ needlePattern: like, limit });
+    const result = await this.pool.query(sql, params);
     return result.rows.map((row) => ({ source: row.source, ...fromDbRecord(row.payload) }));
   }
 
