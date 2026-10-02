@@ -1,0 +1,164 @@
+{
+  "decisionStartedAt": "2026-10-02T18:10:00Z",
+  "decisionMethod": "owner-directed 4-category triage applied to evidence-check.json",
+  "categories": {
+    "keep-completed": "cwd still exists + in-cwd VERIFICATION.md present + stored verification.status=passed",
+    "cancelled": "cwd path retired (scratch worktree cleaned up, or partition reorg renamed path); no failure signal in history",
+    "failed": "history contains failed event without subsequent completion override",
+    "awaiting_audit": "indeterminate — cwd exists but no in-cwd VERIFICATION.md"
+  },
+  "counts": {
+    "keep-completed": 3,
+    "cancelled": 7,
+    "failed": 0,
+    "awaiting_audit": 0
+  },
+  "decisions": [
+    {
+      "id": "27c6eafa-f66a-4e96-bacc-bf6e489cb31f",
+      "title": "IELTS Mobile Practice Parity 01 - due review queue for quickmemory/test",
+      "cwd": "/Volumes/code/workspace/products/ielts-vocab",
+      "decision": "keep-completed",
+      "reason": "cwd still exists; VERIFICATION.md still present at /Volumes/code/workspace/products/ielts-vocab/VERIFICATION.md; stored verification.status=passed; history consistent with completion",
+      "cwdExists": true,
+      "hasOwnVerif": true,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-03T23:55:19.893Z"
+      }
+    },
+    {
+      "id": "5dd3a8c3-446b-4d1a-bf43-ef2db2e36884",
+      "title": "IELTS Mobile Practice Parity 02 - progress resume and session lifecycle",
+      "cwd": "/Volumes/code/workspace/products/ielts-vocab",
+      "decision": "keep-completed",
+      "reason": "cwd still exists; VERIFICATION.md still present at /Volumes/code/workspace/products/ielts-vocab/VERIFICATION.md; stored verification.status=passed; history consistent with completion",
+      "cwdExists": true,
+      "hasOwnVerif": true,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-03T23:55:19.893Z"
+      }
+    },
+    {
+      "id": "153c3dfc-7304-4bbc-96a5-f3765ce5ca84",
+      "title": "IELTS Mobile Practice Parity 03 - wrong-word recovery filters and multi-round review",
+      "cwd": "/Volumes/code/workspace/products/.worktrees/ielts-vocab-parity-03",
+      "decision": "cancelled",
+      "reason": "cwd path no longer exists (/Volumes/code/workspace/products/.worktrees/ielts-vocab-parity-03); target worktree was retired after completion (or path was reorganized); evidence: paths/products/.worktrees/* are scratch worktrees typically cleaned after merge; shared/axi-skills + projects/axi-docs/app were renamed in the 2026-08 partition reorg; no failure history, no error signal — recommend cancel as target-retired not as task-failed",
+      "cwdExists": false,
+      "hasOwnVerif": false,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-03T23:55:19.893Z"
+      }
+    },
+    {
+      "id": "e83da185-959f-43a3-b69c-74e25454c7a7",
+      "title": "IELTS Mobile Practice Parity 04 - smart mode uses profile/stats instead of plain spelling",
+      "cwd": "/Volumes/code/workspace/products/ielts-vocab",
+      "decision": "keep-completed",
+      "reason": "cwd still exists; VERIFICATION.md still present at /Volumes/code/workspace/products/ielts-vocab/VERIFICATION.md; stored verification.status=passed; history consistent with completion",
+      "cwdExists": true,
+      "hasOwnVerif": true,
+      "hasFailedHistory": true,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-03T23:55:19.893Z"
+      }
+    },
+    {
+      "id": "a73af886-542f-486b-af09-3157fbd77c3b",
+      "title": "IELTS Mobile Practice Parity 05 - split PracticeScreen into mobile practice feature runtime",
+      "cwd": "/Volumes/code/workspace/products/.worktrees/ielts-vocab-parity-05",
+      "decision": "cancelled",
+      "reason": "cwd path no longer exists (/Volumes/code/workspace/products/.worktrees/ielts-vocab-parity-05); target worktree was retired after completion (or path was reorganized); evidence: paths/products/.worktrees/* are scratch worktrees typically cleaned after merge; shared/axi-skills + projects/axi-docs/app were renamed in the 2026-08 partition reorg; no failure history, no error signal — recommend cancel as target-retired not as task-failed",
+      "cwdExists": false,
+      "hasOwnVerif": false,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-03T23:55:19.893Z"
+      }
+    },
+    {
+      "id": "bbe7e9aa-8fa8-48d8-a9bc-5f263d7b551f",
+      "title": "IELTS Mobile Practice Parity 06 - audio modes parity for dictation/listening/follow/radio",
+      "cwd": "/Volumes/code/workspace/products/.worktrees/ielts-vocab-parity-06",
+      "decision": "cancelled",
+      "reason": "cwd path no longer exists (/Volumes/code/workspace/products/.worktrees/ielts-vocab-parity-06); target worktree was retired after completion (or path was reorganized); evidence: paths/products/.worktrees/* are scratch worktrees typically cleaned after merge; shared/axi-skills + projects/axi-docs/app were renamed in the 2026-08 partition reorg; no failure history, no error signal — recommend cancel as target-retired not as task-failed",
+      "cwdExists": false,
+      "hasOwnVerif": false,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-03T23:55:19.893Z"
+      }
+    },
+    {
+      "id": "48127c15-fd70-477e-8306-1a662efc54aa",
+      "title": "IELTS Mobile Practice Parity 07 - control surface and end-to-end evidence",
+      "cwd": "/Volumes/code/workspace/products/.worktrees/ielts-vocab-parity-07",
+      "decision": "cancelled",
+      "reason": "cwd path no longer exists (/Volumes/code/workspace/products/.worktrees/ielts-vocab-parity-07); target worktree was retired after completion (or path was reorganized); evidence: paths/products/.worktrees/* are scratch worktrees typically cleaned after merge; shared/axi-skills + projects/axi-docs/app were renamed in the 2026-08 partition reorg; no failure history, no error signal — recommend cancel as target-retired not as task-failed",
+      "cwdExists": false,
+      "hasOwnVerif": false,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-03T23:55:19.893Z"
+      }
+    },
+    {
+      "id": "79afc81a-7410-4c3a-8101-17d412e000a0",
+      "title": "Axi Skills i18n scaffold verifier and batch manifest",
+      "cwd": "/Volumes/code/workspace/shared/axi-skills",
+      "decision": "cancelled",
+      "reason": "cwd path no longer exists (/Volumes/code/workspace/shared/axi-skills); target worktree was retired after completion (or path was reorganized); evidence: paths/products/.worktrees/* are scratch worktrees typically cleaned after merge; shared/axi-skills + projects/axi-docs/app were renamed in the 2026-08 partition reorg; no failure history, no error signal — recommend cancel as target-retired not as task-failed",
+      "cwdExists": false,
+      "hasOwnVerif": false,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-05T15:19:47.862Z",
+        "exitCode": 0,
+        "output": "{\n  \"ok\": true,\n  \"skill_entry_files\": 746,\n  \"logical_skill_names\": 737,\n  \"errors\": [],\n  \"warnings\": [\n    \"large file: minimax-xlsx/scripts/MiniMaxXlsx.exe (22.6 MB)\",\n    \"duplicate logical skill name: do (2 entries)\",\n    \"duplicate logical skill name: grill-me (2 entries)\",\n    \"duplicate logical skill name: imagegen (2 entries)\",\n    \"duplicate logical skill name: make-plan (2 entries)\",\n    \"duplicate logical skill name: openai-docs (2 entries)\",\n    \"duplicate logical skill name: plugin-creator (2 entries)\",\n    \"duplicate logical skill name: skill (2 entries)\",\n    \"duplicate logical skill name: skill-creator (2 entries)\",\n    \"duplicate logical skill name: skill-installer (2 entries)\"\n  ],\n  \"index_written\": false\n}\ni18n verify: OK (english=746 batches=81)"
+      }
+    },
+    {
+      "id": "1b11be6f-a20a-4faa-bbcf-2db7fe26ab5e",
+      "title": "Axi Docs bilingual skills source routing",
+      "cwd": "/Volumes/code/workspace/projects/axi-docs/app",
+      "decision": "cancelled",
+      "reason": "cwd path no longer exists (/Volumes/code/workspace/projects/axi-docs/app); target worktree was retired after completion (or path was reorganized); evidence: paths/products/.worktrees/* are scratch worktrees typically cleaned after merge; shared/axi-skills + projects/axi-docs/app were renamed in the 2026-08 partition reorg; no failure history, no error signal — recommend cancel as target-retired not as task-failed",
+      "cwdExists": false,
+      "hasOwnVerif": false,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-05T15:43:38.726Z",
+        "exitCode": 0,
+        "output": "0.97 kB │ gzip:     0.25 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL3NoYXJlcG9pbnQtc3ByZWFkc2hlZXQtZm9ybXVsYS1idWlsZGVyL1NLSUxMLm1k.json                                                                        0.98 kB │ gzip:     0.24 kB\ndist/generated/knowledge/sources/dbskill/graphs/c2tpbGxzL2Ricy1jb250ZW50LXN5c3RlbS9TS0lMTC5tZA.json                                                                                                     0.98 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9lbmdpbmVlcmluZy90by1wcmQvU0tJTEwubWQ.json                                     0.98 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9lbmdpbmVlcmluZy90cmlhZ2UvU0tJTEwubWQ.json                                     0.98 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/dbskill/graphs/c2tpbGxzL2Ricy1nb29kLXF1ZXN0aW9uL1NLSUxMLm1k.json                                                                                                       0.98 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9wcm9kdWN0aXZpdHkvY2F2ZW1hbi9TS0lMTC5tZA.json                                  0.99 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/dbskill/graphs/c2tpbGxzL2Ricy1jb250ZW50LXN5c3RlbS9zY2FmZm9sZC9ydWxlcy_lhoXlrrnljZXlhYPlhbPns7vop4TliJkubWQ.json                                                        1.00 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/dbskill/graphs/c2tpbGxzL2Ricy1jb250ZW50LXN5c3RlbS9zY2FmZm9sZC9ydWxlcy_lhoXlrrnljZXlhYPlrZfmrrXop4TojIMubWQ.json                                                        1.00 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9lbmdpbmVlcmluZy96b29tLW91dC9TS0lMTC5tZA.json                                  1.00 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9lbmdpbmVlcmluZy9kaWFnbm9zZS9TS0lMTC5tZA.json                                  1.00 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9wcm9kdWN0aXZpdHkvZ3JpbGwtbWUvU0tJTEwubWQ.json                                 1.00 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9lbmdpbmVlcmluZy90by1pc3N1ZXMvU0tJTEwubWQ.json                                 1.01 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9wZXJzb25hbC9lZGl0LWFydGljbGUvU0tJTEwubWQ.json                                 1.02 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/dbskill/graphs/c2tpbGxzL2Ricy1jaGF0cm9vbS1hdXN0cmlhbi9TS0lMTC5tZA.json                                                                                                 1.02 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/dbskill/graphs/c2tpbGxzL2Ricy1jb250ZW50LXN5c3RlbS9zY2FmZm9sZC9ydWxlcy_mlrDlop7mlofnqL_ov5vlhaXns7vnu5_mtYHnqIsubWQ.json                                                1.03 kB │ gzip:     0.28 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9taXNjL3NldHVwLXByZS1jb21taXQvU0tJTEwubWQ.json                                 1.03 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9wZXJzb25hbC9vYnNpZGlhbi12YXVsdC9TS0lMTC5tZA.json                              1.04 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9wcm9kdWN0aXZpdHkvd3JpdGUtYS1za2lsbC9TS0lMTC5tZA.json                          1.04 kB │ gzip:     0.25 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL3NlbGYtaW1wcm92aW5nLWFnZW50LXByb2FjdGl2ZS1zZWxmLXJlZmxlY3Rpb24vU0tJTEwubWQ.json                                                             1.05 kB │ gzip:     0.28 kB\ndist/generated/knowledge/sources/dbskill/graphs/c2tpbGxzL2Ricy1jb250ZW50LXN5c3RlbS9zY2FmZm9sZC9ydWxlcy_lhoXlrrnljZXlhYPljrvph43kuI7niYjmnKzop4TliJkubWQ.json                                            1.05 kB │ gzip:     0.27 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9taXNjL3NjYWZmb2xkLWV4ZXJjaXNlcy9TS0lMTC5tZA.json                              1.05 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9lbmdpbmVlcmluZy9ncmlsbC13aXRoLWRvY3MvU0tJTEwubWQ.json                         1.06 kB │ gzip:     0.27 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9taXNjL21pZ3JhdGUtdG8tc2hvZWhvcm4vU0tJTEwubWQ.json                             1.06 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9taXNjL2dpdC1ndWFyZHJhaWxzLWNsYXVkZS1jb2RlL1NLSUxMLm1k.json                    1.12 kB │ gzip:     0.27 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9lbmdpbmVlcmluZy9zZXR1cC1tYXR0LXBvY29jay1za2lsbHMvU0tJTEwubWQ.json             1.13 kB │ gzip:     0.26 kB\ndist/generated/knowledge/sources/axi-skills/graphs/c2tpbGxzL21hdHQtcG9jb2NrLXNraWxscy9yZWZlcmVuY2VzL3Vwc3RyZWFtL3NraWxscy9lbmdpbmVlcmluZy9pbXByb3ZlLWNvZGViYXNlLWFyY2hpdGVjdHVyZS9TS0lMTC5tZA.json      1.17 kB │ gzip:     0.27 kB\ndist/generated/knowledge/manifest.json                                                                                                                                                                  1.54 kB │ gzip:     0.64 kB\ndist/generated/knowledge/sources/axi-skills-zh/bundle.json                                                                                                                                            175.25 kB │ gzip:    60.11 kB\ndist/generated/knowledge/sources/workspace/bundle.json                                                                                                                                                176.25 kB │ gzip:    22.12 kB\ndist/generated/knowledge/sources/dbskill/bundle.json                                                                                                                                                1,794.40 kB │ gzip:   518.25 kB\ndist/generated/knowledge/sources/axi-skills/bundle.json                                                                                                                                             8,800.76 kB │ gzip: 2,314.13 kB\ndist/assets/index-lmNaaUsm.css                                                                                                                                                                        166.88 kB │ gzip:    28.61 kB\ndist/assets/index-BVSiUW52.js                                                                                                                                                                         604.28 kB │ gzip:   187.94 kB\ndist/assets/GlobalGraph-Bg1EMa0G.js                                                                                                                                                                 1,369.22 kB │ gzip:   367.39 kB\n\n✓ built in 1.62s\n\n(node:79395) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)"
+      }
+    },
+    {
+      "id": "ef45ad87-fbe0-48cc-90ed-ac6e7b0ee945",
+      "title": "Axi Skills zh translation batch task generator",
+      "cwd": "/Volumes/code/workspace/shared/axi-skills",
+      "decision": "cancelled",
+      "reason": "cwd path no longer exists (/Volumes/code/workspace/shared/axi-skills); target worktree was retired after completion (or path was reorganized); evidence: paths/products/.worktrees/* are scratch worktrees typically cleaned after merge; shared/axi-skills + projects/axi-docs/app were renamed in the 2026-08 partition reorg; no failure history, no error signal — recommend cancel as target-retired not as task-failed",
+      "cwdExists": false,
+      "hasOwnVerif": false,
+      "hasFailedHistory": false,
+      "storedVerification": {
+        "status": "passed",
+        "checkedAt": "2026-06-05T15:34:18.123Z",
+        "exitCode": 0,
+        "output": "translation_batch_tasks= 1"
+      }
+    }
+  ]
+}
