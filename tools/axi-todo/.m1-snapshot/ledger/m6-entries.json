@@ -1,0 +1,143 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "in-progress",
+  "verificationStatus": "Not yet submitted",
+  "milestoneTitle": "M6: 5 条 outOfScopeButFlagged 平行收尾 (PG provenance 镜像 / Swift source 字段 / PG→JSON sync / web dep audit / hooks audit)",
+  "milestoneAcceptance": [
+    "M6.S1: M6 ledger 落地,锁定 5 条平行轨道;每轨道一个独立子代理、独立分支、独立 commit、独立测试;主代理做事实核查 + 收尾",
+    "M6.2 (PG provenance 镜像): migrations/004_collection_provenance.sql + lib/postgres-store.mjs 5 个新表 (completion_summaries / failure_analyses / planning_records / memory_cards + 一个备选) 加 source/imported_at 列,upsert 改 sticky ON CONFLICT,JSON→PG importer 写 source: 'import-postgres',测试覆盖幂等迁移 + sticky ON CONFLICT",
+    "M6.3 (Swift source 字段): AxiTodoModels.swift 加 source/importedAt 可选 Codable 字段,AxiTodoStore.swift 读取 payload 时 parse 出顶层 source/importedAt,AxiTodoStoreSmokeTests 加 2-3 测试覆盖 JSON round-trip 解析",
+    "M6.4 (PG→JSON 反向同步): bin/axi-todo-sync-pg-to-json.mjs,reentrant ledger 类似 .imported-pg-ids.json,含 --dry-run / --apply / --confirm-apply owner gate + 备份 snapshot 到 .m1-snapshot/m6-audit/pre-sync-<ISO>.json",
+    "M6.5 (web dep audit): tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json 报告 React 依赖漂移;不修改 package.json / lockfile;不动前端代码;提供 owner-decision recommendation",
+    "M6.6 (hooks audit): agent-cluster/axi-agent/bin/axi-agent-* hooks 盘点 + 缺失模板补齐 (post-commit / pre-push);.githooks/ 检查;不触碰已工作的 hooks;输出 audit JSON",
+    "M6.99: 全套测试全绿 (Node 150/150 + 增量 + Swift 11/11 + 增量);每轨道独立 commit + Lore 规范;主代理事实核查 5 条子代理 commit;M6 ledger close (verificationStatus: Awaiting owner acceptance)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M6.S1",
+      "id": "TODO-m6-s1-id",
+      "status": "in-progress",
+      "evidence": "this ledger file lands first; 5 parallel subagent tracks dispatched",
+      "deps": []
+    },
+    {
+      "tag": "M6.S2",
+      "id": "TODO-m6-s2-id",
+      "trackTitle": "PG provenance 镜像 (completion_summaries / failure_analyses / planning_records / memory_cards)",
+      "status": "pending",
+      "evidence": "tools/axi-todo/migrations/004_collection_provenance.sql + lib/postgres-store.mjs upsert paths + test/migrate-collection-provenance.test.mjs",
+      "deps": ["M6.S1"]
+    },
+    {
+      "tag": "M6.S3",
+      "id": "TODO-m6-s3-id",
+      "trackTitle": "Swift AxiTodoStore source/importedAt 字段解析",
+      "status": "pending",
+      "evidence": "tools/axi-todo/Sources/AxiTodoKit/AxiTodoModels.swift + AxiTodoStore.swift + AxiTodoStoreSmokeTests/main.swift",
+      "deps": ["M6.S1"]
+    },
+    {
+      "tag": "M6.S4",
+      "id": "TODO-m6-s4-id",
+      "trackTitle": "PG→JSON 反向同步工具",
+      "status": "pending",
+      "evidence": "tools/axi-todo/bin/axi-todo-sync-pg-to-json.mjs + test/sync-pg-to-json.test.mjs + .m6-audit/pre-sync-<ISO>.json backup pattern",
+      "deps": ["M6.S1"]
+    },
+    {
+      "tag": "M6.S5",
+      "id": "TODO-m6-s5-id",
+      "trackTitle": "Web React 依赖漂移盘点 (read-only)",
+      "status": "pending",
+      "evidence": "tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json (read-only; no package.json / lockfile changes)",
+      "deps": ["M6.S1"]
+    },
+    {
+      "tag": "M6.S6",
+      "id": "TODO-m6-s6-id",
+      "trackTitle": "Workspace hooks audit + 缺失模板补齐",
+      "status": "pending",
+      "evidence": "agent-cluster/axi-agent/bin/axi-agent-* hooks audit + .githooks/ template coverage check + audit JSON",
+      "deps": ["M6.S1"]
+    },
+    {
+      "tag": "M6.S99",
+      "id": "TODO-m6-s99-id",
+      "trackTitle": "事实核查 + 全套验证 + M6 ledger close",
+      "status": "pending",
+      "evidence": "node --test test/*.test.mjs + swift run AxiTodoStoreSmokeTests + 5 subagent commit SHA verification + ledger close",
+      "deps": ["M6.S2", "M6.S3", "M6.S4", "M6.S5", "M6.S6"]
+    }
+  ],
+  "loreTrail": [],
+  "subagentTracks": [
+    {
+      "id": "m6-track-1-pg-provenance",
+      "title": "PG provenance 镜像",
+      "scope": "migrations/004 + postgres-store.mjs 4 collections + migration test",
+      "filesTouched": [
+        "tools/axi-todo/migrations/004_collection_provenance.sql",
+        "tools/axi-todo/lib/postgres-store.mjs",
+        "tools/axi-todo/test/migrate-collection-provenance.test.mjs"
+      ],
+      "branch": "dev (no separate branch; single linear M6 ledger)"
+    },
+    {
+      "id": "m6-track-2-swift-source",
+      "title": "Swift source/importedAt 字段解析",
+      "scope": "AxiTodoModels + AxiTodoStore + SmokeTests",
+      "filesTouched": [
+        "tools/axi-todo/Sources/AxiTodoKit/AxiTodoModels.swift",
+        "tools/axi-todo/Sources/AxiTodoKit/AxiTodoStore.swift",
+        "tools/axi-todo/Sources/AxiTodoStoreSmokeTests/main.swift"
+      ],
+      "branch": "dev (no separate branch)"
+    },
+    {
+      "id": "m6-track-3-pg-to-json-sync",
+      "title": "PG→JSON 反向同步工具",
+      "scope": "bin/axi-todo-sync-pg-to-json.mjs + reentrant ledger + test",
+      "filesTouched": [
+        "tools/axi-todo/bin/axi-todo-sync-pg-to-json.mjs",
+        "tools/axi-todo/test/sync-pg-to-json.test.mjs"
+      ],
+      "branch": "dev"
+    },
+    {
+      "id": "m6-track-4-web-deps-audit",
+      "title": "Web React 依赖漂移盘点 (read-only)",
+      "scope": "read tools/axi-todo/src/web/package.json + lockfile + report JSON",
+      "filesTouched": [
+        "tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json"
+      ],
+      "branch": "dev",
+      "constraint": "READ-ONLY: do not modify package.json / lockfile / frontend source"
+    },
+    {
+      "id": "m6-track-5-hooks-audit",
+      "title": "Workspace hooks audit + 缺失模板补齐",
+      "scope": "agent-cluster/axi-agent hooks + .githooks/ template coverage",
+      "filesTouched": [
+        "agent-cluster/axi-agent/.m1-snapshot/m6-audit/hooks-audit.json",
+        "agent-cluster/axi-agent/.githooks/<missing-template>" // populated by subagent
+      ],
+      "branch": "dev"
+    }
+  ],
+  "sourceFindings": [
+    "M5-OUT-1 (carried from M5 outOfScopeButFlagged): completion_summaries / failure_analyses / planning_records / memory_cards lack source/imported_at columns mirroring the M4 tasks table. M6 track-1 closes this gap.",
+    "M5-OUT-2 (carried from M5 outOfScopeButFlagged): Swift AxiTodoStore.swift reads JSON tasks but does not parse payload.reverse-sync'd source/importedAt as first-class fields. M6 track-2 adds Codable optional fields + JSON round-trip test.",
+    "M5-OUT-3 (carried from M5 outOfScopeButFlagged): PG→JSON reverse sync is the missing half of M2's dual-store architecture. Without it, PG data remains orphaned once a JSON-only Swift install does not run the importer. M6 track-3 adds the operator-gated sync tool.",
+    "M5-OUT-4 (carried from M5 outOfScopeButFlagged): tools/axi-todo/src/web React deps may have drift between package.json and lockfile; current working tree shows 5 dirty frontend files (DashboardActions / PersonalTodoPage / TodoDashboard / useTaskColumns / useTodoShellConfig) suggesting active dev or uncommitted scratch. M6 track-4 reports the drift without changing it.",
+    "M5-OUT-5 (carried from M5 outOfScopeButFlagged): agent-cluster/axi-agent/bin/axi-agent-* hooks are referenced by AGENTS.md but may not all exist; .githooks/ in axi-todo currently has commit-msg/post-commit/pre-commit but not pre-push. M6 track-5 audits and fills obvious gaps."
+  ],
+  "outOfScopeButFlagged": [
+    "接入 PG 的实现细节之外的 Swift 持久化层改造 (Realm / SwiftData / FoundationDB):超出 M6 scope;M6 track-2 只动 JSON 解析 + 字段,不重写 Swift 持久层。",
+    "PG→JSON 同步的 scheduled / background 模式:超出 M6 scope;M6 track-3 只提供 owner-gated 一次性手动工具,不接入 daemon / cron。",
+    "web 端实际修复 React 依赖 (升级 / 锁版本 / 重写):超出 M6 scope;M6 track-4 只输出 audit JSON,不动 package.json / lockfile / 前端代码。",
+    "重构现有 commit-msg / post-commit / pre-commit hooks 内容:超出 M6 scope;M6 track-5 只补缺失的 pre-push / 其他明显缺口,不修改现有 working hooks 的语义。",
+    "agent-cluster/axi-agent 下其它跨域代码改动 (backend/ / infra/axi-agent-mcp/ / tools/axi-feishu-codex-bridge/):超出 M6 scope;这些目录的 dirty diff 与本里程碑无关。"
+  ],
+  "ownerDecisionsRequired": [],
+  "newFindings": []
+}
