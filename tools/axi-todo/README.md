@@ -198,6 +198,22 @@ Use `AXI_TODO_STORE=auto` only when you intentionally want the presence of a
 database URL to select PostgreSQL; otherwise JSON remains the safe canonical
 choice.
 
+### Provenance fields available to Swift consumers
+
+As of M6 the canonical JSON exposes two top-level provenance fields per task
+that the Swift bridge (`AxiTodoTask`) reads directly:
+
+- `source` (optional string): set to `"import-postgres"` for rows that
+  arrived via `bin/axi-todo-import-postgres.mjs`; missing/`null` for
+  natively-created rows.
+- `importedAt` (optional ISO 8601 string): the timestamp captured when the
+  importer wrote the row. Absent for native rows.
+
+The Swift `AxiTodoTask` mirrors the same names — `var source: String?` and
+`var importedAt: Date?` (parsed via `.iso8601`). Older store files without
+these keys still decode cleanly with `source = nil` / `importedAt = nil`,
+so the bridge stays backward-compatible.
+
 ### Dual-store startup warning
 
 When the CLI, daemon, or MCP server boots and finds **both** stores
