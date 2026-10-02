@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# pre-push: verify Lore trailers (Tested / Not-tested / Confidence / Scope-risk / Directive)
+# on every outgoing commit. Defense-in-depth against 'git commit --no-verify'
+# or 'git commit --amend' bypassing the commit-msg hook. Mirrors the trailer list
+# enforced by foundation/workspace-governance/scripts/git-hooks/axi-commit-msg-lore-trailer.mjs.
+set -eu
+
+REQUIRED_TRAILERS=(Tested Not-tested Confidence Scope-risk Directive)
+
+exit_code=0
+
+# git passes one line per ref on stdin: "<local_ref> <local_sha> <remote_ref> <remote_sha>"
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Skip branch deletions (local_sha is all-zero)
+  if [ "${local_sha}" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+
+  # Determine the commit range to validate
+  if [ "${remote_sha}" = "0000000000000000000000000000000000000000" ]; then
+    # New branch being pushed — validate every commit on the local branch
+    range="${local_sha}"
+  else
+    range="${remote_sha}..${local_sha}"
+  fi
+
+  bad=""
+  while IFS= read -r commit_sha; do
+    [ -z "${commit_sha}" ] && continue
+    msg="$(git log -1 --format='%B' "${commit_sha}")"
+    missing=()
+    for t in "${REQUIRED_TRAILERS[@]}"; do
+      if ! printf '%s\n' "${msg}" | grep -qE "^${t}:"; then
+        missing+=("${t}")
+      fi
+    done
+    if [ "${#missing[@]}" -gt 0 ]; then
+      short_sha="$(printf '%s' "${commit_sha}" | cut -c1-7)"
+      bad="${bad}
+  ${short_sha} missing: ${missing[*]}"
+    fi
+  done < <(git rev-list "${range}" 2>/dev/null || true)
+
+  if [ -n "${bad}" ]; then
+    echo "pre-push: refusing push — Lore trailers missing on outgoing commits:" >&2
+    printf '%b\n' "${bad}" >&2
+    echo "pre-push: each commit must include all of: ${REQUIRED_TRAILERS[*]}" >&2
+    echo "pre-push: amend with 'git commit --amend --no-verify --no-edit', append the missing trailers, then re-push." >&2
+    exit_code=1
+  fi
+done
+
+exit "${exit_code}"

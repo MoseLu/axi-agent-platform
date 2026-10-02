@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# post-merge: informational reminder only. Workspace governance (foundation/workspace-governance/AGENTS.md,
+# README.md, and the AR-BOOTSTRAP-AFTER-001 / AR-CONFIG-PORT-INTENT-001 rule chain) names
+# 'pnpm workspace:docs:sync' as the post-change refresh step that regenerates
+# catalog / handoff / completion artifacts. A merge landing from a teammate can
+# mutate AGENTS.md / workspace.json / docs/HANDOFF.md / CHANGELOG.md / registry
+# files; this hook surfaces the reminder without auto-running anything.
+
+echo "[axi-agent] post-merge: workspace metadata may be stale."
+echo "[axi-agent] if this merge touched AGENTS.md / workspace.json / docs/HANDOFF.md / CHANGELOG.md / registry files,"
+echo "[axi-agent] run: cd /Volumes/code/workspace/foundation/workspace-governance && pnpm workspace:docs:sync"
+exit 0

@@ -1,0 +1,88 @@
+{
+  "auditStartedAt": "2026-10-02T10:02:53Z",
+  "auditScope": "agent-cluster/axi-agent/.githooks/ + workspace Lore trailer convention",
+  "hooksDir": "/Volumes/code/workspace/agent-cluster/axi-agent/.githooks",
+  "hooksFound": [
+    {
+      "name": "commit-msg",
+      "path": "/Volumes/code/workspace/agent-cluster/axi-agent/.githooks/commit-msg",
+      "executable": true,
+      "mode": "100755",
+      "lineCount": 28,
+      "purpose": "Validate Lore trailers on each new commit (delegates to foundation/workspace-governance/scripts/git-hooks/axi-commit-msg-lore-trailer.mjs)",
+      "sourceManaged": true,
+      "sourceNote": "Header comment 'Generated-by: axi-workspace-git-hooks' — content is regenerated from workspace governance; do not hand-edit."
+    },
+    {
+      "name": "post-commit",
+      "path": "/Volumes/code/workspace/agent-cluster/axi-agent/.githooks/post-commit",
+      "executable": true,
+      "mode": "100755",
+      "lineCount": 41,
+      "purpose": "Submit-log + workspace change-ledger + workspace propagation after each commit",
+      "sourceManaged": true,
+      "sourceNote": "Header comment 'Generated-by: axi-workspace-git-hooks' — content is regenerated from workspace governance; do not hand-edit."
+    },
+    {
+      "name": "pre-commit",
+      "path": "/Volumes/code/workspace/agent-cluster/axi-agent/.githooks/pre-commit",
+      "executable": true,
+      "mode": "100755",
+      "lineCount": 28,
+      "purpose": "Workspace flow preflight against staged changes (delegates to foundation/workspace-governance/scripts/workspace-flow.mjs preflight --staged --record)",
+      "sourceManaged": true,
+      "sourceNote": "Header comment 'Generated-by: axi-workspace-git-hooks' — content is regenerated from workspace governance; do not hand-edit."
+    }
+  ],
+  "hooksMissing": [
+    {
+      "name": "pre-push",
+      "filledInThisCommit": true,
+      "reason": "M5 outOfScopeButFlagged entry #5 explicitly noted pre-push missing. Lore trailer convention IS enforced by the existing commit-msg hook (validator at foundation/workspace-governance/scripts/git-hooks/axi-commit-msg-lore-trailer.mjs checks Tested / Not-tested / Confidence / Scope-risk / Directive). A pre-push check is a defense-in-depth against 'git commit --no-verify' or 'git commit --amend' bypassing the commit-msg hook — both real failure modes observed in this repo's history."
+    },
+    {
+      "name": "post-merge",
+      "filledInThisCommit": true,
+      "reason": "M5 outOfScopeButFlagged entry #5 noted 'pre-push' specifically, but post-merge is the adjacent conventional gap. Workspace governance (foundation/workspace-governance/AGENTS.md L40 and foundation/workspace-governance/README.md L28 / L137 / L170) repeatedly names 'pnpm workspace:docs:sync' as the post-change refresh step that re-runs catalog / handoff / completion regeneration. A merge landing from a teammate's branch can mutate AGENTS.md / workspace.json / docs/HANDOFF.md / CHANGELOG.md / registry files, and post-merge is the conventional moment to remind the user to refresh. Hook is informational only — no auto-mutation."
+    },
+    {
+      "name": "pre-receive",
+      "filledInThisCommit": false,
+      "reason": "No workspace-wide reason exists for a server-side pre-receive hook. The repo is solo-owner-governed; remote-side enforcement is unnecessary and would conflict with the GitHub-managed origin."
+    },
+    {
+      "name": "post-checkout",
+      "filledInThisCommit": false,
+      "reason": "No workspace-wide reason exists; post-checkout fires on every branch switch and would create noise. Existing pre-commit flow-preflight already covers the most common check-switch concern."
+    },
+    {
+      "name": "prepare-commit-msg",
+      "filledInThisCommit": false,
+      "reason": "No workspace-wide reason exists; the existing commit-msg hook already validates the final message before the commit lands, which is the load-bearing check."
+    }
+  ],
+  "gitConfigCoreHooksPath": ".githooks",
+  "gitConfigCoreHooksPathSource": "/Volumes/code/workspace/agent-cluster/axi-agent/.git/config",
+  "gitConfigCoreHooksPathNote": "core.hooksPath = .githooks is already configured in the repo-local .git/config. Hooks are ACTIVE on every clone of this repo. No owner action required to activate; recommended action below is a no-op for activation but useful for confirmation.",
+  "loreTrailerConvention": "required",
+  "loreTrailerEvidence": [
+    "Existing .githooks/commit-msg invokes foundation/workspace-governance/scripts/git-hooks/axi-commit-msg-lore-trailer.mjs which validates against FALLBACK_TRAILERS = ['Tested', 'Not-tested', 'Confidence', 'Scope-risk', 'Directive'] unless overridden by AXI_RULES_INDEX_PATH pointing to projects/axi-rules/index/rules.json (rule ids AR-GIT-005 / AR-GIT-006).",
+    "Recent commits on dev (HEAD = 3a4dcbe, plus 10 ancestors) all carry the five trailers in their bodies — e.g. 3a4dcbe's body includes 'Tested:', 'Not-tested:', 'Confidence:', 'Scope-risk:', 'Directive:'.",
+    "axi-todo/.m1-snapshot/ledger/m6-entries.json (M6 sourceFindings #6) names the Lore compliance gap as part of M6 scope."
+  ],
+  "outOfScope": [
+    "Modifying existing commit-msg / post-commit / pre-commit semantics — both are 'Generated-by: axi-workspace-git-hooks' artifacts regenerated from foundation/workspace-governance/; the durable change belongs there, not here.",
+    "Adding pre-receive / post-checkout / prepare-commit-msg without a clear workspace reason.",
+    "Anything that auto-mutates files in response to a hook event — post-merge is intentionally informational only.",
+    "Touching any of the 59 unrelated dirty files currently in the working tree (backend/, infra/, tools/, docs/, etc. are out of scope for this M6 track).",
+    "Activating hooksPath for the owner — already configured in this repo's .git/config."
+  ],
+  "filledThisCommit": {
+    "audit": "/Volumes/code/workspace/agent-cluster/axi-agent/.m1-snapshot/m6-audit/hooks-audit.json",
+    "newHooks": [
+      "/Volumes/code/workspace/agent-cluster/axi-agent/.githooks/pre-push",
+      "/Volumes/code/workspace/agent-cluster/axi-agent/.githooks/post-merge"
+    ]
+  },
+  "recommendationForOwner": "No action required to activate — core.hooksPath = .githooks is already set in /Volumes/code/workspace/agent-cluster/axi-agent/.git/config and applies to every clone. Optional confirmation: run 'git config --get core.hooksPath' inside the repo and expect '.githooks'. After a teammate merge that touched AGENTS.md / workspace.json / docs/HANDOFF.md / CHANGELOG.md / registry files, post-merge will print a one-line reminder to run 'pnpm workspace:docs:sync' at /Volumes/code/workspace/foundation/workspace-governance. Pre-push will block pushes lacking Lore trailers with a stderr message naming the missing trailer names."
+}
