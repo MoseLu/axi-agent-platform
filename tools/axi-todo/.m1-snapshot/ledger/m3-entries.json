@@ -1,7 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
   "milestoneStatus": "implementation-complete",
-  "verificationStatus": "Awaiting owner acceptance",
+  "verificationStatus": "Accepted by owner (2026-10-02): implementation + 133/133 Node + 11/11 Swift + 7 Lore commits (f86d81f / 626dd51 / e93232f / 150fac5 / 4c7770f / da982a2 / d3a3575) verified; pending items moved to M4 scope (PG source column + warnIfDualPopulated PG-probe); M1 18 → actually 10 JSON-only completed recheck remains an owner decision, NOT M4 scope.",
   "milestoneTitle": "M3: 修 M2 ledger outOfScopeButFlagged 的 3 个 latent bug",
   "milestoneAcceptance": [
     "M3.S1: M3 ledger 落地,透明记录 bug #1 误诊历史",
