@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { createStoreFromEnv, TaskStore } from "../lib/store.mjs";
+import { createStoreFromEnv, TaskStore, warnIfDualPopulated } from "../lib/store.mjs";
 import { PostgresTaskStore } from "../lib/postgres-store.mjs";
 
 test("store creates, lists, claims, and completes tasks", async () => {
@@ -41,6 +41,122 @@ test("createStoreFromEnv selects JSON fallback or PostgreSQL fact store", async 
   assert.equal(createStoreFromEnv({ AXI_TODO_HOME: home }) instanceof TaskStore, true);
   assert.equal(createStoreFromEnv({}) instanceof PostgresTaskStore, true);
   assert.equal(createStoreFromEnv({ AXI_TODO_STORE: "auto", DATABASE_URL: "postgres://user:pass@localhost/db" }) instanceof PostgresTaskStore, true);
+});
+
+test("warnIfDualPopulated emits stderr when both stores are populated", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-warn-both-"));
+  const jsonStore = new TaskStore({ home });
+  await jsonStore.addTask({ title: "JSON-only fixture", prompt: "json", cwd: home });
+  // Fake a "PG store" by hand: any TaskStore-shaped object with readState
+  // returning a non-empty tasks list is enough for the warning probe. This
+  // keeps the test dependency-free and avoids spinning up a real Postgres.
+  const fakePg = Object.create(PostgresTaskStore.prototype);
+  fakePg.readState = async () => ({
+    version: 3,
+    tasks: [
+      {
+        id: "pg-fixture-1",
+        title: "PG fixture",
+        prompt: "pg",
+        cwd: home,
+        status: "pending",
+        priority: 0,
+        attempts: 0,
+        maxAttempts: 3,
+        dueAt: new Date().toISOString(),
+        acceptanceChecks: [],
+        auditLevel: "none",
+        riskLevel: "medium",
+        taskKind: "task",
+        dependsOn: [],
+        resourceKeys: [],
+        rejectedApproaches: [],
+        waitState: {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        verification: {},
+        history: [],
+      },
+    ],
+    taskCharters: [],
+    planningRecords: [],
+    taskRuns: [],
+    taskEvents: [],
+    failureAnalyses: [],
+    auditReviews: [],
+    userPreferences: [],
+    completionSummaries: [],
+    memoryCards: [],
+  });
+  const messages = [];
+  const result = await warnIfDualPopulated({
+    store: fakePg,
+    env: { AXI_TODO_HOME: home },
+    log: (...args) => messages.push(args.join(" ")),
+  });
+  assert.equal(result.warned, true);
+  assert.equal(result.chosen, "postgres");
+  assert.equal(result.otherKind, "json");
+  assert.equal(result.otherCount, 1);
+  assert.equal(messages.length, 1);
+  assert.match(messages[0], /detected populated JSON \+ PG stores/);
+  assert.match(messages[0], /using postgres/);
+  assert.match(messages[0], /axi-todo-import-postgres\.mjs/);
+});
+
+test("warnIfDualPopulated stays silent when only JSON is populated", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-warn-json-only-"));
+  const jsonStore = new TaskStore({ home });
+  await jsonStore.addTask({ title: "JSON-only fixture", prompt: "json", cwd: home });
+  // chosen=json, other=PG; fake PG returns empty → no warning expected.
+  const fakePg = Object.create(PostgresTaskStore.prototype);
+  fakePg.readState = async () => ({
+    version: 3,
+    tasks: [],
+    taskCharters: [], planningRecords: [], taskRuns: [], taskEvents: [],
+    failureAnalyses: [], auditReviews: [], userPreferences: [],
+    completionSummaries: [], memoryCards: [],
+  });
+  const messages = [];
+  const result = await warnIfDualPopulated({
+    store: jsonStore,
+    env: { AXI_TODO_HOME: home, DATABASE_URL: "postgres://user:pass@localhost/db" },
+    log: (...args) => messages.push(args.join(" ")),
+    pgStoreFactory: () => fakePg,
+  });
+  assert.equal(result.warned, false);
+  assert.equal(result.chosen, "json");
+  assert.equal(messages.length, 0);
+});
+
+test("warnIfDualPopulated stays silent when only PG is populated", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "axi-todo-warn-pg-only-"));
+  const jsonStore = new TaskStore({ home });
+  // Empty JSON
+  await jsonStore.readState();
+  const fakePg = Object.create(PostgresTaskStore.prototype);
+  fakePg.readState = async () => ({
+    version: 3,
+    tasks: [{
+      id: "pg-only-1", title: "PG", prompt: "pg", cwd: home, status: "pending",
+      priority: 0, attempts: 0, maxAttempts: 3, dueAt: new Date().toISOString(),
+      acceptanceChecks: [], auditLevel: "none", riskLevel: "medium", taskKind: "task",
+      dependsOn: [], resourceKeys: [], rejectedApproaches: [], waitState: {},
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      verification: {}, history: [],
+    }],
+    taskCharters: [], planningRecords: [], taskRuns: [], taskEvents: [],
+    failureAnalyses: [], auditReviews: [], userPreferences: [],
+    completionSummaries: [], memoryCards: [],
+  });
+  const messages = [];
+  const result = await warnIfDualPopulated({
+    store: fakePg,
+    env: { AXI_TODO_HOME: home },
+    log: (...args) => messages.push(args.join(" ")),
+  });
+  assert.equal(result.warned, false);
+  assert.equal(messages.length, 0);
 });
 
 test("store skips desktop placeholder tasks until the prompt is filled", async () => {
