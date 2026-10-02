@@ -1,0 +1,67 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M13: AGENTS.md references new M12 artifacts (LEDGER_TEMPLATE.md + OWNER_DECISIONS.md)",
+  "milestoneAcceptance": [
+    "M13.S1: AGENTS.md gains 'Milestone Ledger Conventions (M-series bookkeeping)' section (~15 lines) with references to docs/LEDGER_TEMPLATE.md + OWNER_DECISIONS.md + Decision Eviction Policy mandate; pre-existing dirty tree untouched (verified via git status)",
+    "M13.S99: full Node suite 183/183 pass (no source code touched, expected parity); swift run AxiTodoStoreSmokeTests pass (no Swift touched, expected parity); M13 ledger closed; 1 commit on dev (AGENTS.md + this ledger)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M13.S1",
+      "id": "TODO-m13-s1-id",
+      "trackTitle": "AGENTS.md update — reference M12 artifacts (LEDGER_TEMPLATE.md + OWNER_DECISIONS.md)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "AGENTS.md line 32+ gains 'Milestone Ledger Conventions' section: (a) authoritative references paragraph pointing at docs/LEDGER_TEMPLATE.md + OWNER_DECISIONS.md; (b) mandatory M{N}.S99 step summary referencing Decision Eviction Policy; (c) pre-existing dirty tree constraint reminder; (d) owner-gated mutations reminder. Net +15 lines, 0 deletions. Existing sections (Scope / Todo System Landscape / Safety / Verification) untouched",
+      "deps": []
+    },
+    {
+      "tag": "M13.S99",
+      "id": "TODO-m13-s99-id",
+      "trackTitle": "M13 ledger close + full-suite verification",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent: node --test (find test -name '*.test.mjs' | xargs) → 183/183 pass (no source code touched, expected parity); swift run AxiTodoStoreSmokeTests → pass (no Swift touched, expected parity); M13 ledger closed; 1 commit on dev (AGENTS.md + this ledger)",
+      "deps": ["M13.S1"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "pending",
+      "scope": "axi-todo",
+      "track": "M13.S1+M13.S99",
+      "subject": "docs(axi-todo): AGENTS.md references new M12 artifacts + close M13 ledger"
+    }
+  ],
+  "subagentTracks": [],
+  "sourceFindings": [
+    "M13 scope decision: M12 created 2 new authoritative artifacts (docs/LEDGER_TEMPLATE.md + OWNER_DECISIONS.md Decision Eviction Policy section) that future contributors need to discover. Without an AGENTS.md reference, the next contributor will not know they exist. This is a discoverability fix, not new functionality",
+    "M-series scope exhaustion check (post-M12): M10 Track C 4 schema-drift candidates all closed by M12 (2 documented + 1 minimum-required-fields + 1 M6 backfill); M8-NEWFINDING-1 closed by M12; 5 currently-open decisions remain owner-pending (3 pending operator-action / 1 cross-repo / 1 PARTIALLY eligible). No additional bookkeeping improvement in agent scope without owner action",
+    "M13 deliberately small (1 documentation edit) to honor 'do not expand scope' constraint while still providing '继续推进' forward motion. Mirrors M9/M10/M11/M12 pattern of small, focused bookkeeping improvements"
+  ],
+  "outOfScopeButFlagged": [
+    "5 currently-open decisions remain pending owner (no change from M12): TODO-m5-apply (operator-action), TODO-m6-track-3-sync-apply (operator-action), TODO-m6-track-2-swift-field-expansion (candidate-superseded-by-deferral, owner confirm needed), OD-M7-1 (cross-repo, handoff to foundation/workspace-governance), OD-M8-3 (candidate-superseded-by-implicit-acceptance, low-risk)",
+    "OD-M{N}-DELEGATE proliferation risk noted in M12 Track B bonus finding; future milestones should NOT add new delegate if prior exists with same linked decisions",
+    "Pre-existing dirty working tree (axi-agent + workspace-governance) preserved per hard constraint — M13 verified no new dirty files introduced",
+    "OD-M12-EVICT-DEFER (m12-entries.json ownerDecisionsRequired) remains active; 2 PARTIALLY-eligible evictions still deferred to owner"
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M13-DELEGATE",
+      "subject": "All 5 remaining open owner decisions documented in tools/axi-todo/OWNER_DECISIONS.md",
+      "detail": "M13 ledger does NOT duplicate the 5 open decisions. OD-M13-DELEGATE continues M10/M11/M12 delegation pattern, pointing owner to tools/axi-todo/OWNER_DECISIONS.md as the single canonical entrypoint. Update that file directly when a decision resolves (or after a future M14+ audit refresh).",
+      "scope": "delegation only — no new decision",
+      "linked_decisions": [
+        "TODO-m5-apply-owner-confirm (≡ OD-M8-2)",
+        "TODO-m6-track-3-sync-apply",
+        "TODO-m6-track-2-swift-field-expansion",
+        "OD-M7-1 (≡ OD-M8-1)",
+        "OD-M8-3"
+      ],
+      "linked_doc": "tools/axi-todo/OWNER_DECISIONS.md"
+    }
+  ],
+  "newFindings": []
+}

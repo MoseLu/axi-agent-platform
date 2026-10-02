@@ -27,3 +27,18 @@ See [docs/TODO-ARCHITECTURE.md](./docs/TODO-ARCHITECTURE.md) for the full landsc
 
 - Run `pnpm verify` after source changes.
 - For daemon or runner changes, include a test that avoids invoking real Codex by using a fake command.
+
+## Milestone Ledger Conventions (M-series bookkeeping)
+
+Per-M-series work is recorded in `.m1-snapshot/ledger/m{N}-entries.json` files (M1-M12+). These ledgers are pure human/agent metadata (verified by M12 Track A: zero automated readers across `lib/`, `bin/`, `test/`, `scripts/`, `Sources/`, `src/`).
+
+**Authoritative references** (added in M12):
+- [`docs/LEDGER_TEMPLATE.md`](./docs/LEDGER_TEMPLATE.md) — formal schema for all 11 top-level ledger keys; minimum-required-fields + intentional form-transition boundaries (loreTrail / newFindings / ownerDecisionsRequired / subTasks deps); M13+ ledgers MUST follow this template
+- [`OWNER_DECISIONS.md`](./OWNER_DECISIONS.md) — canonical owner-decision index; the M12 Track B "Decision Eviction Policy" section defines mandatory S99 eviction-check + 4-value vocabulary (`closed` / `superseded` / `owner-no-action` / `out-of-scope`) + linked-doc invariant (≤1-milestone lag between canonical-doc changes and originating-ledger updates)
+
+**Mandatory M{N}.S99 step** (per Decision Eviction Policy):
+Every milestone close MUST apply exactly one of `refresh` / `evict` / `cross-reference-only` to every entry in the current milestone's `ownerDecisionsRequired[]`. See OWNER_DECISIONS.md §"Decision Eviction Policy" for the full rule.
+
+**Pre-existing dirty tree constraint**: the workspace governance directive "keep pre-existing dirty tree intact" applies to every M-series commit body. Do NOT stage files outside the M{N} scope.
+
+**Owner-gated mutations**: any irreversible status flip, status reclassification, or destructive JSON store mutation MUST be owner-gated via `--apply --confirm-apply` double-flag pattern (see `bin/axi-todo-recheck-completed.mjs` + `bin/axi-todo-sync-pg-to-json.mjs`).
