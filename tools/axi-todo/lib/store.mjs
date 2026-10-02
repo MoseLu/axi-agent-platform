@@ -507,11 +507,19 @@ async completeTask(id, result, { now = nowIso() } = {}) {
   async searchPlanningMemory({ query = "", limit = 20 } = {}) {
     const state = await this.readState();
     const needle = String(query || "");
+    // M6: spread the record FIRST and then assign the collection marker last,
+    // so the per-record `source` / `importedAt` provenance fields (added in M6
+    // for completion_summaries / failure_analyses / memory_cards) cannot
+    // shadow the collection-name marker that `searchCollectionText` keys on.
+    // Previously the marker led with the spread, so a record with
+    // `source: "native"` (or `"import-postgres"`) would overwrite the
+    // collection name and `searchCollectionText` would return false for every
+    // row — silently breaking searchPlanningMemory.
     const records = [
-      ...state.planningRecords.map((item) => ({ source: "planning_records", ...item })),
-      ...state.failureAnalyses.map((item) => ({ source: "failure_analyses", ...item })),
-      ...state.completionSummaries.map((item) => ({ source: "completion_summaries", ...item })),
-      ...state.memoryCards.map((item) => ({ source: "memory_cards", ...item })),
+      ...state.planningRecords.map((item) => ({ ...item, source: "planning_records" })),
+      ...state.failureAnalyses.map((item) => ({ ...item, source: "failure_analyses" })),
+      ...state.completionSummaries.map((item) => ({ ...item, source: "completion_summaries" })),
+      ...state.memoryCards.map((item) => ({ ...item, source: "memory_cards" })),
     ];
     return records.filter((item) => searchCollectionText(item, item.source, needle)).slice(-limit);
   }
@@ -734,6 +742,12 @@ function createCompletionSummaryRecord(task, input = {}, now) {
     auditVerdict: input.auditVerdict,
     nextTimeNotes: input.nextTimeNotes,
     createdAt: input.createdAt || now,
+    // M6 provenance — see createTask in lib/schema.mjs for the matching
+    // shape. JSON-side completion summaries inherit source / importedAt
+    // from the parent task so an imported task keeps its provenance trail
+    // intact across all child records.
+    source: input.source || task.source || "native",
+    importedAt: input.importedAt || task.importedAt || null,
   };
 }
 
@@ -750,6 +764,11 @@ function createFailureAnalysisRecord(task, input = {}, now) {
     retryable: Boolean(input.retryable),
     evidence: input.evidence && typeof input.evidence === "object" ? input.evidence : {},
     createdAt: input.createdAt || now,
+    // M6 provenance — see createCompletionSummaryRecord above. Failure
+    // analyses inherit from the parent task so reconcilers can still tell
+    // "this failure was reported by an imported task" from native rows.
+    source: input.source || task.source || "native",
+    importedAt: input.importedAt || task.importedAt || null,
   };
 }
 
@@ -769,6 +788,12 @@ function normalizeMemoryCards(cards, task, now) {
     syncError: card.syncError,
     createdAt: card.createdAt || now,
     updatedAt: card.updatedAt || now,
+    // M6 provenance — see createCompletionSummaryRecord. Memory cards
+    // inherit from the parent task so an imported task's memory cards
+    // stay traceable to the import run across the pending → synced
+    // re-upsert cycle.
+    source: card.source || task.source || "native",
+    importedAt: card.importedAt || task.importedAt || null,
   }));
 }
 
