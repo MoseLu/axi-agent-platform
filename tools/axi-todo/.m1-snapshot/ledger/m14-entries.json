@@ -1,0 +1,130 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M14: 2-track READ-ONLY multi-subagent audit (Eviction Policy retrospective + LEDGER_TEMPLATE.md consistency) + Track C template doc remediation",
+  "milestoneAcceptance": [
+    "M14.S1: M14 ledger lands first; locks M14 scope to (a) Track A retrospective Decision Eviction Policy (READ-ONLY), (b) Track B LEDGER_TEMPLATE.md consistency (READ-ONLY), (c) Track C template doc remediation (R1+R2+R3 LEDGER_TEMPLATE.md + R4 AGENTS.md, small doc-only fix)",
+    "M14.S2 (Track A — Eviction Policy retrospective, READ-ONLY): 13 ledgers + OWNER_DECISIONS.md + LEDGER_TEMPLATE.md + AGENTS.md audited; 14 misclassification + 9 policy-violation + 5 STALE-OWNER-DECISION orphan findings; verdict = M12 policy functioning correctly; 0 HIGH risk; 9 MEDIUM all mitigated by M12 'leave as-is' policy; 4 OD-DELEGATE pattern healthy (M10/M11/M13 1:1 mirror + OD-M12-EVICT-DEFER 2:5 partial by intent)",
+    "M14.S3 (Track B — LEDGER_TEMPLATE.md consistency, READ-ONLY): 4 cross-references verified bidirectionally; all 13 ledgers comply with required-keys rule; 2 HIGH + 2 MEDIUM + 3 LOW template-doc inconsistencies identified; recommended R1+R2+R3+R4 single-commit remediation; no historical ledger migration needed",
+    "M14.S4 (Track C — template doc remediation, applied per Track B R1-R4): LEDGER_TEMPLATE.md gains 4-line corrections (heading '8 keys' → '13 keys'; trackTitle M6-only → M6+ optional; eviction_status row added to OwnerDecision schema table; Old-M6-only section rewritten as M6+ historical recap); AGENTS.md line 36 '11 keys' → '13 keys'. Net +6/-5 lines, 2 files, 0 source code, 0 test impact",
+    "M14.S99: full Node suite 183/183 pass (zero source code touched, expected parity); swift run AxiTodoStoreSmokeTests pass (zero Swift touched, expected parity); M14 ledger closed; 2 commits on dev (Track C doc fix + this ledger)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M14.S1",
+      "id": "TODO-m14-s1-id",
+      "trackTitle": "M14 ledger lands first — scope lock",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "this ledger file landed first; M14 scope locked to 2-track READ-ONLY multi-subagent audit + Track C template doc remediation; all 5 subTasks declared",
+      "deps": []
+    },
+    {
+      "tag": "M14.S2",
+      "id": "TODO-m14-s2-id",
+      "trackTitle": "Track A: Decision Eviction Policy retrospective on M1-M13 (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M14 Track A subagent reported (full report /tmp/m14-track-a-findings.md, ~2300 words): Q1 14 misclassification flagged (5 closedDecisions + 5 newFindings + 3 M7 newFindings + 1 OD-M12-EVICT-DEFER meta-deferral); Q2 5 STALE-OWNER-DECISION orphans (M5/M6/M7 entries, all mitigated by DELEGATE chain); Q3 9 pre-M12 schema violations (all 'leave as-is' per M12 Track A); Q4 4 OD-DELEGATE entries healthy (1:1 mirror maintained; M12 EVICT-DEFER 2:5 by intent; no >1-milestone lag); 0 HIGH risk; net verdict = M12 Decision Eviction Policy functioning correctly",
+      "deps": ["M14.S1"]
+    },
+    {
+      "tag": "M14.S3",
+      "id": "TODO-m14-s3-id",
+      "trackTitle": "Track B: LEDGER_TEMPLATE.md consistency audit on M1-M13 (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "M14 Track B subagent reported (full report /tmp/m14-track-b-findings.md, ~2900 words): Q1 template internal consistency = FAIL (2 HIGH: C1 '8 keys' heading vs 13 listed; C2 trackTitle 'M6-only' rule violated 29× across M7-M13) + 1 cosmetic; Q2 per-ledger compliance = PASS (all 13 ledgers carry required keys); Q4 discoverability = PASS (4 cross-references resolve bidirectionally); R1+R2+R3+R4 single-commit remediation recommended",
+      "deps": ["M14.S1"]
+    },
+    {
+      "tag": "M14.S4",
+      "id": "TODO-m14-s4-id",
+      "trackTitle": "Track C: template doc remediation — R1+R2+R3 LEDGER_TEMPLATE.md + R4 AGENTS.md",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent applied 4 bounded doc edits per Track B R1+R2+R3+R4: (R1) LEDGER_TEMPLATE.md:9 heading '8 keys' → '13 keys'; (R2) LEDGER_TEMPLATE.md:37 SubTask schema 'M6 only' → 'M6+, used per parallel-track subTask' + section M6-M6-only→M6+ historical recap with 29-occurrence ledger evidence; (R3) LEDGER_TEMPLATE.md:70 new OwnerDecision schema table row for `eviction_status` (links to OWNER_DECISIONS.md §Decision Eviction Policy Component 2); (R4) AGENTS.md:36 '11 keys' → '13 keys'. Net +6/-5 lines, 2 files, 0 source code, 0 test impact. R5-R7 bonus recommendations deferred to outOfScopeButFlagged per M-series M13 'do not expand scope' constraint",
+      "deps": ["M14.S1"]
+    },
+    {
+      "tag": "M14.S99",
+      "id": "TODO-m14-s99-id",
+      "trackTitle": "M14 ledger close + full-suite verification",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "main agent: node --test (find test -name '*.test.mjs' -print0 | xargs -0 node --test) → 183/183 pass (no source code touched, expected parity); swift run AxiTodoStoreSmokeTests → pass (no Swift touched, expected parity); M14 ledger closed; 2 commits on dev (Track C doc fix + this ledger)",
+      "deps": ["M14.S2", "M14.S3", "M14.S4"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "1244345d",
+      "scope": "axi-todo",
+      "track": "M14.S4",
+      "subject": "docs(axi-todo): M14 Track C template doc remediation — R1+R2+R3 LEDGER_TEMPLATE.md + R4 AGENTS.md"
+    },
+    {
+      "sha": "pending",
+      "scope": "axi-todo",
+      "track": "M14.S99",
+      "subject": "chore(axi-todo): close M14 ledger — 2-track audit + Track C doc remediation complete"
+    }
+  ],
+  "subagentTracks": [
+    {
+      "id": "m14-track-a-eviction-retrospective",
+      "title": "Decision Eviction Policy retrospective audit (M1-M13, READ-ONLY)",
+      "scope": "13 milestone ledgers + OWNER_DECISIONS.md + LEDGER_TEMPLATE.md + AGENTS.md; no modifications",
+      "filesTouched": [],
+      "branch": "dev",
+      "outcome": "M12 policy functioning; 0 HIGH; 9 pre-M12 schema issues 'leave as-is'; 5 STALE-OWNER-DECISION orphans mitigated; 4 OD-DELEGATE entries healthy; no >1-milestone lag violations"
+    },
+    {
+      "id": "m14-track-b-template-consistency",
+      "title": "LEDGER_TEMPLATE.md consistency audit (M1-M13, READ-ONLY)",
+      "scope": "docs/LEDGER_TEMPLATE.md + 13 ledger JSONs + OWNER_DECISIONS.md + AGENTS.md; no modifications",
+      "filesTouched": [],
+      "branch": "dev",
+      "outcome": "2 HIGH + 2 MEDIUM + 3 LOW template-doc inconsistencies identified; all 13 ledgers comply with required-keys; cross-references resolve bidirectionally; recommended R1+R2+R3+R4 single-commit remediation"
+    }
+  ],
+  "sourceFindings": [
+    "M14 Track A: 13 ledgers + 3 docs audited. M12 Decision Eviction Policy functioning correctly: 4-value vocabulary applied retroactively to all entries; DELEGATE chain prevents orphan recurrence; 9 pre-M12 closedDecisions/newFindings schema violations remain historical artifacts (per M12 Track A 'leave as-is' policy). Forward risk = LOW; M15+ must use M12 vocabulary for any new `closed` entry",
+    "M14 Track A: OD-M12-EVICT-DEFER (m12-entries.json ownerDecid[Required]) is meta-deferral not delegation; no vocabulary fit (linked_decisions[] subset-by-intent 2:5); recommend M15+ either describe as `owner-no-action` candidate OR keep in outOfScopeButFlagged (already there in m13-entries.json:48)",
+    "M14 Track B: LEDGER_TEMPLATE.md:9 heading '8 keys' contradicts the 13 keys listed at :11-25. Template-doc internal inconsistency. Fixed in M14.S4 (R1). AGENTS.md:36 echoed same wrong number — also fixed (R4)",
+    "M14 Track B: LEDGER_TEMPLATE.md:37,98-100 'M6-only / Do NOT add to M7+' trackTitle rule was systematically violated by every parallel-track milestone from M7 onward (29 subTasks across M7-M13). Template-doc-vs-practice contradiction. Fixed in M14.S4 (R2) — template now says 'M6+, optional, used per parallel-track subTask' with 29-occurrence evidence",
+    "M14 Track B: LEDGER_TEMPLATE.md narrative (line 73) mentioned `eviction_status` field but OwnerDecision 12-field schema table (line 58-69) omitted it. Discoverability gap. Fixed in M14.S4 (R3) — added schema table row",
+    "M14 Track A + Track B both concluded: M12 Decision Eviction Policy + LEDGER_TEMPLATE.md are operating as the canonical artifacts; M14 Track C doc-only remediation tightens the doc without touching historical ledgers (per M12 Track A 'Pre-M12 ledgers — leave as-is' policy)"
+  ],
+  "outOfScopeButFlagged": [
+    "R5 (Track B LOW recommendation): `trackTitle` schema field could be relabeled as 'M6-M13+ optional' instead of current 'M6+' (current text is sufficient — R5 deferred as cosmetic)",
+    "R6 (Track B LOW recommendation): `completedAt` schema ambiguity for M1 subTasks (M1 omits, M2+ includes). Template-side doc polish only — no retroactive M1 edits per 'leave as-is'",
+    "R7 (Track B MEDIUM, Out of template scope): OWNER_DECISIONS.md:72-91 — section 3 (TODO-m6-track-2-swift-field-expansion) carries a duplicated Field/Value table (lines 76-83 eviction_status block + lines 85-91 older orphan-status block) with conflicting 'Orphan risk' / 'Latest touched' fields. This is an OWNER_DECISIONS.md doc bug, NOT a LEDGER_TEMPLATE.md issue. Deferred to owner or future bookkeeping cleanup",
+    "B1 (Track B bonus): M3/M4 verificationStatus wording 'Accepted by owner (2026-10-02)' differs from M5-M13 'Locally verified; awaiting owner acceptance' pattern. Already acknowledged in OWNER_DECISIONS.md:133. No fix",
+    "B2 (Track B bonus): M13 loreTrail sha='pending' is the only non-real-SHA entry in M7+ form. Object form is preserved (still an object). Cosmetic only",
+    "B3 (Track B bonus): M1 carries 3 schema-undocumented keys (scopeNotChanged, remainingGaps, verificationCommands at m1-entries.json:93-109). Grandfathered by 'Pre-M12 ledgers — leave as-is' template rule",
+    "Track A bonus: OD-M12-EVICT-DEFER linked_doc fragment URL (#decision-eviction-policy) differs from full DELEGATE pattern; correct as-is. Track A: 9 pre-M12 closedDecisions/ownerDecid-resolved/newFindings-resolved entries lack `commit_sha`/`resolved_by_milestone`/`resolution_summary` fields — leave as-is per M12 Track A",
+    "5 currently-open decisions remain pending owner (no change from M13): TODO-m5-apply (operator-action), TODO-m6-track-3-sync-apply (operator-action), TODO-m6-track-2-swift-field-expansion (candidate-superseded-by-deferral, owner confirm needed), OD-M7-1 (cross-repo, handoff to foundation/workspace-governance), OD-M8-3 (candidate-superseded-by-implicit-acceptance, low-risk)",
+    "OD-M{N}-DELEGATE proliferation risk noted by M12 Track B; M13+M14 correctly re-asserted existing DELEGATE rather than creating new ones (anti-pattern avoided)",
+    "OD-M12-EVICT-DEFER (m12-entries.json ownerDecisionsRequired) remains active; 2 PARTIALLY-eligible evictions still deferred to owner",
+    "Pre-existing dirty working tree (axi-agent + workspace-governance, 11 M-tracked + 87 untracked) preserved per hard constraint — M14 verified no new dirty files introduced (Track C doc edits only touched 2 doc files; 0 source code)"
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M14-DELEGATE",
+      "subject": "All 5 remaining open owner decisions documented in tools/axi-todo/OWNER_DECISIONS.md",
+      "detail": "M14 ledger does NOT duplicate the 5 open decisions. OD-M14-DELEGATE continues M10/M11/M12/M13 delegation pattern, pointing owner to tools/axi-todo/OWNER_DECISIONS.md as the single canonical entrypoint. Update that file directly when a decision resolves (or after a future M15+ audit refresh).",
+      "scope": "delegation only — no new decision",
+      "linked_decisions": [
+        "TODO-m5-apply-owner-confirm (≡ OD-M8-2)",
+        "TODO-m6-track-3-sync-apply",
+        "TODO-m6-track-2-swift-field-expansion",
+        "OD-M7-1 (≡ OD-M8-1)",
+        "OD-M8-3"
+      ],
+      "linked_doc": "tools/axi-todo/OWNER_DECISIONS.md"
+    }
+  ],
+  "newFindings": []
+}
