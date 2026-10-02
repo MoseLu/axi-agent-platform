@@ -177,7 +177,13 @@
       "id": "M8-NEWFINDING-1",
       "subject": "TODO-m5-apply-owner-confirm orphaned across M6/M7",
       "detail": "M5 produced the recheck-completed tool + an owner-gated --apply --confirm-apply decision (TODO-m5-apply-owner-confirm), but the decision never entered M6 or M7 ledgers — surfaced via M8 Track D cross-milestone owner-decision matrix. Resurface in M5 ledger ownerDecisionsRequired so future milestones do not lose the thread.",
-      "discovered_by": "M8 Track D summary audit"
+      "discovered_by": "M8 Track D summary audit",
+      "resolution": {
+        "resolved": true,
+        "resolved_at": "2026-10-02",
+        "resolved_by": "M12.S7 — Decision Eviction Policy (tools/axi-todo/OWNER_DECISIONS.md#decision-eviction-policy-m12-track-b) + 5-entry eviction_status backfill on the 5 currently-open decisions. Future S99 subTasks MUST apply eviction-check on every prior-N or prior-N+1 owner-decision entry, preventing the orphan-risk pattern from recurring.",
+        "rationale": "M12 Track B audit confirmed the orphan-risk pattern is a class of defects that recurs every milestone (5 ad-hoc closures since M8). The Decision Eviction Policy makes the refresh/evict/cross-reference-only action MANDATORY at every S99 close, and the linked-doc invariant ensures no >1-milestone lag between canonical-doc changes and originating-ledger updates. Framework implemented in M12; 2 PARTIALLY-eligible evictions (TODO-m6-track-2-swift-field-expansion as superseded-by-deferral; OD-M8-3 as superseded-by-implicit-acceptance) deferred to owner per OD-M12-EVICT-DEFER."
+      }
     },
     {
       "id": "M8-NEWFINDING-2",
