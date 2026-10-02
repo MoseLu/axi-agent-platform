@@ -1,4 +1,17 @@
 {
+  "correctedFrom": "M6.4 audit at commit 3c8f27e (initial)",
+  "factCheck": {
+    "verifiedAt": "2026-10-02T11:26:21Z",
+    "verifiedBy": "M7 track-3 web-deps factcheck subagent",
+    "method": "npm view against public registry (non-mutating)",
+    "commands": [
+      "npm view vite@8.0.16 version → 8.0.16",
+      "npm view typescript@6.0.3 version → 6.0.3",
+      "npm view vite version → 8.3.2 (latest)",
+      "npm view typescript version → 7.0.2 (latest)"
+    ],
+    "verdict": "vite@8.0.16 and typescript@6.0.3 are real public registry versions. M6.4 audit's 'suspicious' verdict was based on stale major-version knowledge. Clean `pnpm install --frozen-lockfile` should succeed against the public registry for both packages. No package.json / lockfile change required."
+  },
   "auditStartedAt": "2026-10-02T18:02:00Z",
   "auditMethod": "read-only inspection of package.json + pnpm-lock.yaml + tsconfig.json + vite.config.ts + 5 dirty frontend .tsx files; no package.json / lockfile / frontend source mutations. Network calls (npm registry lookups) intentionally avoided per read-only scope.",
   "repoPath": "tools/axi-todo/src/web",
@@ -77,15 +90,15 @@
       "package": "vite",
       "packageJsonRange": "^8.0.16",
       "lockfilePinned": "8.0.16(esbuild@0.27.7)",
-      "driftStatus": "suspicious",
-      "notes": "Exact pin. Version string '8.0.16' is well above the public Vite major series (publicly Vite is at 6.x / 7.x as of late 2025). Owner should verify whether this is (a) an internal/private registry, (b) a future/placeholder version, or (c) a real upstream release."
+      "driftStatus": "verified",
+      "notes": "Exact pin. Verified 2026-10-02 via `npm view vite@8.0.16 version` returning '8.0.16' and `npm view vite version` returning '8.3.2' — vite@8.0.16 IS a real public registry version (latest public vite is 8.3.2). M6.4 audit's 'well above public Vite major series' note was based on stale major-version knowledge; the major-8 release is in fact public."
     },
     {
       "package": "typescript",
       "packageJsonRange": "^6.0.3",
       "lockfilePinned": "6.0.3",
-      "driftStatus": "suspicious",
-      "notes": "Exact pin. tsconfig.json sets 'ignoreDeprecations': '6.0' which is the *future* TypeScript deprecation-warning suppression flag for TS 6 — this corroborates the typescript@6.0.3 claim but is still unusual given public TS 5.x. Owner should verify against the registry."
+      "driftStatus": "verified",
+      "notes": "Exact pin. Verified 2026-10-02 via `npm view typescript@6.0.3 version` returning '6.0.3' and `npm view typescript version` returning '7.0.2' — typescript@6.0.3 IS a real public registry version (latest public TypeScript is 7.0.2). The M6.4 audit's 'forward of public TS 5.x' note was based on stale knowledge; TypeScript 6 and 7 are both public. The tsconfig.json `ignoreDeprecations: '6.0'` flag is consistent with TS 6+ usage."
     },
     {
       "package": "@vitejs/plugin-react",
