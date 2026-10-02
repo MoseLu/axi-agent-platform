@@ -485,3 +485,72 @@ test("audit reviews and user preferences are append-only planning memory", async
   assert.equal(state.userPreferences.length, 2);
   assert.equal(state.userPreferences[0].preference.includes("verification"), true);
 });
+
+test("PG recordAuditReview rolls back when audit insert fails (single transaction)", async () => {
+  const pg = Object.create(PostgresTaskStore.prototype);
+  const auditInsertCalls = [];
+  const statusUpdateCalls = [];
+  pg.pool = { query: async () => ({ rows: [] }) };
+  pg.withClient = async (fn) => {
+    const client = {
+      async query(sql, params) {
+        if (/insert into audit_reviews/i.test(sql)) {
+          auditInsertCalls.push({ sql, params });
+          throw new Error("simulated audit insert failure");
+        }
+        if (/insert into task_events/i.test(sql)) {
+          statusUpdateCalls.push({ sql, params });
+        }
+        return { rows: [] };
+      },
+    };
+    return fn(client);
+  };
+  pg.getTaskForUpdate = async () => {
+    throw new Error("getTaskForUpdate must not run when audit insert fails");
+  };
+  pg.upsertTask = async () => {
+    throw new Error("upsertTask must not run when audit insert fails");
+  };
+
+  await assert.rejects(
+    () => pg.recordAuditReview({ taskId: "t-1", verdict: "needs-revision", reason: "missing evidence" }),
+    /simulated audit insert failure/
+  );
+  assert.equal(auditInsertCalls.length, 1);
+  assert.equal(statusUpdateCalls.length, 0, "status flip must not run after audit insert fails");
+});
+
+test("PG recordAuditReview flips task status to awaiting_audit on non-pass verdict", async () => {
+  const pg = Object.create(PostgresTaskStore.prototype);
+  let captured = null;
+  pg.pool = { query: async () => ({ rows: [] }) };
+  pg.getTaskForUpdate = async () => ({
+    id: "t-2", status: "completed", updatedAt: "old",
+  });
+  pg.upsertTask = async (task, client) => {
+    captured = { task, usedClient: Boolean(client) };
+  };
+  pg.withClient = async (fn) => fn({ query: async () => ({ rows: [] }) });
+
+  await pg.recordAuditReview({ taskId: "t-2", verdict: "needs-revision", reason: "evidence gap" });
+  assert.equal(captured.task.status, "awaiting_audit");
+  assert.equal(captured.usedClient, true);
+});
+
+test("PG recordCompletionSummary inserts a fresh UUID id, not taskId", async () => {
+  const pg = Object.create(PostgresTaskStore.prototype);
+  let inserted = null;
+  pg.insertCompletionSummary = async (_task, record) => {
+    inserted = record;
+    return record;
+  };
+  const out = await pg.recordCompletionSummary({
+    taskId: "task-abc",
+    summary: "shipped M3 latent bug fixes",
+  });
+  assert.notEqual(out.id, "task-abc", "PK must not be the taskId");
+  assert.match(out.id, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+  assert.equal(inserted.id, out.id);
+  assert.equal(inserted.taskId, "task-abc");
+});
