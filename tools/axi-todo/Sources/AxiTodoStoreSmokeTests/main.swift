@@ -9,7 +9,97 @@ private func runStoreSmokeTests() throws {
     try personalTasksStayOutOfTheAgentExecutionShape()
     try storeDeletesTasksAndRejectsRunningDeletion()
     try statusUpdateCanRequeueFailedTask()
+    try gateAllowsAgentCompletedWhenContractAndSignoffLineUp()
+    try gateHoldsAgentCompletedWhenEvidenceIsMissing()
+    try gateHoldsAgentCompletedWhenVerificationFailed()
+    try gateHoldsAgentCompletedWhenVerificationMissingEntirely()
+    try saveTaskDemotesUnverifiedAgentCompletedToAwaitingAudit()
+    try updateStatusDemotesUnverifiedAgentCompletedToAwaitingAudit()
+    try personalCompletionStillPassesThroughGate()
     print("AxiTodoStoreSmokeTests passed")
+}
+
+private func gateAllowsAgentCompletedWhenContractAndSignoffLineUp() throws {
+    let homeURL = temporaryDirectory()
+    let store = AxiTodoStore(homeURL: homeURL)
+    let task = try store.addTask(title: "Allow", prompt: "Do work", cwd: homeURL.path, verifyCommand: "true")
+    var edited = task
+    edited.evidenceContract = "Need claim"
+    edited.auditLevel = "strict"
+    edited.evidenceMissing = false
+    let decision = evaluateAxiTodoCompletion(task: edited, resultVerification: AxiTodoVerification(status: "passed"))
+    try expect(decision == .completed, "agent task with evidence + verification should be allowed to complete")
+}
+
+private func gateHoldsAgentCompletedWhenEvidenceIsMissing() throws {
+    let homeURL = temporaryDirectory()
+    let store = AxiTodoStore(homeURL: homeURL)
+    let task = try store.addTask(title: "Evidence missing", prompt: "Do work", cwd: homeURL.path, verifyCommand: "true")
+    var edited = task
+    edited.evidenceContract = "Need claim"
+    edited.auditLevel = "strict"
+    edited.evidenceMissing = true
+    let decision = evaluateAxiTodoCompletion(task: edited, resultVerification: AxiTodoVerification(status: "passed"))
+    try expect(decision.isAwaitingAudit, "evidence missing should hold agent completion")
+    try expect(decision.reason == AxiTodoGateReason.evidenceSectionMissing.rawValue,
+               "evidence-missing reason should be evidence_section_missing")
+}
+
+private func gateHoldsAgentCompletedWhenVerificationFailed() throws {
+    let homeURL = temporaryDirectory()
+    let store = AxiTodoStore(homeURL: homeURL)
+    let task = try store.addTask(title: "Verify failed", prompt: "Do work", cwd: homeURL.path, verifyCommand: "true")
+    let decision = evaluateAxiTodoCompletion(task: task, resultVerification: AxiTodoVerification(status: "failed"))
+    try expect(decision.isAwaitingAudit, "verification failed should hold agent completion")
+    try expect(decision.reason == AxiTodoGateReason.verificationFailed.rawValue,
+               "verification-failed reason should be verification_failed")
+}
+
+private func gateHoldsAgentCompletedWhenVerificationMissingEntirely() throws {
+    let homeURL = temporaryDirectory()
+    let store = AxiTodoStore(homeURL: homeURL)
+    let task = try store.addTask(title: "Verify missing", prompt: "Do work", cwd: homeURL.path, verifyCommand: "true")
+    let decision = evaluateAxiTodoCompletion(task: task, resultVerification: nil)
+    try expect(decision.isAwaitingAudit, "verification missing should hold agent completion")
+    try expect(decision.reason == AxiTodoGateReason.verificationMissing.rawValue,
+               "verification-missing reason should be verification_missing")
+}
+
+private func saveTaskDemotesUnverifiedAgentCompletedToAwaitingAudit() throws {
+    let homeURL = temporaryDirectory()
+    let store = AxiTodoStore(homeURL: homeURL)
+    let task = try store.addTask(title: "Direct completed attempt", prompt: "Do work", cwd: homeURL.path, verifyCommand: "true")
+    var edited = task
+    edited.evidenceContract = "Need claim"
+    edited.auditLevel = "strict"
+    edited.evidenceMissing = true
+    edited.status = .completed
+    let saved = try store.saveTask(edited, note: "Internal bypass attempt")
+    try expect(saved.status == .awaitingAudit,
+               "Swift mirror gate should demote agent saveTask attempted .completed to .awaitingAudit")
+}
+
+private func updateStatusDemotesUnverifiedAgentCompletedToAwaitingAudit() throws {
+    let homeURL = temporaryDirectory()
+    let store = AxiTodoStore(homeURL: homeURL)
+    let task = try store.addTask(title: "Status patch attempt", prompt: "Do work", cwd: homeURL.path, verifyCommand: "true")
+    var seeded = task
+    seeded.evidenceContract = "Need claim"
+    seeded.auditLevel = "strict"
+    seeded.evidenceMissing = true
+    _ = try store.saveTask(seeded, note: "Seed gate fields")
+    let demoted = try store.updateStatus(taskID: task.id, status: .completed)
+    try expect(demoted.status == .awaitingAudit,
+               "updateStatus(.completed) for unverified agent task should demote to .awaitingAudit")
+}
+
+private func personalCompletionStillPassesThroughGate() throws {
+    let homeURL = temporaryDirectory()
+    let store = AxiTodoStore(homeURL: homeURL)
+    let task = try store.addTask(title: "Walk dog", prompt: "Quick walk", taskDomain: .personal, cwd: homeURL.path)
+    let completed = try store.updateStatus(taskID: task.id, status: .completed)
+    try expect(completed.status == .completed,
+               "personal completion must stay independent of agent gate")
 }
 
 private func personalTasksStayOutOfTheAgentExecutionShape() throws {

@@ -134,7 +134,11 @@ test("1.5: pending -> running -> awaiting_audit -> completed (evidence contract)
   assert.equal(held.status, "awaiting_audit");
   assert.ok(held.evidenceMissing);
 
-  // Audit passes -> markVerificationResult moves to completed
+  // M1: markVerificationResult still has to clear evidenceMissing before the
+  // gate can promote to completed. A re-verification alone is not enough; the
+  // operator (or a follow-up agent) must either patch evidenceMissing=false
+  // via updateTask or escalate the verdict via recordAuditReview.
+  await store.updateTask(task.id, { evidenceMissing: false });
   const verified = await store.markVerificationResult(task.id, {
     status: "passed",
     checkedAt: new Date().toISOString(),
@@ -418,7 +422,9 @@ test("2.16: evidence contract with strict audit and missing evidence -> awaiting
     auditLevel: "strict",
   });
   assert.equal(held.status, "awaiting_audit");
-  assert.equal(held.error, "Evidence section missing in runner output");
+  // M1 unified gate surfaces a descriptive summary line; the literal string
+  // "Evidence section missing in runner output" was the legacy soft warning.
+  assert.match(held.error, /完工验收门/);
 });
 
 test("2.17: evidence contract with none audit level -> completed regardless of evidence", async () => {

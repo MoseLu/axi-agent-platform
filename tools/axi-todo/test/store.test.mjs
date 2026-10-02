@@ -29,6 +29,7 @@ test("store creates, lists, claims, and completes tasks", async () => {
     summary: "done",
     runId: "run-1",
     outputPath: "/tmp/out",
+    verification: { status: "passed", exitCode: 0 },
   });
   assert.equal(completed.status, "completed");
   assert.equal(completed.summary, "done");

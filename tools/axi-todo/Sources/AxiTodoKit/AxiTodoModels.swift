@@ -46,6 +46,11 @@ public enum AxiTaskStatus: String, Codable, CaseIterable, Identifiable {
     case failed
     case blocked
     case cancelled
+    // M1.S5: mirror of the Node `awaiting_audit` terminal that the Swift
+    // desktop has historically skipped by writing status directly. The
+    // desktop gates completion through evaluateAxiTodoCompletion (in
+    // AxiTodoGate.swift) and demotes unverified agent tasks to this state.
+    case awaitingAudit = "awaiting_audit"
 
     public var id: String { rawValue }
 
@@ -57,6 +62,7 @@ public enum AxiTaskStatus: String, Codable, CaseIterable, Identifiable {
         case .failed: "失败"
         case .blocked: "阻塞"
         case .cancelled: "已取消"
+        case .awaitingAudit: "待验收"
         }
     }
 }
@@ -107,6 +113,15 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
     public var verifyLoggedAt: String?
     public var history: [AxiTodoHistoryEntry]
 
+    // M1.S5: Swift mirror of the Node completion-gate fields. These are
+    // optional on read so older store files don't crash the desktop; on
+    // encode they round-trip alongside the Node daemon's view of the same
+    // file (`~/.axi-todo/tasks.json`).
+    public var evidenceContract: String?
+    public var auditLevel: String?
+    public var evidenceMissing: Bool?
+    public var evidenceContractSeen: String?
+
     public init(
         id: String = UUID().uuidString.lowercased(),
         title: String,
@@ -135,7 +150,11 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         lastOutputPath: String? = nil,
         verification: AxiTodoVerification = AxiTodoVerification(),
         verifyLoggedAt: String? = nil,
-        history: [AxiTodoHistoryEntry] = []
+        history: [AxiTodoHistoryEntry] = [],
+        evidenceContract: String? = nil,
+        auditLevel: String? = nil,
+        evidenceMissing: Bool? = nil,
+        evidenceContractSeen: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -165,6 +184,10 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         self.verification = verification
         self.verifyLoggedAt = verifyLoggedAt
         self.history = Array(history.suffix(100))
+        self.evidenceContract = evidenceContract
+        self.auditLevel = auditLevel
+        self.evidenceMissing = evidenceMissing
+        self.evidenceContractSeen = evidenceContractSeen
     }
 
     public init(from decoder: Decoder) throws {
@@ -219,6 +242,15 @@ public struct AxiTodoTask: Codable, Equatable, Identifiable {
         verification = try container.decodeIfPresent(AxiTodoVerification.self, forKey: .verification) ?? AxiTodoVerification()
         verifyLoggedAt = try container.decodeOptionalTrimmedString(forKey: .verifyLoggedAt)
         history = Array((try container.decodeIfPresent([AxiTodoHistoryEntry].self, forKey: .history) ?? []).suffix(100))
+        // M1.S5: Swift reads these fields if the Node daemon wrote them;
+        // older store files without them decode as nil so the gate falls
+        // back to the soft `nil` defaults (auditLevel="none", contract="").
+        evidenceContract = try container.decodeOptionalTrimmedString(forKey: .evidenceContract)
+        auditLevel = try container.decodeOptionalTrimmedString(forKey: .auditLevel)
+        if container.contains(.evidenceMissing) {
+            evidenceMissing = try container.decode(Bool.self, forKey: .evidenceMissing)
+        }
+        evidenceContractSeen = try container.decodeOptionalTrimmedString(forKey: .evidenceContractSeen)
     }
 
     public static func create(
@@ -281,6 +313,7 @@ extension AxiTodoExecutionStatus {
         case .failed: return .failed
         case .blocked: return .blocked
         case .cancelled: return .idle
+        case .awaitingAudit: return .blocked
         }
     }
 }

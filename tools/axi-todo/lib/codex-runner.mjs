@@ -82,6 +82,10 @@ export async function executeTaskWithCodex(task, options = {}) {
       claimFiles,
       evidenceMissing: evidence.missing,
       warnings,
+      // M1.S4: mirror the contract onto the failure-path result so the gate
+      // still has the contract even when the runner exited non-zero.
+      evidenceContract: task.evidenceContract || "",
+      auditLevel: task.auditLevel || "none",
       error: summarizeProcessOutput(result) || `codex exited with ${result.exitCode}`,
     };
   }
@@ -99,6 +103,11 @@ export async function executeTaskWithCodex(task, options = {}) {
     delete verification.droppedBytes;
   }
   const verificationFailed = verification && verification.status !== "passed";
+  // M1.S4: propagate the task's evidence contract and audit level onto the
+  // runner result so evaluateCompletion can read them even when the store
+  // doesn't have a fresh task snapshot in scope. This closes the silent
+  // bypass where a JSON store saw result.evidenceContract === undefined and
+  // therefore treated the contract as "none".
   return {
     success: !verificationFailed,
     runId,
@@ -110,6 +119,8 @@ export async function executeTaskWithCodex(task, options = {}) {
     evidenceMissing: evidence.missing,
     warnings,
     verification,
+    evidenceContract: task.evidenceContract || "",
+    auditLevel: task.auditLevel || "none",
     error: verificationFailed ? "verification failed" : undefined,
   };
 }

@@ -14,10 +14,14 @@ import {
   synchronizeTaskState,
   taskSort,
 } from "./schema.mjs";
+import { evaluateCompletion, describeGateDecision } from "./completion-gate.mjs";
 import crypto from "node:crypto";
 
 const { Pool } = pg;
 export const DEFAULT_POSTGRES_DATABASE_URL = "postgresql:///axi_todo";
+
+const COMPLETION_STATUS = "completed";
+const AWAITING_AUDIT_STATUS = "awaiting_audit";
 
 export class PostgresTaskStore {
   constructor({ databaseUrl = process.env.DATABASE_URL || process.env.AXI_TODO_DATABASE_URL || DEFAULT_POSTGRES_DATABASE_URL, pool } = {}) {
@@ -108,6 +112,25 @@ export class PostgresTaskStore {
     return this.withClient(async (client) => {
       const task = await this.getTaskForUpdate(client, id);
       const patch = normalizePatch(patchInput);
+      // M1.S3: a direct `status: "completed"` patch on an agent task must
+      // pass through evaluateCompletion or be demoted to awaiting_audit.
+      if (patch.status === COMPLETION_STATUS && task.taskDomain !== "personal") {
+        const gate = evaluateCompletion(task, { verification: task.verification });
+        if (gate.status === AWAITING_AUDIT_STATUS) {
+          patch.status = AWAITING_AUDIT_STATUS;
+          task.evidenceMissing = true;
+          task.evidenceContractSeen = task.evidenceContract || task.evidenceContractSeen;
+          task.error = describeGateDecision(gate, { task, result: {} }) || task.error;
+          appendHistory(
+            task,
+            "audit_waiting",
+            `Direct completion blocked by gate: ${gate.reason}`,
+            { reason: gate.reason, source: "updateTask" },
+            now,
+            "system",
+          );
+        }
+      }
       Object.assign(task, patch);
       synchronizeTaskState(task, { patch, now });
       task.updatedAt = now;
@@ -186,18 +209,70 @@ export class PostgresTaskStore {
   async completeTask(id, result, { now = nowIso() } = {}) {
     return this.withClient(async (client) => {
       const task = await this.getTaskForUpdate(client, id);
-      task.status = "completed";
-      task.summary = result.summary || task.summary;
-      task.error = undefined;
-      task.completedAt = now;
+      // M1.S3: PG previously flipped status to "completed" unconditionally,
+      // which is the F02 root cause for any backend using PostgresTaskStore.
+      // Now we route through the same evaluateCompletion the JSON store uses,
+      // so both backends share an identical transition gate. Personal tasks
+      // continue to bypass the gate (taskDomain === "personal" → completed).
+      const gate = evaluateCompletion(task, result);
+      const needsAudit = gate.status === AWAITING_AUDIT_STATUS;
+      task.status = gate.status;
+      const evidenceContract = typeof result?.evidenceContract === "string" ? result.evidenceContract : task.evidenceContract;
+      if (needsAudit) {
+        task.evidenceMissing = true;
+        task.evidenceContractSeen = evidenceContract || task.evidenceContractSeen;
+        task.summary = [result.summary, task.summary, describeGateDecision(gate, { task, result })].filter(Boolean).join("\n\n");
+        task.error = "任务已完成,但未通过完工验收门";
+        task.completedAt = undefined;
+      } else {
+        task.evidenceMissing = false;
+        task.evidenceContractSeen = evidenceContract || task.evidenceContractSeen;
+        task.summary = result.summary || task.summary;
+        task.error = undefined;
+        task.completedAt = now;
+      }
       task.updatedAt = now;
       task.lastRunId = result.runId || task.lastRunId;
       task.lastOutputPath = result.outputPath || task.lastOutputPath;
       if (result.verification) task.verification = result.verification;
-      appendHistory(task, "completed", "Task completed", compactRunResult(result), now);
+      appendHistory(
+        task,
+        needsAudit ? "audit_waiting" : "completed",
+        needsAudit ? `任务已完成,但未通过完工验收门: ${gate.reason}` : "Task completed",
+        { ...compactRunResult(result), gateReason: gate.reason, gateStatus: gate.status },
+        now,
+      );
       await this.upsertTask(task, client);
-      if (result.completionSummary) await this.insertCompletionSummary(task, result.completionSummary, client, now);
-      for (const card of normalizeMemoryCards(result.memoryCards, task, now)) await this.insertMemoryCard(card, client);
+      if (needsAudit) {
+        await client.query(
+          "insert into audit_reviews (id, task_id, run_id, audit_level, verdict, reason, evidence_gaps, release_conditions, evidence_refs, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+          [
+            crypto.randomUUID(),
+            id,
+            result.runId || null,
+            result.auditLevel || task.auditLevel || "none",
+            "pending",
+            `Completion gate held task (${gate.reason})`,
+            JSON.stringify(
+              gate.reason === "evidence_section_missing" ? ["evidence-section-missing"]
+                : gate.reason === "verification_failed" ? ["verification-failed"]
+                : gate.reason === "verification_missing" ? ["verification-absent"]
+                : ["gate-failed"]
+            ),
+            JSON.stringify(
+              gate.reason === "evidence_section_missing"
+                ? ["Provide a `## Evidence` section with `claim` and `files:` in the next run."]
+                : gate.reason === "verification_failed"
+                  ? ["Make the verifyCommand pass before retrying completion."]
+                  : ["Resolve the gate condition; verify and evidence must both be present and passing."]
+            ),
+            JSON.stringify(result?.outputPath ? [result.outputPath] : []),
+            now,
+          ],
+        );
+      }
+      if (!needsAudit && result.completionSummary) await this.insertCompletionSummary(task, result.completionSummary, client, now);
+      if (!needsAudit) for (const card of normalizeMemoryCards(result.memoryCards, task, now)) await this.insertMemoryCard(card, client);
       return task;
     });
   }
@@ -248,14 +323,23 @@ export class PostgresTaskStore {
       const task = await this.getTaskForUpdate(client, id);
       task.verification = verification;
       task.updatedAt = now;
+      // M1.S3: re-run evaluateCompletion against the new verification so a
+      // verify-passes shortcut can't clear evidence contracts in PG either.
+      const gate = evaluateCompletion(task, { verification, evidenceContract: task.evidenceContract, auditLevel: task.auditLevel, evidenceMissing: task.evidenceMissing });
       if (verification.status === "failed") {
         task.status = canRetry(task) ? failureStatus : "failed";
         task.error = "Verification failed after completion.";
       } else if (verification.status === "passed") {
-        task.status = "completed";
-        task.error = undefined;
+        if (gate.status === AWAITING_AUDIT_STATUS && task.taskDomain !== "personal") {
+          task.status = AWAITING_AUDIT_STATUS;
+          task.evidenceMissing = true;
+          task.error = describeGateDecision(gate, { task, result: { verification } }) || task.error;
+        } else {
+          task.status = COMPLETION_STATUS;
+          task.error = undefined;
+        }
       }
-      appendHistory(task, "verification_checked", "Task verification checked", verification, now);
+      appendHistory(task, "verification_checked", "Task verification checked", { verification, gateReason: gate.reason, gateStatus: gate.status }, now);
       await this.upsertTask(task, client);
       return task;
     });

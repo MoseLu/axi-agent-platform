@@ -1,0 +1,110 @@
+{
+  "milestoneId": "a992b928-4def-4363-8ec5-99ec34417711",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Awaiting owner acceptance",
+  "milestoneTitle": "M1: 可信完成与统一账本 (Trustworthy Completion + Unified Ledger)",
+  "milestoneAcceptance": [
+    "同一任务在桌面、CLI、MCP、daemon 中状态一致",
+    "严格审计任务缺证据时，所有完成入口均拒绝完成",
+    "验证失败、旧版本证据和直接更新状态不能绕过门禁",
+    "个人待办仍能正常手动完成",
+    "存储迁移有可复查的对账与恢复方案"
+  ],
+  "subTasks": [
+    {
+      "tag": "M1.S1",
+      "id": "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d",
+      "status": "completed",
+      "evidence": "lib/completion-gate.mjs 73 lines + imported by store/postgres-store/codex-runner",
+      "deps": []
+    },
+    {
+      "tag": "M1.S2",
+      "id": "903df219-57c8-4542-868c-1ce959b90aee",
+      "status": "completed",
+      "evidence": "lib/store.mjs: completeTask/markVerificationResult/updateTask({status:completed}) route through evaluateCompletion; 4 JSON regression tests pass",
+      "deps": [
+        "M1.S1"
+      ]
+    },
+    {
+      "tag": "M1.S3",
+      "id": "43229ee3-4bf4-4902-81a9-c8ac34518b81",
+      "status": "completed",
+      "evidence": "lib/postgres-store.mjs: completeTask gate + audit_reviews row on hold; 3 PG parity tests pass with mocked I/O",
+      "deps": [
+        "M1.S1"
+      ]
+    },
+    {
+      "tag": "M1.S4",
+      "id": "8e5a3d8b-cd5b-44ac-84a5-a2c74ef9e217",
+      "status": "completed",
+      "evidence": "lib/codex-runner.mjs: executeTaskWithCodex propagates evidenceContract/auditLevel/evidenceContractSeen/verification on both success and failure paths",
+      "deps": [
+        "M1.S1"
+      ]
+    },
+    {
+      "tag": "M1.S5",
+      "id": "d2bc5dee-256d-48f3-8d72-5e4a8484c72e",
+      "status": "completed",
+      "evidence": "Sources/AxiTodoKit/AxiTodoGate.swift (mirror gate, 4 reasons) + AxiTodoModels (awaitingAudit status + 4 optional fields) + AxiTodoStore (saveTask/updateStatus demote to .awaitingAudit); Swift build + 11/11 AxiTodoStoreSmokeTests pass",
+      "deps": [
+        "M1.S1"
+      ]
+    },
+    {
+      "tag": "M1.S6",
+      "id": "ac308aac-d30b-4457-8b14-c14f267e4a5c",
+      "status": "completed",
+      "evidence": "test/completion-gate.test.mjs: 15 tests covering 缺证据/验证失败/旧版本证据/直接 update/个人手动 + parity tests; also updates existing evidence-guardrails (28/28 pass) + store-state-machine + store.test for new gate semantics",
+      "deps": [
+        "M1.S2",
+        "M1.S3",
+        "M1.S5"
+      ]
+    },
+    {
+      "tag": "M1.S7",
+      "id": "a9fb3713-a43e-4f73-b826-06d169e73b01",
+      "status": "completed",
+      "evidence": "node --test on 8 test files: 86/86 pass; swift run AxiTodoStoreSmokeTests: 11/11 pass; F02 reproduction script (completion-gate-repro.mjs): both JSON daemon integration and PG mocked-I/O return awaiting_audit",
+      "deps": [
+        "M1.S6"
+      ]
+    },
+    {
+      "tag": "M1.S8",
+      "id": "845735b1-bf21-455b-9ba5-61a7fb60125b",
+      "status": "completed",
+      "evidence": "Lore Commit Protocol commit (feat(axi-todo): scope) + ledger m1-entries.json reflects actual run state; pre-existing uncommitted changes outside M1 scope (backend/config.py, web features/) NOT included",
+      "deps": [
+        "M1.S7"
+      ]
+    }
+  ],
+  "newFindings": [
+    "F02 root cause confirmed: PostgresTaskStore.completeTask had no gate at all (line 186-203); the JSON gate was also reading result.evidenceContract but codex-runner never propagated it — silent bypass",
+    "JSON store has 21 tasks (10 completed + 11 pending) in production ~/.axi-todo/tasks.json snapshot; PG has 33 tasks (12 failed + 3 completed + 5 cancelled + 2 running + 11 pending) — back-end is unified but pre-existing completed entries need a separate recheck run to label as 待复核 (out of M1 scope, recorded for M2)",
+    "JSON and PG currently use 0 ID overlap and divergent status sets — convergence is M2 scope (single canonical store)",
+    "AxiTodoExecutionStatus.from(status:domain:) needed explicit .awaitingAudit arm when adding the new status; otherwise Swift switch exhaustiveness breaks compile"
+  ],
+  "scopeNotChanged": [
+    "Did not modify backend/ or src/web/ pre-existing dirty work per '保留已有未提交修改'",
+    "Did not change AXI_TODO_STORE default (still 'postgres' per schema; runtime caller controls via env)",
+    "Did not migrate pre-existing 18 JSON-completed entries to awaiting_audit (M2 / recheck task)"
+  ],
+  "remainingGaps": [
+    "Old completed entries (10 JSON, 3 PG) need a follow-up recheck run that calls markVerificationResult with verification.passed and re-evaluates the gate — recorded as a separate operational task, not part of M1 commit",
+    "JSON and PG dual-ledger reconciliation is M2 scope; M1 only ensures both stores agree on gate semantics",
+    "MCP axi_todo_update_task path remains the only completion surface that bypasses MCP server's tool definitions (calls store.updateTask directly) — M1 fixed this surface via store.updateTask gate, but a future hardening could add a status enum check at the MCP layer",
+    "Personal desktop bridge (completePersonalTask) is already independent of the gate by design; no change needed"
+  ],
+  "verificationCommands": {
+    "nodeTests": "node --test test/store.test.mjs test/store-state-machine.test.mjs test/daemon.test.mjs test/codex-runner.test.mjs test/mcp-server.test.mjs test/runner-execute.test.mjs test/completion-gate.test.mjs test/planner.test.mjs test/evidence-guardrails.test.mjs",
+    "swiftBuild": "swift build",
+    "swiftSmoke": "swift run AxiTodoStoreSmokeTests",
+    "f02Repro": "node /Users/mose/.codex/visualizations/2026/10/01/01a0f73a-b848-7ec1-8cfd-f6784a1625ec/workspace-investigation/completion-gate-repro.mjs"
+  }
+}

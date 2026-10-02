@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import { DEFAULT_POSTGRES_DATABASE_URL, PostgresTaskStore } from "./postgres-store.mjs";
+import { evaluateCompletion, describeGateDecision } from "./completion-gate.mjs";
 import {
   appendHistory,
   canRetry,
@@ -17,6 +18,9 @@ import {
   synchronizeTaskState,
   taskSort,
 } from "./schema.mjs";
+
+const COMPLETION_STATUS = "completed";
+const AWAITING_AUDIT_STATUS = "awaiting_audit";
 
 const LOCK_RETRY_MS = 50;
 const LOCK_TIMEOUT_MS = 5000;
@@ -78,6 +82,29 @@ export class TaskStore {
     const patch = normalizePatch(patchInput);
     return this.mutate((state) => {
       const task = findTaskOrThrow(state, id);
+      // Direct `status: "completed"` patches MUST clear the completion gate.
+      // Personal todos are exempt (manual completion is allowed); for agent
+      // tasks, a status patch that tries to bypass the runner is either a UI
+      // mistake or a contract violation, so we route it through the same gate
+      // completeTask uses. The patch is dropped (status stays at its prior
+      // value, e.g. `awaiting_audit`) and the history records the gate hold.
+      if (patch.status === COMPLETION_STATUS && task.taskDomain !== "personal") {
+        const gate = evaluateCompletion(task, { verification: task.verification });
+        if (gate.status === AWAITING_AUDIT_STATUS) {
+          patch.status = AWAITING_AUDIT_STATUS;
+          task.evidenceMissing = true;
+          task.evidenceContractSeen = task.evidenceContract || task.evidenceContractSeen;
+          task.error = describeGateDecision(gate, { task, result: {} }) || task.error;
+          appendHistory(
+            task,
+            "audit_waiting",
+            `Direct completion blocked by gate: ${gate.reason}`,
+            { reason: gate.reason, source: "updateTask" },
+            now,
+            "system",
+          );
+        }
+      }
       Object.assign(task, patch);
       synchronizeTaskState(task, { patch, now });
       task.updatedAt = now;
@@ -157,16 +184,12 @@ export class TaskStore {
     });
   }
 
-  async completeTask(id, result, { now = nowIso() } = {}) {
-    // A2: evidence + claim-file guardrails.
-    // The runner hands us `evidenceMissing` (did the model omit the machine-
-    // parseable `## Evidence` block?) and `claimFiles` (paths the model
-    // claimed to have changed). When a task has declared an `evidenceContract`
-    // we treat a missing block as a hard failure: do not flip the task to
-    // `completed`, instead move it to `awaiting_audit` and let the audit
-    // queue pick it up. `claimFiles` that don't exist on disk are a soft
-    // warning that we surface in the task summary and history; they never
-    // block completion on their own.
+async completeTask(id, result, { now = nowIso() } = {}) {
+    // A2 + M1.S2: evidence / claim-file / verification guardrails.
+    // All completion-entry decisions flow through evaluateCompletion so JSON
+    // and PG stores enforce the same transition gate. The runner hands us
+    // `evidenceMissing`, `claimFiles`, and the captured `verification`; we
+    // compute the gate decision first, then apply visible side-effects.
     const claimFiles = Array.isArray(result?.claimFiles) ? result.claimFiles : [];
     const claimFileMismatches = claimFiles.length > 0
       ? await findMissingClaimFiles(claimFiles, result?.cwd)
@@ -176,42 +199,41 @@ export class TaskStore {
       : undefined;
     const auditLevel = result?.auditLevel || "none";
     const evidenceMissing = Boolean(result?.evidenceMissing);
-    const needsAudit = Boolean(
-      evidenceContract
-      && evidenceContract.trim()
-      && evidenceMissing
-      && (auditLevel === "standard" || auditLevel === "strict"),
-    );
+    const truncatedOutput = result?.truncated;
     const warnings = Array.isArray(result?.warnings) ? result.warnings.slice() : [];
     if (claimFileMismatches.length > 0) {
       warnings.push(`claimed-files-missing:${claimFileMismatches.length}`);
     }
-    // When the runner reports the Evidence block is missing but the task is
-    // not strict/standard enough to be held for audit, we still surface the
-    // gap as a soft warning so the operator can see what the model omitted.
-    if (evidenceMissing && evidenceContract && !needsAudit) {
-      warnings.push("evidence-section-missing-in-last-message");
-    }
-    const truncatedOutput = result?.truncated;
 
     return this.mutate((state) => {
       const task = findTaskOrThrow(state, id);
-      const finalStatus = needsAudit ? "awaiting_audit" : "completed";
+      const gate = evaluateCompletion(task, result);
+      const needsAudit = gate.status === AWAITING_AUDIT_STATUS;
+      const finalStatus = gate.status;
+
+      // Soft warning when the runner reports Evidence missing but the task
+      // is below the audit threshold; surfaces as a visible summary line.
+      if (evidenceMissing && evidenceContract && !needsAudit) {
+        warnings.push("evidence-section-missing-in-last-message");
+      }
+
       task.status = finalStatus;
       if (needsAudit) {
         // Mark the audit lane: a follow-up audit review will be appended
         // after this mutate commits (recordAuditReview acquires the same
         // file lock and cannot be nested inside the mutate).
         task.evidenceMissing = true;
-        task.evidenceContractSeen = evidenceContract;
+        task.evidenceContractSeen = evidenceContract || task.evidenceContractSeen;
       } else {
         task.evidenceMissing = false;
         task.evidenceContractSeen = evidenceContract || task.evidenceContractSeen;
       }
       const baseSummary = result.summary || task.summary || "";
       const warningBlock = formatWarningBlock(warnings, claimFileMismatches, truncatedOutput);
-      task.summary = warningBlock ? appendSummaryWarning(baseSummary, warningBlock) : baseSummary;
-      task.error = needsAudit ? "Evidence section missing in runner output" : undefined;
+      const gateBlock = needsAudit ? describeGateDecision(gate, { task, result }) : "";
+      const composed = [baseSummary, warningBlock, gateBlock].filter(Boolean).join("\n\n");
+      task.summary = composed;
+      task.error = needsAudit ? "任务已完成,但未通过完工验收门" : undefined;
       task.completedAt = needsAudit ? undefined : now;
       task.updatedAt = now;
       task.lastRunId = result.runId || task.lastRunId;
@@ -222,11 +244,12 @@ export class TaskStore {
       if (claimFileMismatches.length > 0) {
         historyData.claimedFileMismatches = claimFileMismatches;
       }
+      if (needsAudit) historyData.gateReason = gate.reason;
       appendHistory(
         task,
         needsAudit ? "audit_waiting" : "completed",
         needsAudit
-          ? "Task held for audit: evidence section missing in runner output"
+          ? `任务已完成,但未通过完工验收门: ${gate.reason}`
           : "Task completed",
         historyData,
         now,
@@ -237,24 +260,29 @@ export class TaskStore {
       for (const card of normalizeMemoryCards(result.memoryCards, task, now)) {
         state.memoryCards.push(card);
       }
-      return { state, result: { task, needsAudit, evidenceContract } };
+      return { state, result: { task, needsAudit, gate, evidenceContract } };
     }).then(async (mutateResult) => {
       if (!mutateResult?.needsAudit) return mutateResult.task;
-      // Append the audit review record in a second mutation so the file
-      // lock isn't re-entered. We use `appendRecord` directly rather than
-      // `recordAuditReview` because the task is already in `awaiting_audit`
-      // (set by the mutate above) and `recordAuditReview` would add a
-      // duplicate `audit_waiting` history event on top of the one we
-      // already wrote inside the mutate.
+      const gateReason = mutateResult.gate?.reason || "gate_failed";
       await this.appendRecord("auditReviews", {
         id: crypto.randomUUID(),
         taskId: id,
         runId: result.runId,
         auditLevel,
         verdict: "pending",
-        reason: "Evidence section missing in runner output (evidenceContract declared).",
-        evidenceGaps: ["evidence-section-missing"],
-        releaseConditions: ["Provide a `## Evidence` section with `claim` and `files:` in the next run."],
+        reason: `Completion gate held task (${gateReason})`,
+        evidenceGaps: gateReason === "evidence_section_missing"
+          ? ["evidence-section-missing"]
+          : gateReason === "verification_failed"
+            ? ["verification-failed"]
+            : gateReason === "verification_missing"
+              ? ["verification-absent"]
+              : ["gate-failed"],
+        releaseConditions: gateReason === "evidence_section_missing"
+          ? ["Provide a `## Evidence` section with `claim` and `files:` in the next run."]
+          : gateReason === "verification_failed"
+            ? ["Make the verifyCommand pass before retrying completion."]
+            : ["Resolve the gate condition; verify and evidence must both be present and passing."],
         evidenceRefs: result?.outputPath ? [result.outputPath] : [],
         createdAt: now,
       });
@@ -316,14 +344,26 @@ export class TaskStore {
       const task = findTaskOrThrow(state, id);
       task.verification = verification;
       task.updatedAt = now;
+      // M1.S2: re-run the completion gate using the new verification so the
+      // verify-passes-can-complete-now shortcut doesn't bypass evidence
+      // contracts. A verification that fails stays in failureStatus/failed
+      // exactly like before; personal tasks are exempt (evaluateCompletion
+      // short-circuits when taskDomain === "personal").
+      const gate = evaluateCompletion(task, { verification, evidenceContract: task.evidenceContract, auditLevel: task.auditLevel, evidenceMissing: task.evidenceMissing });
       if (verification.status === "failed") {
         task.status = canRetry(task) ? failureStatus : "failed";
         task.error = "Verification failed after completion.";
       } else if (verification.status === "passed") {
-        task.status = "completed";
-        task.error = undefined;
+        if (gate.status === AWAITING_AUDIT_STATUS && task.taskDomain !== "personal") {
+          task.status = AWAITING_AUDIT_STATUS;
+          task.evidenceMissing = true;
+          task.error = describeGateDecision(gate, { task, result: { verification } }) || task.error;
+        } else {
+          task.status = COMPLETION_STATUS;
+          task.error = undefined;
+        }
       }
-      appendHistory(task, "verification_checked", "Task verification checked", verification, now);
+      appendHistory(task, "verification_checked", "Task verification checked", { verification, gateReason: gate.reason, gateStatus: gate.status }, now);
       return { state, result: task };
     });
   }

@@ -242,6 +242,7 @@ test("A2.1: evidence OK, no contract → completed with no warning", async () =>
     evidenceMissing: false,
     auditLevel: "none",
     evidenceContract: "",
+    verification: { status: "passed", exitCode: 0 },
   });
   const after = await store.getTask(taskId);
   assert.equal(after.status, "completed");
@@ -263,6 +264,7 @@ test("A2.2: evidence OK, contract present → completed, no audit row", async ()
     evidenceMissing: false,
     auditLevel: "standard",
     evidenceContract: "report the changed files",
+    verification: { status: "passed", exitCode: 0 },
   });
   const after = await store.getTask(taskId);
   assert.equal(after.status, "completed");
@@ -281,18 +283,21 @@ test("A2.3: evidence missing, contract + standard → awaiting_audit + audit row
     evidenceMissing: true,
     auditLevel: "standard",
     evidenceContract: "report the changed files",
+    verification: { status: "passed", exitCode: 0 },
   });
   const after = await store.getTask(taskId);
   assert.equal(after.status, "awaiting_audit");
   assert.equal(after.evidenceMissing, true);
   assert.equal(after.completedAt, undefined);
-  assert.equal(after.error, "Evidence section missing in runner output");
+  // M1 unified completion gate: the error surfaces the descriptive summary
+  // from describeGateDecision() so the operator can see WHY the gate held.
+  assert.match(after.error, /完工验收门/);
   const audits = (await store.readState()).auditReviews;
   assert.equal(audits.length, 1);
   assert.equal(audits[0].verdict, "pending");
   assert.equal(audits[0].taskId, taskId);
   assert.equal(audits[0].auditLevel, "standard");
-  assert.match(audits[0].reason, /Evidence section missing/);
+  assert.match(audits[0].reason, /evidence_section_missing/);
   assert.deepEqual(audits[0].evidenceGaps, ["evidence-section-missing"]);
   // history should record the audit_waiting event
   const last = after.history.at(-1);
@@ -332,6 +337,7 @@ test("A2.5: evidence missing, auditLevel=none → completed but warning logged",
     evidenceMissing: true,
     auditLevel: "none",
     evidenceContract: "report the changed files",
+    verification: { status: "passed", exitCode: 0 },
   });
   const after = await store.getTask(taskId);
   assert.equal(after.status, "completed");
@@ -355,6 +361,7 @@ test("A2.6: claim file mismatch → soft warning, no audit row", async () => {
     evidenceContract: "",
     claimFiles: ["definitely-missing.ts"],
     cwd: home,
+    verification: { status: "passed", exitCode: 0 },
   });
   const after = await store.getTask(taskId);
   assert.equal(after.status, "completed");
@@ -375,6 +382,7 @@ test("A2.7: claim file exists → no mismatch warning", async () => {
     evidenceContract: "",
     claimFiles: ["real.ts"],
     cwd: home,
+    verification: { status: "passed", exitCode: 0 },
   });
   const after = await store.getTask(taskId);
   assert.equal(after.status, "completed");
@@ -393,6 +401,7 @@ test("A2.8: truncation from runner surfaces in summary warning block", async () 
     auditLevel: "none",
     evidenceContract: "",
     truncated: { stdout: true, stderr: false, droppedBytes: { stdout: 4096, stderr: 0 } },
+    verification: { status: "passed", exitCode: 0 },
   });
   const after = await store.getTask(taskId);
   assert.equal(after.status, "completed");

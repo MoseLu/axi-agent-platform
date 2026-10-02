@@ -93,6 +93,30 @@ public final class AxiTodoStore {
             task.remindAt = AxiTodoDate.normalizedIsoString(task.remindAt)
             task.updatedAt = now
 
+            // M1.S5: when the editor tries to write `.completed` for an
+            // agent task, the Swift mirror gate must hold the same line as
+            // lib/completion-gate.mjs. Personal tasks keep their original
+            // semantics (manual completion is allowed).
+            if task.taskDomain != .personal, task.status == .completed {
+                let decision = evaluateAxiTodoCompletion(task: task)
+                if decision.isAwaitingAudit {
+                    task.status = .awaitingAudit
+                    task.evidenceMissing = true
+                    task.evidenceContractSeen = task.evidenceContract ?? task.evidenceContractSeen
+                    task.error = describeAxiTodoGateDecision(task: task, decision: decision)
+                    task.completedAt = nil
+                    task.executionStatus = .blocked
+                    task.appendHistory(
+                        event: "audit_waiting",
+                        message: "Direct completion blocked by gate: \(decision.reason ?? "unknown")",
+                        data: ["reason": .string(decision.reason ?? "unknown"), "source": .string("saveTask")],
+                        at: now
+                    )
+                    state.tasks[index] = task
+                    return task
+                }
+            }
+
             if task.taskDomain == .personal && (task.status == .completed || task.lifecycleStatus == .completed) {
                 task.status = .completed
                 task.lifecycleStatus = .completed
@@ -110,6 +134,10 @@ public final class AxiTodoStore {
                 task.completedAt = task.completedAt ?? now
                 task.error = nil
                 task.executionStatus = .succeeded
+            } else if task.status == .awaitingAudit {
+                task.completedAt = nil
+                task.error = task.error ?? describeAxiTodoGateDecision(task: task, decision: .awaitingAudit(reason: "held"))
+                task.executionStatus = .blocked
             } else {
                 task.completedAt = nil
                 task.executionStatus = .from(status: task.status, domain: task.taskDomain)
@@ -146,6 +174,29 @@ public final class AxiTodoStore {
                 throw AxiTodoStoreError.unknownTask(taskID)
             }
             let now = AxiTodoDate.isoString()
+            // M1.S5: agent tasks cannot be flipped directly to .completed
+            // without satisfying the Swift mirror gate. Personal tasks keep
+            // their original semantics (the user explicitly asked for manual
+            // completion to remain independent on personal todos).
+            if status == .completed, state.tasks[index].taskDomain != .personal {
+                let decision = evaluateAxiTodoCompletion(task: state.tasks[index])
+                if decision.isAwaitingAudit {
+                    state.tasks[index].status = .awaitingAudit
+                    state.tasks[index].updatedAt = now
+                    state.tasks[index].evidenceMissing = true
+                    state.tasks[index].evidenceContractSeen = state.tasks[index].evidenceContract ?? state.tasks[index].evidenceContractSeen
+                    state.tasks[index].error = describeAxiTodoGateDecision(task: state.tasks[index], decision: decision)
+                    state.tasks[index].executionStatus = .blocked
+                    state.tasks[index].completedAt = nil
+                    state.tasks[index].appendHistory(
+                        event: "audit_waiting",
+                        message: "Direct completion blocked by gate: \(decision.reason ?? "unknown")",
+                        data: ["reason": .string(decision.reason ?? "unknown"), "source": .string("updateStatus")],
+                        at: now
+                    )
+                    return state.tasks[index]
+                }
+            }
             state.tasks[index].status = status
             state.tasks[index].updatedAt = now
             state.tasks[index].error = [.pending, .completed].contains(status) ? nil : state.tasks[index].error

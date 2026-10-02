@@ -1,0 +1,467 @@
+{
+  "version": 3,
+  "tasks": [
+    {
+      "id": "a992b928-4def-4363-8ec5-99ec34417711",
+      "title": "M1: Axi Todo 可信完成与统一账本",
+      "taskDomain": "personal",
+      "prompt": "本里程碑: 让 harness-task 信任度可被审计;修复完成 gate;统一多 backend;让 desktop/CLI/MCP/daemon 看到同一份事实在;个人待办手动完成语义独立。",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 0,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-04",
+      "reminderState": "none",
+      "acceptanceChecks": [
+        "A1: 同 task 在 JSON/PG/daemon/MCP/Swift 状态相同",
+        "A2: 缺证据/验证失败/旧版本证据/直接 updateTask->completed 均拒绝工程 completed",
+        "A3: personal task 手动完成保持独立",
+        "A4: 迁移/备份/对账/恢复方案可复查"
+      ],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "dependsOn": [],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.883Z",
+      "updatedAt": "2026-10-02T06:36:43.883Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "19668d1d-71a8-421d-8d22-b6c7d77abad7",
+          "at": "2026-10-02T06:36:43.883Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        }
+      ]
+    },
+    {
+      "id": "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d",
+      "title": "[M1.S1] 提取共享 completion gate 到 lib/completion-gate.mjs",
+      "taskDomain": "personal",
+      "prompt": "提取共享 completion gate 到 lib/completion-gate.mjs\n\n依赖: (无)\n验证: 跑相应测试 + 记录 checkpoint",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 50,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-03",
+      "reminderState": "none",
+      "acceptanceChecks": [],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "parentId": "a992b928-4def-4363-8ec5-99ec34417711",
+      "dependsOn": [],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.884Z",
+      "updatedAt": "2026-10-02T06:36:43.884Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "7302a81b-72da-4a5c-a76a-992330a55c81",
+          "at": "2026-10-02T06:36:43.884Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        }
+      ]
+    },
+    {
+      "id": "903df219-57c8-4542-868c-1ce959b90aee",
+      "title": "[M1.S2] 让 JSON store.completeTask + markVerificationResult + updateTask->completed 走 gate",
+      "taskDomain": "personal",
+      "prompt": "让 JSON store.completeTask + markVerificationResult + updateTask->completed 走 gate\n\n依赖: M1.S1\n验证: 跑相应测试 + 记录 checkpoint",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 50,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-03",
+      "reminderState": "none",
+      "acceptanceChecks": [],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "parentId": "a992b928-4def-4363-8ec5-99ec34417711",
+      "dependsOn": [
+        "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d"
+      ],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.885Z",
+      "updatedAt": "2026-10-02T06:36:43.891Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "924d5484-34dc-40a6-a5b8-c4ddbd688074",
+          "at": "2026-10-02T06:36:43.885Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        },
+        {
+          "id": "4fe758a1-6704-43f5-900c-8236cb2a643d",
+          "at": "2026-10-02T06:36:43.891Z",
+          "event": "updated",
+          "actor": "user",
+          "message": "Task updated",
+          "data": {
+            "patch": {
+              "dependsOn": [
+                "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "43229ee3-4bf4-4902-81a9-c8ac34518b81",
+      "title": "[M1.S3] 让 PG postgres-store.completeTask + markVerificationResult + updateTask->completed 走 gate",
+      "taskDomain": "personal",
+      "prompt": "让 PG postgres-store.completeTask + markVerificationResult + updateTask->completed 走 gate\n\n依赖: M1.S1\n验证: 跑相应测试 + 记录 checkpoint",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 50,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-03",
+      "reminderState": "none",
+      "acceptanceChecks": [],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "parentId": "a992b928-4def-4363-8ec5-99ec34417711",
+      "dependsOn": [
+        "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d"
+      ],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.887Z",
+      "updatedAt": "2026-10-02T06:36:43.893Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "60819db6-30cb-4cca-a207-41611967241a",
+          "at": "2026-10-02T06:36:43.887Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        },
+        {
+          "id": "ac6fea3a-32a7-41bf-afef-5c37bd94b505",
+          "at": "2026-10-02T06:36:43.893Z",
+          "event": "updated",
+          "actor": "user",
+          "message": "Task updated",
+          "data": {
+            "patch": {
+              "dependsOn": [
+                "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "8e5a3d8b-cd5b-44ac-84a5-a2c74ef9e217",
+      "title": "[M1.S4] codex-runner propagate task.evidenceContract/auditLevel/verification 给 result",
+      "taskDomain": "personal",
+      "prompt": "codex-runner propagate task.evidenceContract/auditLevel/verification 给 result\n\n依赖: M1.S1\n验证: 跑相应测试 + 记录 checkpoint",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 50,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-03",
+      "reminderState": "none",
+      "acceptanceChecks": [],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "parentId": "a992b928-4def-4363-8ec5-99ec34417711",
+      "dependsOn": [
+        "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d"
+      ],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.887Z",
+      "updatedAt": "2026-10-02T06:36:43.893Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "fd0999f2-6f31-4c87-bf89-c5c00f649676",
+          "at": "2026-10-02T06:36:43.887Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        },
+        {
+          "id": "e367aa88-a8aa-4a6d-b161-01567e949cc5",
+          "at": "2026-10-02T06:36:43.893Z",
+          "event": "updated",
+          "actor": "user",
+          "message": "Task updated",
+          "data": {
+            "patch": {
+              "dependsOn": [
+                "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "d2bc5dee-256d-48f3-8d72-5e4a8484c72e",
+      "title": "[M1.S5] Swift AxiTodoStore.updateStatus + saveTask 加 Swift mirror gate",
+      "taskDomain": "personal",
+      "prompt": "Swift AxiTodoStore.updateStatus + saveTask 加 Swift mirror gate\n\n依赖: M1.S1\n验证: 跑相应测试 + 记录 checkpoint",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 50,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-03",
+      "reminderState": "none",
+      "acceptanceChecks": [],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "parentId": "a992b928-4def-4363-8ec5-99ec34417711",
+      "dependsOn": [
+        "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d"
+      ],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.888Z",
+      "updatedAt": "2026-10-02T06:36:43.894Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "a5f624f9-878b-467f-b13b-9f8642116344",
+          "at": "2026-10-02T06:36:43.888Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        },
+        {
+          "id": "15bc669c-665a-4fd1-a1c9-89d7783a35fb",
+          "at": "2026-10-02T06:36:43.894Z",
+          "event": "updated",
+          "actor": "user",
+          "message": "Task updated",
+          "data": {
+            "patch": {
+              "dependsOn": [
+                "e7b7d294-0c7e-4a88-a4a5-0adabdcb220d"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "ac308aac-d30b-4457-8b14-c14f267e4a5c",
+      "title": "[M1.S6] 补回归测试：缺证据/验证失败/旧证据/直接 update/个人手动 5 类",
+      "taskDomain": "personal",
+      "prompt": "补回归测试：缺证据/验证失败/旧证据/直接 update/个人手动 5 类\n\n依赖: M1.S2, M1.S3, M1.S5\n验证: 跑相应测试 + 记录 checkpoint",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 50,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-03",
+      "reminderState": "none",
+      "acceptanceChecks": [],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "parentId": "a992b928-4def-4363-8ec5-99ec34417711",
+      "dependsOn": [
+        "903df219-57c8-4542-868c-1ce959b90aee",
+        "43229ee3-4bf4-4902-81a9-c8ac34518b81",
+        "d2bc5dee-256d-48f3-8d72-5e4a8484c72e"
+      ],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.889Z",
+      "updatedAt": "2026-10-02T06:36:43.895Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "83726153-bce1-49b7-b292-16fae3a3af9b",
+          "at": "2026-10-02T06:36:43.889Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        },
+        {
+          "id": "ea9b94ff-2f97-4f19-8286-39523b0bc5f6",
+          "at": "2026-10-02T06:36:43.895Z",
+          "event": "updated",
+          "actor": "user",
+          "message": "Task updated",
+          "data": {
+            "patch": {
+              "dependsOn": [
+                "903df219-57c8-4542-868c-1ce959b90aee",
+                "43229ee3-4bf4-4902-81a9-c8ac34518b81",
+                "d2bc5dee-256d-48f3-8d72-5e4a8484c72e"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "a9fb3713-a43e-4f73-b826-06d169e73b01",
+      "title": "[M1.S7] 运行 evidence-guardrails + 新测试 + 复现脚本三件套",
+      "taskDomain": "personal",
+      "prompt": "运行 evidence-guardrails + 新测试 + 复现脚本三件套\n\n依赖: M1.S6\n验证: 跑相应测试 + 记录 checkpoint",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 50,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-03",
+      "reminderState": "none",
+      "acceptanceChecks": [],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "parentId": "a992b928-4def-4363-8ec5-99ec34417711",
+      "dependsOn": [
+        "ac308aac-d30b-4457-8b14-c14f267e4a5c"
+      ],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.890Z",
+      "updatedAt": "2026-10-02T06:36:43.896Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "2c499712-5f66-4b3c-a56b-6fadc22e4240",
+          "at": "2026-10-02T06:36:43.890Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        },
+        {
+          "id": "4b083fba-e85b-4bc4-a46c-b0800c9b1ef6",
+          "at": "2026-10-02T06:36:43.896Z",
+          "event": "updated",
+          "actor": "user",
+          "message": "Task updated",
+          "data": {
+            "patch": {
+              "dependsOn": [
+                "ac308aac-d30b-4457-8b14-c14f267e4a5c"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "845735b1-bf21-455b-9ba5-61a7fb60125b",
+      "title": "[M1.S8] 按 Lore Commit Protocol 提交 + 任务账本更新 run/checkpoint",
+      "taskDomain": "personal",
+      "prompt": "按 Lore Commit Protocol 提交 + 任务账本更新 run/checkpoint\n\n依赖: M1.S7\n验证: 跑相应测试 + 记录 checkpoint",
+      "cwd": "/Volumes/code/workspace/agent-cluster/axi-agent/tools/axi-todo",
+      "status": "pending",
+      "lifecycleStatus": "open",
+      "executionStatus": "idle",
+      "priority": 50,
+      "attempts": 0,
+      "maxAttempts": 3,
+      "dueDate": "2026-10-03",
+      "reminderState": "none",
+      "acceptanceChecks": [],
+      "auditLevel": "none",
+      "rejectedApproaches": [],
+      "parentId": "a992b928-4def-4363-8ec5-99ec34417711",
+      "dependsOn": [
+        "a9fb3713-a43e-4f73-b826-06d169e73b01"
+      ],
+      "resourceKeys": [],
+      "taskKind": "task",
+      "riskLevel": "medium",
+      "fallbackModels": [],
+      "createdAt": "2026-10-02T06:36:43.890Z",
+      "updatedAt": "2026-10-02T06:36:43.896Z",
+      "verification": {},
+      "history": [
+        {
+          "id": "0f5a2a64-e392-4704-b7d9-87b9a3c21495",
+          "at": "2026-10-02T06:36:43.890Z",
+          "event": "created",
+          "actor": "user",
+          "message": "Task created",
+          "data": {}
+        },
+        {
+          "id": "f406a7f9-b61d-4d6d-9cd6-36bf9eb37875",
+          "at": "2026-10-02T06:36:43.896Z",
+          "event": "updated",
+          "actor": "user",
+          "message": "Task updated",
+          "data": {
+            "patch": {
+              "dependsOn": [
+                "a9fb3713-a43e-4f73-b826-06d169e73b01"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "taskCharters": [],
+  "planningRecords": [],
+  "taskRuns": [],
+  "taskEvents": [],
+  "failureAnalyses": [],
+  "auditReviews": [],
+  "userPreferences": [],
+  "completionSummaries": [],
+  "memoryCards": []
+}
