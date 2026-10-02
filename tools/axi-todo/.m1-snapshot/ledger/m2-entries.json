@@ -1,7 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
   "milestoneStatus": "implementation-complete",
-  "verificationStatus": "Awaiting owner acceptance",
+  "verificationStatus": "Locally verified; owner decisions remain",
   "milestoneTitle": "M2: 统一任务账本入口 (JSON canonical + PG opt-in)",
   "milestoneAcceptance": [
     "新增 bin/axi-todo-import-postgres.mjs 可重入将 PG 任务导入 JSON，并保留 provenance",
@@ -65,7 +65,7 @@
       "id": "TODO-m2-s7-id",
       "status": "completed",
       "completedAt": "2026-10-02",
-      "evidence": "node --test test/*.test.mjs → 123/123 pass; swift run AxiTodoStoreSmokeTests → 11/11 pass; node bin/axi-todo-import-postgres.mjs (no env) exits 1; bin/axi-todo-migrate-postgres.mjs (no env) exits 1",
+      "evidence": "node --test test/*.test.mjs → 131/131 pass; swift run AxiTodoStoreSmokeTests → 11/11 pass; node bin/axi-todo-import-postgres.mjs (no env) exits 1; bin/axi-todo-migrate-postgres.mjs (no env) exits 1; full pnpm verify reaches frontend typecheck but is blocked by pre-existing @axi/icons resolution and React 18/19 type drift outside M2 scope",
       "deps": ["M2.S2", "M2.S3", "M2.S4", "M2.S5", "M2.S6"]
     },
     {
