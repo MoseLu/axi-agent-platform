@@ -412,18 +412,24 @@ export class PostgresTaskStore {
       evidenceRefs: normalizeStringArray(input.evidenceRefs || input.evidence_refs),
       createdAt: input.createdAt || now,
     };
-    await this.pool.query(
-      "insert into audit_reviews (id, task_id, run_id, audit_level, verdict, reason, evidence_gaps, release_conditions, evidence_refs, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
-      [record.id, record.taskId, record.runId, record.auditLevel, record.verdict, record.reason, jsonb(record.evidenceGaps), jsonb(record.releaseConditions), jsonb(record.evidenceRefs), record.createdAt],
-    );
-    if (input.taskId && input.verdict && input.verdict !== "pass") {
-      await this.updateTask(input.taskId, { status: "awaiting_audit" }, {
-        event: "audit_waiting",
-        note: input.reason || "Task is waiting for audit approval",
-        now,
-      });
-    }
-    return record;
+    return this.withClient(async (client) => {
+      await client.query(
+        "insert into audit_reviews (id, task_id, run_id, audit_level, verdict, reason, evidence_gaps, release_conditions, evidence_refs, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+        [record.id, record.taskId, record.runId, record.auditLevel, record.verdict, record.reason, jsonb(record.evidenceGaps), jsonb(record.releaseConditions), jsonb(record.evidenceRefs), record.createdAt],
+      );
+      if (record.taskId && record.verdict && record.verdict !== "pass") {
+        const task = await this.getTaskForUpdate(client, record.taskId);
+        task.status = "awaiting_audit";
+        task.updatedAt = now;
+        await this.upsertTask(task, client);
+        const historyId = crypto.randomUUID();
+        await client.query(
+          "insert into task_events (id, task_id, run_id, event_type, actor, message, payload, created_at) values ($1,$2,$3,$4,$5,$6,$7,$8)",
+          [historyId, record.taskId, record.runId, "audit_waiting", "system", record.reason || "Task is waiting for audit approval", jsonb({ verdict: record.verdict }), now],
+        );
+      }
+      return record;
+    });
   }
 
   async recordUserPreference(input = {}, { now = nowIso() } = {}) {
