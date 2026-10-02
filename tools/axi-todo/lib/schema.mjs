@@ -191,6 +191,12 @@ export function createTask(input = {}, { now = nowIso(), cwd = process.cwd() } =
     lastOutputPath: optionalText(input.lastOutputPath ?? input.last_output_path),
     verification: normalizeVerification(input.verification),
     verifyLoggedAt: normalizeOptionalIso(input.verifyLoggedAt ?? input.verify_logged_at),
+    // M2 provenance: tracks how a task entered the JSON store. Set by the
+    // PG importer (`import-postgres`) and reserved for future re-importers
+    // (e.g. `import-zentao`, `manual-seed`). Existing JSON tasks with no
+    // `source` field are treated as natively-created (`null`).
+    source: optionalText(input.source ?? input.source_field),
+    importedAt: normalizeOptionalIso(input.importedAt ?? input.imported_at),
     history: [],
   };
   appendHistory(task, "created", "Task created", {}, now, taskDomain === "personal" ? "user" : "system");
@@ -458,6 +464,11 @@ export function normalizeExistingTask(input) {
       lastRunId: optionalText(input.lastRunId ?? input.last_run_id),
       lastOutputPath: optionalText(input.lastOutputPath ?? input.last_output_path),
       verification: normalizeVerification(input.verification),
+      // M2 provenance — see the matching note in `createTask`. Preserve the
+      // original source marker across normalise-on-read so reconcilers can
+      // distinguish natively-created rows from PG-imported rows.
+      source: optionalText(input.source),
+      importedAt: normalizeOptionalIso(input.importedAt),
       history: normalizeHistory(input.history),
     };
   } catch {

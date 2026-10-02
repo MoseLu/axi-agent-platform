@@ -1,0 +1,72 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "in-progress",
+  "milestoneTitle": "M2: 统一任务账本入口 (JSON canonical + PG opt-in)",
+  "milestoneAcceptance": [
+    "新增 bin/axi-todo-import-postgres.mjs 可重入将 PG 任务导入 JSON，并保留 provenance",
+    "createStoreFromEnv 在双 store 都非空时打印启动告警",
+    "bin/axi-todo-migrate-postgres.mjs 不再使用隐性 postgresql:///axi_todo fallback",
+    "README.md / docs/TODO-ARCHITECTURE.md 显式文档化 AXI_TODO_STORE 的 json/postgres/auto 三种语义",
+    "新增 test/import-postgres.test.mjs + 双 store 告警测试；全测试套件继续全绿",
+    "Swift 桌面桥保持 JSON 读写不变（结构性兼容）"
+  ],
+  "subTasks": [
+    {
+      "tag": "M2.S1",
+      "id": "TODO-m2-s1-id",
+      "status": "in-progress",
+      "deps": []
+    },
+    {
+      "tag": "M2.S2",
+      "id": "TODO-m2-s2-id",
+      "status": "pending",
+      "deps": ["M2.S1"]
+    },
+    {
+      "tag": "M2.S3",
+      "id": "TODO-m2-s3-id",
+      "status": "pending",
+      "deps": ["M2.S1"]
+    },
+    {
+      "tag": "M2.S4",
+      "id": "TODO-m2-s4-id",
+      "status": "pending",
+      "deps": ["M2.S1"]
+    },
+    {
+      "tag": "M2.S5",
+      "id": "TODO-m2-s5-id",
+      "status": "pending",
+      "deps": ["M2.S1"]
+    },
+    {
+      "tag": "M2.S6",
+      "id": "TODO-m2-s6-id",
+      "status": "pending",
+      "deps": ["M2.S2", "M2.S3"]
+    },
+    {
+      "tag": "M2.S7",
+      "id": "TODO-m2-s7-id",
+      "status": "pending",
+      "deps": ["M2.S2", "M2.S3", "M2.S4", "M2.S5", "M2.S6"]
+    },
+    {
+      "tag": "M2.S8",
+      "id": "TODO-m2-s8-id",
+      "status": "pending",
+      "deps": ["M2.S7"]
+    }
+  ],
+  "outOfScopeButFlagged": [
+    "PostgresTaskStore.recordCompletionSummary passes {id: taskId} into insertCompletionSummary — the id column ends up being the task id, not the summary's UUID. Latent; affects any reconciler that compares per-record UUIDs. (lib/postgres-store.mjs:445)",
+    "PostgresTaskStore.recordAuditReview inserts the audit row first, then conditionally calls updateTask outside the original withClient transaction. If the updateTask transaction fails after the audit row committed, you end up with verdict:'pending' but task still in 'completed'. (lib/postgres-store.mjs:401-426)",
+    "TaskStore.searchPlanningMemory and PostgresTaskStore.searchPlanningMemory use different algorithms (JSON.stringify includes vs SQL LIKE on lower(...)); they will return different results on identical inputs. (lib/store.ts:516 vs lib/postgres-store.ts:499-513)"
+  ],
+  "ownerDecisionsRequired": [
+    "AXI_TODO_STORE default 'postgres' → 'json' is a breaking change for anyone depending on the current default. M2 does NOT flip it. README must contain a '切换默认前请运行 ...' operation note; owner owns the swap commit.",
+    "Whether to delete the PG schema / bin/axi-todo-migrate-postgres.mjs after consolidation, or keep them as opt-in for environments that prefer PG durability. M2 keeps both intact."
+  ]
+}
