@@ -1,7 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
   "milestoneStatus": "implementation-complete",
-  "verificationStatus": "Awaiting owner acceptance",
+  "verificationStatus": "Locally verified (M8 closure); 3 owner decisions open",
   "milestoneTitle": "M6: 5 条 outOfScopeButFlagged 平行收尾 (PG provenance 镜像 / Swift source 字段 / PG→JSON sync / web dep audit / hooks audit)",
   "milestoneAcceptance": [
     "M6.S1: M6 ledger 落地,锁定 5 条平行轨道;每轨道一个独立子代理、独立分支、独立 commit、独立测试;主代理做事实核查 + 收尾",
@@ -158,13 +158,12 @@
   "ownerDecisionsRequired": [
     {
       "id": "TODO-m6-track-5-vite-ts-version-verify",
-      "summary": "track-4 web-deps audit surfaced that vite@8.0.16 and typescript@6.0.3 are pre-major versions that may be internal-mirror placeholders. If they do not exist on the public npm registry, `pnpm install --frozen-lockfile` will fail on a clean checkout, blocking onboarding and CI.",
+      "summary": "track-4 web-deps audit surfaced that vite@8.0.16 and typescript@6.0.3 are pre-major versions that may be internal-mirror placeholders. M7.S3 (commit be4e0919) confirmed both versions exist on public npm registry (verified via npm view; latest vite=8.3.2, latest typescript=7.0.2). The driftStatus was flipped from 'suspicious' to 'verified' in .m1-snapshot/m6-audit/web-deps-audit.json.",
       "options": [
-        "Run `npm view vite versions --json` and `npm view typescript versions --json` against the public registry to confirm",
-        "If placeholders: replace with real versions (e.g. vite@5.x, typescript@5.x) in package.json + lockfile (out of M6 track-4 read-only scope — would be M7 work)",
-        "If real internal-mirror versions: document the mirror URL in tools/axi-todo/.m1-snapshot/m6-audit/web-deps-audit.json"
+        "Accept M7.S3 fact-check as closure for this decision (recommended — M8 audit confirms)",
+        "Re-open for further investigation if the operator has internal-mirror concerns"
       ],
-      "default": "Verify against public npm registry; defer any package.json / lockfile fix to M7 (M6 track-4 was explicitly read-only)"
+      "default": "Accept M7.S3 closure; audit JSON now carries factCheck + correctedFrom fields referencing commit be4e0919"
     },
     {
       "id": "TODO-m6-track-3-sync-apply",
