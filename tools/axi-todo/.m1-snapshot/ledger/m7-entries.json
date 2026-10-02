@@ -163,7 +163,13 @@
       "id": "OD-M7-3",
       "subject": "M6.4 web-deps audit acceptance",
       "detail": "M6.4 ownerDecisionRequired #1 (vite/typescript registry verification) is now retroactively resolved by M7.S3 fact-check (commit be4e0919). M6.4 #2-#6 remain valid owner decisions. Owner decision: accept M7.S3 fact-check as #1 closure / keep #1 as historical record (current state of audit JSON) / re-open #1 for further investigation.",
-      "discovered_by": "M7.S99 main agent audit-JSON preservation check"
+      "discovered_by": "M7.S99 main agent audit-JSON preservation check",
+      "resolution": {
+        "resolved": true,
+        "resolved_at": "2026-10-02",
+        "resolved_by": "M11 meta-confirmation closure — OD-M7-3 is a meta-confirmation decision over the same underlying fact-check that TODO-m6-track-5 covers; both close together in M11 because their substantive resolution (commit be4e0919) already happened in M7.S3",
+        "rationale": "Accept M7.S3 fact-check as #1 closure (default option). M10 Track C audit flagged this as bookkeeping-gap duplicate; closed for ledger symmetry."
+      }
     }
   ],
   "newFindings": [

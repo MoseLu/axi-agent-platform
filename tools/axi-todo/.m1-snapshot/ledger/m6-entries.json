@@ -157,15 +157,6 @@
   ],
   "ownerDecisionsRequired": [
     {
-      "id": "TODO-m6-track-5-vite-ts-version-verify",
-      "summary": "track-4 web-deps audit surfaced that vite@8.0.16 and typescript@6.0.3 are pre-major versions that may be internal-mirror placeholders. M7.S3 (commit be4e0919) confirmed both versions exist on public npm registry (verified via npm view; latest vite=8.3.2, latest typescript=7.0.2). The driftStatus was flipped from 'suspicious' to 'verified' in .m1-snapshot/m6-audit/web-deps-audit.json.",
-      "options": [
-        "Accept M7.S3 fact-check as closure for this decision (recommended — M8 audit confirms)",
-        "Re-open for further investigation if the operator has internal-mirror concerns"
-      ],
-      "default": "Accept M7.S3 closure; audit JSON now carries factCheck + correctedFrom fields referencing commit be4e0919"
-    },
-    {
       "id": "TODO-m6-track-3-sync-apply",
       "summary": "Whether to actually run `bin/axi-todo-sync-pg-to-json.mjs --apply --confirm-apply` against a real PG instance to backfill PG rows into the canonical JSON store. The tool is shipped, tested, owner-gated — but not exercised against real data.",
       "options": [
@@ -191,5 +182,13 @@
     "user_preferences.source is different semantics (preference origin marker, e.g. 'task' / 'user' / 'feed-default'), not import provenance; would need separate design to mirror",
     "post-commit hook reports 'Cannot find module foundation/workspace-governance/scripts/workspace-change-ledger.mjs' — pre-existing infrastructure issue in workspace-governance repo, NOT a M6 track-5 change; durable fix lives in foundation/workspace-governance/scripts/, not in axi-agent/.githooks/",
     "TODO-m5-apply-owner-confirm carried into M6 ledger for cross-reference (M8 Track D flagged it as orphaned across M6/M7). M6 did not act on the apply decision; owner-facing surface for it stays on M5 ledger."
+  ],
+  "closedDecisions": [
+    {
+      "id": "M6-RES-1",
+      "summary": "vite@8.0.16 + typescript@6.0.3 are real public npm registry versions (verified via npm view; latest vite=8.3.2, latest typescript=7.0.2). Audit JSON driftStatus was flipped from 'suspicious' to 'verified' in commit be4e0919, with factCheck + correctedFrom fields added.",
+      "resolved_at": "2026-10-02",
+      "resolved_by": "M11 bookkeeping-gap cleanup — closure follows the M7.S3 fact-check which M8 audit confirmed; closes the same defect class that M9.S1 fixed for M2 ledger entries"
+    }
   ]
 }
