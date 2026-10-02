@@ -393,9 +393,8 @@ export class PostgresTaskStore {
   }
 
   async recordFailureAnalysis(input = {}, { now = nowIso() } = {}) {
-    const task = input.taskId ? await this.getTask(input.taskId) : { id: input.taskId };
-    const record = createFailureAnalysisRecord(task || { id: input.taskId }, input, now);
-    await this.insertFailureAnalysis(task || { id: input.taskId }, record);
+    const record = createFailureAnalysisRecord(input.taskId, input, now);
+    await this.insertFailureAnalysis(null, record);
     return record;
   }
 
@@ -462,7 +461,7 @@ export class PostgresTaskStore {
       nextTimeNotes: input.nextTimeNotes || input.next_time_notes,
       createdAt: input.createdAt || now,
     };
-    await this.insertCompletionSummary({ id: record.taskId }, record);
+    await this.insertCompletionSummary(null, record);
     return record;
   }
 
@@ -608,14 +607,15 @@ function normalizeDbTask(payload) {
 }
 
 function createCompletionSummaryRecord(task, input = {}, now) {
+  const taskFallback = task || {};
   return {
     id: input.id || crypto.randomUUID(),
-    taskId: input.taskId || task.id,
-    runId: input.runId || task.lastRunId,
-    status: input.status || task.status,
-    summary: input.summary || task.summary || "",
+    taskId: input.taskId || taskFallback.id,
+    runId: input.runId || taskFallback.lastRunId,
+    status: input.status || taskFallback.status,
+    summary: input.summary || taskFallback.summary || "",
     durationMs: input.durationMs,
-    verification: input.verification || task.verification,
+    verification: input.verification || taskFallback.verification,
     evidenceRefs: normalizeStringArray(input.evidenceRefs),
     auditVerdict: input.auditVerdict,
     nextTimeNotes: input.nextTimeNotes,
@@ -624,11 +624,12 @@ function createCompletionSummaryRecord(task, input = {}, now) {
 }
 
 function createFailureAnalysisRecord(task, input = {}, now) {
+  const taskFallback = task || {};
   return {
     id: input.id || crypto.randomUUID(),
-    taskId: input.taskId || task.id,
-    runId: input.runId || task.lastRunId,
-    rootCause: input.rootCause || task.error || "unknown",
+    taskId: input.taskId || taskFallback.id,
+    runId: input.runId || taskFallback.lastRunId,
+    rootCause: input.rootCause || taskFallback.error || "unknown",
     trigger: input.trigger,
     failureStage: input.failureStage,
     recoveryAction: input.recoveryAction,
