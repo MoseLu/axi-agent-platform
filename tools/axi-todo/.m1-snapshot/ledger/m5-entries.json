@@ -1,7 +1,7 @@
 {
   "milestoneId": "TODO-milestone-id",
-  "milestoneStatus": "in-progress",
-  "verificationStatus": "Not yet submitted",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Awaiting owner acceptance",
   "milestoneTitle": "M5: 10 条历史 completed 任务证据重审 (M1/M2 遗留 JSON-only)",
   "milestoneAcceptance": [
     "M5.S1: 生成只读 audit snapshot (tools/axi-todo/.m1-snapshot/m5-audit/snapshot.json) 固定 10 条 completed 任务的 id / title / cwd / verifyCommand / history / verification 字段,字节级冻结 (SHA256 已记录),任务状态零修改",
@@ -23,40 +23,48 @@
     {
       "tag": "M5.S2",
       "id": "TODO-m5-s2-id",
-      "status": "in-progress",
-      "evidence": "this ledger file (m5-entries.json)",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "ledger/m5-entries.json committed in commit 2ec7f1b (chore: create M5 ledger — read-only 10-entry audit snapshot, lock scope)",
       "deps": ["M5.S1"]
     },
     {
       "tag": "M5.S3",
       "id": "TODO-m5-s3-id",
-      "status": "pending",
-      "evidence": "tools/axi-todo/.m1-snapshot/m5-audit/evidence-check.json",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "m5-audit/evidence-check.json (25002 bytes) records per-task cwd existence + VERIFICATION.md in-cwd presence + git log 3-day window around completedAt + last-3 history events for all 10 tasks",
       "deps": ["M5.S2"]
     },
     {
       "tag": "M5.S4",
       "id": "TODO-m5-s4-id",
-      "status": "pending",
-      "evidence": "tools/axi-todo/.m1-snapshot/m5-audit/decisions.json",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "m5-audit/decisions.json (18099 bytes) records 4-category triage per owner direction: 3 keep-completed (cwd present + VERIFICATION.md present + stored passed), 7 cancelled (cwd missing — worktree retired or path renamed in partition reorg; no failure signal), 0 failed, 0 awaiting_audit. ids: keep=27c6eafa/5dd3a8c3/e83da185, cancel=153c3dfc/a73af886/bbe7e9aa/48127c15/79afc81a/1b11be6f/ef45ad87",
       "deps": ["M5.S3"]
     },
     {
       "tag": "M5.S5",
       "id": "TODO-m5-s5-id",
-      "status": "pending",
-      "evidence": "bin/axi-todo-recheck-completed.mjs + test/recheck-completed.test.mjs",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "bin/axi-todo-recheck-completed.mjs (owner-gated --apply with --confirm-apply double-flag + --only-decide filter + backup snapshot to .m1-snapshot/m5-audit/pre-apply-*.json) + test/recheck-completed.test.mjs (6 tests: keep-completed / cancelled / awaiting_audit / refused-without-confirm / apply-with-backup / only-decide filter)",
       "deps": ["M5.S4"]
     },
     {
       "tag": "M5.S6",
       "id": "TODO-m5-s6-id",
-      "status": "pending",
-      "evidence": "this ledger file close; full suite + Swift smoke green",
+      "status": "completed",
+      "completedAt": "2026-10-02",
+      "evidence": "node --test test/*.test.mjs 150/150 pass (was 144/144; M5 +6 recheck-completed tests); swift run AxiTodoStoreSmokeTests 11/11 unchanged; this ledger close",
       "deps": ["M5.S5"]
     }
   ],
-  "loreTrail": [],
+  "loreTrail": [
+    "2ec7f1b chore(axi-todo): create M5 ledger — read-only 10-entry audit snapshot, lock scope",
+    "<this commit> chore(axi-todo): evidence check + 4-category triage + recheck-completed tool + close M5"
+  ],
   "sourceFindings": [
     "M1/M2 INHERITED-FINDING (carried from M1 newFindings and M3 ledger verificationStatus): canonical JSON store at $HOME/.axi-todo/tasks.json contains 10 tasks with status:'completed' and verification.status:'passed' that lack current in-repo evidence (target worktrees removed, verifyCommand scripts no longer present, VERIFICATION.md absent). These pre-date the F02 root-cause fix and were marked completed without the evidence-contract gate."
   ],
@@ -67,6 +75,19 @@
     "修前端 React 依赖漂移:超出 M5 scope;M5 不触碰 tools/axi-todo/src/web 或任何前端代码。",
     "顺手修 workspace hook 缺失模块:超出 M5 scope;M5 不触碰 agent-cluster/axi-agent/bin/axi-agent-* hooks 或 git hooks 配置。"
   ],
-  "ownerDecisionsRequired": [],
+  "ownerDecisionsRequired": [
+    {
+      "id": "TODO-m5-apply-owner-confirm",
+      "summary": "Whether to run `bin/axi-todo-recheck-completed.mjs --apply --confirm-apply` against $HOME/.axi-todo/tasks.json to reclassify the 7 cancelled tasks (153c3dfc / a73af886 / bbe7e9aa / 48127c15 / 79afc81a / 1b11be6f / ef45ad87) from status='completed' to status='cancelled' and append audit history to the 3 keep-completed tasks (27c6eafa / 5dd3a8c3 / e83da185).",
+      "options": [
+        "Apply all 10 decisions (3 keep-completed append-history + 7 cancelled reclassify)",
+        "Apply only --only-decide=cancelled (reclassify 7, leave 3 untouched)",
+        "Dry-run only (do nothing yet; keep decisions.json as audit record)",
+        "Cancel — revert M5; keep all 10 tasks status='completed' as before"
+      ],
+      "default": "Dry-run only (decisions.json is the audit record; --apply requires explicit owner confirmation per the script's --confirm-apply gate)",
+      "risk": "irreversible status flip + history append on the canonical JSON store (--apply writes a backup to .m1-snapshot/m5-audit/pre-apply-<ISO>.json before any mutation, so rollback is recoverable from backup)"
+    }
+  ],
   "newFindings": []
 }
