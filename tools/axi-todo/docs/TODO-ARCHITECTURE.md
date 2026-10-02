@@ -64,6 +64,31 @@ When the CLI, daemon, or MCP server starts and finds both stores non-empty,
 idempotent: imported PG ids are tracked in
 `$AXI_TODO_HOME/.imported-pg-ids.json` and skipped on re-run.
 
+As of M4, `warnIfDualPopulated()` is gated behind `AXI_TODO_DUAL_PROBE=1`.
+By default the cross-store probe is skipped — the chosen side already trusts
+the caller to have picked the right store. Set `AXI_TODO_DUAL_PROBE=1` to
+restore the M2 dual-probe behaviour (useful when investigating divergent
+JSON + PG state). The Swift `AxiTodoStore.swift` reader continues to see
+`source` / `importedAt` through the `payload` jsonb column, which is
+reverse-synced on every `upsertTask` from the canonical `tasks.source` /
+`tasks.imported_at` columns (sticky provenance — original import timestamp
+preserved across re-upserts).
+
+### Provenance columns (`tasks.source` / `tasks.imported_at`)
+
+Added in M4 via `migrations/003_task_provenance.sql`. Every task row carries:
+
+- `source` (text NOT NULL DEFAULT 'native') — the origin of the row.
+  `'import-postgres'` for rows brought in by `bin/axi-todo-import-postgres.mjs`;
+  `'native'` for rows created directly on the PG side.
+- `imported_at` (timestamptz) — original import time, written once on the
+  first `INSERT` and never overwritten by later `upsertTask` calls (sticky
+  semantics).
+
+Both columns are reverse-synced into the `payload` jsonb column so JSON-side
+consumers (e.g. the Swift `AxiTodoStore` reading `$AXI_TODO_HOME/tasks.json`)
+continue to see `source` / `importedAt` without code changes.
+
 Both `bin/axi-todo-migrate-postgres.mjs` and `bin/axi-todo-import-postgres.mjs`
 require an explicit `DATABASE_URL` or `AXI_TODO_DATABASE_URL`; if both are
 missing they exit 1 with a clear stderr message instead of silently defaulting

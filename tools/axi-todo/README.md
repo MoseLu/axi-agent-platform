@@ -212,6 +212,12 @@ This is informational only; it never blocks startup. Run
 into JSON. The importer is reentrant: it tracks imported PG ids in
 `$AXI_TODO_HOME/.imported-pg-ids.json` and skips them on the next run.
 
+As of M4, the cross-store probe is gated behind `AXI_TODO_DUAL_PROBE=1`. By
+default, the boot path trusts the chosen side (resolved from `AXI_TODO_STORE`
+or its `auto` default) and skips the cross-store IO. Set
+`AXI_TODO_DUAL_PROBE=1` to force the warning to fire even when only the
+chosen side is populated.
+
 ### Migrator and importer no longer fall back silently
 
 As of M2, `bin/axi-todo-migrate-postgres.mjs` and
