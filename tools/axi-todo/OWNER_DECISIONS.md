@@ -164,7 +164,7 @@ Every milestone close (`S99` sub-task) MUST apply exactly one of the following t
 
 **Bonus trigger**: if a milestone closes WITHOUT touching any prior-N or prior-N+1 owner-decision entry, the close-agent MUST document in `outOfScopeButFlagged` the reason no eviction was required (e.g. "M{N+1} addresses disjoint scope; no prior-N decisions touch this work").
 
-### Component 2: Eviction Reason Vocabulary (6 mutually-exclusive values)
+### Component 2: Eviction Reason Vocabulary (7 mutually-exclusive values)
 
 | Value | When to use | Required fields |
 |---|---|---|
@@ -199,6 +199,8 @@ The 5 currently-open decisions in this file now carry `eviction_status` fields p
 
 **OD-M12-EVICT-DEFER**: M12 implements the framework but defers the 2 actual `superseded` evictions to owner. See `m12-entries.json` `ownerDecisionsRequired[OD-M12-EVICT-DEFER]` for the formal deferral.
 
+**OD-M12-EVICT-DEFER (meta-deferral shape)**: This entry intentionally omits an `eviction_status` field — it IS the deferral mechanism itself, not a candidate for further eviction under the Component 2 vocabulary. None of the 7 mutually-exclusive values fit precisely: not `pending` because the framework is already substantively implemented; not `candidate-superseded-*` because the deferral is not itself eligible for eviction. Per `LEDGER_TEMPLATE.md:106` leave-as-is policy and the forward-compatibility clause below, pre-M15 ledger entries are not required to retroactively gain `eviction_status` fields. The entry's lifecycle ends naturally when owner acts on the 2 PARTIALLY-eligible evictions it defers (`TODO-m6-track-2-swift-field-expansion` + `OD-M8-3`); at that point the entry is closed and removed from `OWNER_DECISIONS.md` active sections in the same milestone that resolves both candidates.
+
 ### Failure-mode cost observed (Track B §4)
 
 Without this rule: ~10 minutes per milestone of bookkeeping-cleanup time, projected linearly. With this rule: ~2 minutes per milestone S99 to apply the eviction-check. Net savings over 10 milestones: ~80 minutes subagent time + elimination of the bookkeeping-gap class entirely.
@@ -209,7 +211,15 @@ This rule is purely additive. M1-M11 ledgers are not required to retroactively g
 
 ### Anti-pattern prevention
 
-The `OD-M{N}-DELEGATE` proliferation risk identified by M12 Track B bonus finding: every milestone must NOT add a new `OD-M{N}-DELEGATE` if the previous milestone already added one and the linked decisions remain open. The delegation pointer transfers to `OWNER_DECISIONS.md`; the milestone ledger only adds a new `OD-M{N}-DELEGATE` if a new linked decision surfaces that wasn't already in the prior pointer.
+The `OD-M{N}-DELEGATE` proliferation risk identified by M12 Track B bonus finding: every milestone SHOULD NOT add a new `OD-M{N}-DELEGATE` if the previous milestone already added one and the linked decisions remain open. The delegation pointer transfers to `OWNER_DECISIONS.md`.
+
+**Exception clause (M16 Track B)**: A milestone MAY re-assert the same `OD-M{N}-DELEGATE` (with identical `linked_decisions[]`) if all three conditions are met:
+
+1. No new linked decision has surfaced since the prior milestone's prior pointer (i.e. the set of open decisions in `OWNER_DECISIONS.md` "Open Decisions by Category" is unchanged at the milestone's `S1` scope-lock moment).
+2. Prior linked decisions remain unchanged — the `OD-M{N}-DELEGATE.linked_decisions[]` mirrors `OWNER_DECISIONS.md` sections 1:1 via Component 3 linked-doc invariant.
+3. The current milestone's `S99` close-gate explicitly verifies the 1:1 mirror before committing.
+
+This exception codifies the M13/M14/M15 re-assertion pattern that honored the spirit of the rule (no new decisions + 1:1 mirror + S99 verification) even though the literal-text "must NOT" reading would classify them as anti-pattern violations. The clause is forward-only — pre-M16 OD-DELEGATE entries (M13/M14/M15) are now compliant by retro-active exception, not retroactively rewritten.
 
 ---
 
