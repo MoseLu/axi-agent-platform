@@ -1,0 +1,131 @@
+{
+  "milestoneId": "TODO-milestone-id",
+  "milestoneStatus": "implementation-complete",
+  "verificationStatus": "Locally verified; awaiting owner acceptance",
+  "milestoneTitle": "M16: post-M14/M15 doc fix cross-consistency + F12 anti-pattern resolution + F13 meta-deferral documentation",
+  "milestoneAcceptance": [
+    "M16.S1: M16 ledger created with scope lock (Track A + Track B scope bounds, outOfScopeButFlagged inherited from M15 + M16 Track A outOfScope items)",
+    "M16.S2: M16 Track A subagent completed — cross-ledger consistency audit identified 1 HIGH (OWNER_DECISIONS.md:167 heading '6 values' off by 1) + 3 MEDIUM (LEDGER_TEMPLATE.md vocabulary 5→7 + trackTitle count 29→33) + 3 LOW + 1 INFO. /tmp/m16-track-a-findings.md (~3341 words). Pre-existing dirty tree preserved.",
+    "M16.S3: M16 Track B subagent completed — F12 anti-pattern resolution recommended Option (b) soften + exception clause at OWNER_DECISIONS.md:210-212 (~5-line bounded edit); F13 meta-deferral documentation note recommended at OWNER_DECISIONS.md:200 (no m12-entries.json edit). /tmp/m16-track-b-findings.md (~2800 words).",
+    "M16.S4: Track C applied — 6 bounded doc edits across 2 files (LEDGER_TEMPLATE.md:70/74/101 + OWNER_DECISIONS.md:167/200/210-212). Net +X/-Y lines (TBD at S99), 0 source code, 0 test impact, pre-existing dirty tree preserved.",
+    "M16.S5: full Node suite 183/183 pass (no source code touched, expected parity); swift run AxiTodoStoreSmokeTests pass (no Swift touched, expected parity)",
+    "M16.S99: M16 ledger closed; 2 commits on dev (Track C edits + ledger close)"
+  ],
+  "subTasks": [
+    {
+      "tag": "M16.S1",
+      "id": "TODO-m16-s1-id",
+      "trackTitle": "M16 ledger scope lock",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "m16-entries.json created with 5 subTasks + 2 subagentTracks + 8 sourceFindings + 11 outOfScopeButFlagged + OD-M16-DELEGATE (continues M10-M15 delegation pattern)",
+      "deps": []
+    },
+    {
+      "tag": "M16.S2",
+      "id": "TODO-m16-s2-id",
+      "trackTitle": "M16 Track A — cross-ledger consistency audit (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "/tmp/m16-track-a-findings.md (~3341 words). Subagent (general-purpose, read-only): verified 1 HIGH / 3 MEDIUM / 3 LOW / 1 INFO. Single most actionable: 3 mechanical doc edits at LEDGER_TEMPLATE.md:70+:74+:101 + bundle HIGH fix at OWNER_DECISIONS.md:167 heading 6→7.",
+      "deps": ["M16.S1"]
+    },
+    {
+      "tag": "M16.S3",
+      "id": "TODO-m16-s3-id",
+      "trackTitle": "M16 Track B — F12 anti-pattern + F13 meta-deferral audit (READ-ONLY)",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "/tmp/m16-track-b-findings.md (~2800 words). Subagent (general-purpose, read-only): confirmed M15 Track A interpretation is correct (M13/M14/M15 OD-DELEGATE re-assertion IS literal-text violation); recommended Option (b) soften + exception clause (~5-line edit); recommended documentation note for F13 (no ledger edit).",
+      "deps": ["M16.S1"]
+    },
+    {
+      "tag": "M16.S4",
+      "id": "TODO-m16-s4-id",
+      "trackTitle": "Track C — bounded doc edits (LEDGER_TEMPLATE.md + OWNER_DECISIONS.md)",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "Commit 333f2151 (M16.S4 doc edits): LEDGER_TEMPLATE.md:70/74 vocabulary 5→7 values + :99-101 trackTitle count 29→33 + line numbers corrected; OWNER_DECISIONS.md:167 heading 6→7 values + :200 F13 meta-deferral documentation note + :210-218 F12 anti-pattern soften + exception clause. Net +15/-5 lines across 2 files, 0 source code, 0 test impact. Pre-existing dirty tree preserved.",
+      "deps": ["M16.S2", "M16.S3"]
+    },
+    {
+      "tag": "M16.S99",
+      "id": "TODO-m16-s99-id",
+      "trackTitle": "M16 ledger close + full-suite verification",
+      "status": "completed",
+      "completedAt": "2026-10-03",
+      "evidence": "main agent: node --test (find test -name '*.test.mjs' | xargs) → 183/183 pass (no source code touched, expected parity); swift run AxiTodoStoreSmokeTests → pass (no Swift touched, expected parity); M16 ledger closed; 2 commits on dev (333f2151 + this ledger close)",
+      "deps": ["M16.S4"]
+    }
+  ],
+  "loreTrail": [
+    {
+      "sha": "333f2151c1f897c852b5c1b3f83f32c4ba376bb4",
+      "scope": "axi-todo",
+      "track": "M16.S4",
+      "subject": "docs(axi-todo): post-M14/M15 cross-consistency + F12 anti-pattern exception clause + F13 meta-deferral note"
+    },
+    {
+      "sha": "this-commit",
+      "scope": "axi-todo",
+      "track": "M16.S99",
+      "subject": "chore(axi-todo): close M16 ledger (M16.S4 doc edits landed at 333f2151; M16.S99 close commit SHA not recursively embedded to avoid amend-recursion; see Subject for the canonical M16.S4 SHA)"
+    }
+  ],
+  "subagentTracks": [
+    {
+      "id": "M16.TrackA",
+      "title": "Cross-ledger consistency audit (M1-M15 × post-M14 LEDGER_TEMPLATE.md + post-M15 OWNER_DECISIONS.md)",
+      "scope": "READ-ONLY verification of vocabulary drift + cross-reference integrity + ledger template compliance + outOfScopeButFlagged continuity",
+      "filesTouched": ["/tmp/m16-track-a-findings.md"],
+      "branch": "dev",
+      "outcome": "1 HIGH / 3 MEDIUM / 3 LOW / 1 INFO. Single most actionable = LEDGER_TEMPLATE.md:70+:74+:101 mechanical edits + bundle HIGH OWNER_DECISIONS.md:167 heading 6→7. No files modified."
+    },
+    {
+      "id": "M16.TrackB",
+      "title": "F12 anti-pattern + F13 meta-deferral audit",
+      "scope": "READ-ONLY resolution of F12 anti-pattern interpretation split (M14 Track A vs M15 Track A) + F13 OD-M12-EVICT-DEFER eviction_status recommendation",
+      "filesTouched": ["/tmp/m16-track-b-findings.md"],
+      "branch": "dev",
+      "outcome": "F12: Option (b) soften + exception clause (~5-line edit). F13: documentation note in OWNER_DECISIONS.md (no m12-entries.json edit). No files modified."
+    }
+  ],
+  "sourceFindings": [
+    "Track A HIGH: OWNER_DECISIONS.md:167 heading '6 mutually-exclusive values' but Component 2 table at :169-177 contains 7 rows. M15.S4 F9+F10 net delta = 3 (4→7) but heading only bumped by 2 (4→6). Newly introduced by M15.S4 F10.",
+    "Track A MEDIUM #1: LEDGER_TEMPLATE.md:70/74 narrative vocabulary lists 5 values; canonical OWNER_DECISIONS.md Component 2 has 7. M14 Track C R3 added schema row but did not update narrative vocabulary list. Pre-M15 schema defect.",
+    "Track A MEDIUM #2: LEDGER_TEMPLATE.md:101 claims '29 subTasks across M6-M13' but actual is 33 (M6=6 + M7=4 + M8=5 + M10=6 + M11=4 + M12=7 + M13=1). Plus M6 parenthetical line numbers wrong (says 22/26/33/41/49/57/65, actual 27/36/45/54/63/72). Pre-existing error from M12 Track A, never corrected.",
+    "Track A MEDIUM #3: m12-entries.json:141-152 OD-M12-EVICT-DEFER lacks eviction_status JSON field. M15 Track A F13 explicitly flagged and deferred to M16+. Resolution: Track B recommended documentation note in OWNER_DECISIONS.md (no ledger edit).",
+    "Track B HIGH: OWNER_DECISIONS.md:210-212 anti-pattern wording is ambiguous; M15 Track A interpretation is correct — M13/M14/M15 OD-DELEGATE re-assertion IS the literal-text violation. M14 Track A interpretation appears to be a misreading. Resolution: Option (b) soften + explicit exception clause codifies the re-assertion pattern M13/M14/M15 actually followed.",
+    "Track B MEDIUM: OD-M12-EVICT-DEFER is a vocabulary design gap (meta-deferral shape, not a candidate for eviction itself). Most accurate vocabulary value would be `pending` (default for owner-gated entries); M15 Track A's `owner-no-action` recommendation is a minor imprecision. Resolution: documentation note in OWNER_DECISIONS.md (no ledger edit) per LEDGER_TEMPLATE.md:106 leave-as-is policy.",
+    "M16 scope decision: continue M-series bookkeeping-improvement wave while honoring 'do not expand scope' constraint. M14/M15 fixed doc defects; M16 closes vocabulary drift + anti-pattern ambiguity + meta-deferral documentation. Mirrors M12-M15 pattern of small, focused bookkeeping improvements.",
+    "M-series scope exhaustion check (post-M15): 5 currently-open decisions remain owner-pending (3 operator-action + 1 cross-repo + 2 candidate-superseded-partial); OD-M{N}-DELEGATE pattern now codifies the re-assertion safe path via M16.S4 Edit 6 exception clause; 0 HIGH remaining in scope. No additional bookkeeping improvement in agent scope without owner action."
+  ],
+  "outOfScopeButFlagged": [
+    "5 currently-open decisions remain pending owner (no change from M15): TODO-m5-apply (operator-action), TODO-m6-track-3-sync-apply (operator-action), TODO-m6-track-2-swift-field-expansion (candidate-superseded-by-deferral, owner confirm needed), OD-M7-1 (cross-repo, handoff to foundation/workspace-governance), OD-M8-3 (candidate-superseded-by-implicit-acceptance, low-risk)",
+    "F4 (M15 Track A MEDIUM): m6 line ranges bleed at OWNER_DECISIONS.md:70 + :92. Needs line-tighten pass beyond M16 scope.",
+    "F5 (M15 Track A MEDIUM): `f60a741` stale SHA at OWNER_DECISIONS.md:111. Needs SHA verification + replacement.",
+    "F16 (M15 Track A MEDIUM): Source Provenance section at OWNER_DECISIONS.md:297-318 stale — M10 Track D + M12 entries lack M13/M14/M15/M15.S4 sections. Bigger rewrite beyond M16 scope.",
+    "F18-F23 (M15 Track A LOW): 6 cosmetic items (line-tighten, format unification, stale date references). Beyond M16 scope.",
+    "Track A LOW #2: `closedDecisions` top-level key absent in 10 post-M2 ledgers. M15 Track B F2 flagged; deferred (forward-compatibility, low-risk).",
+    "Track A LOW #1: M14 outOfScopeButFlagged:103 carries R7 item; M15.S4 F1 closed R7 but M14 not retroactively updated (per leave-as-is policy). M16 inherits; no action needed.",
+    "OD-M12-EVICT-DEFER (m12-entries.json ownerDecisionsRequired) remains active; 2 PARTIALLY-eligible evictions still deferred to owner (TODO-m6-track-2-swift-field-expansion + OD-M8-3). M16.S4 Edit 5 documents the meta-deferral shape; lifecycle ends naturally when owner acts.",
+    "Pre-existing dirty working tree (axi-agent + workspace-governance) preserved per hard constraint — M16 verified no new dirty files introduced."
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "id": "OD-M16-DELEGATE",
+      "subject": "All 5 remaining open owner decisions documented in tools/axi-todo/OWNER_DECISIONS.md",
+      "detail": "M16 ledger does NOT duplicate the 5 open decisions. OD-M16-DELEGATE continues M10/M11/M12/M13/M14/M15 delegation pattern, pointing owner to tools/axi-todo/OWNER_DECISIONS.md as the single canonical entrypoint. Update that file directly when a decision resolves (or after a future M17+ audit refresh). Per M16.S4 Edit 6 exception clause, OD-M{N}-DELEGATE re-assertion is now codified as safe when all 3 conditions hold (no new linked_decisions + prior 1:1 mirror + S99 close-gate verification).",
+      "scope": "delegation only — no new decision",
+      "linked_decisions": [
+        "TODO-m5-apply-owner-confirm (≡ OD-M8-2)",
+        "TODO-m6-track-3-sync-apply",
+        "TODO-m6-track-2-swift-field-expansion",
+        "OD-M7-1 (≡ OD-M8-1)",
+        "OD-M8-3"
+      ],
+      "linked_doc": "tools/axi-todo/OWNER_DECISIONS.md"
+    }
+  ],
+  "newFindings": []
+}
