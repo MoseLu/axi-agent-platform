@@ -24,3 +24,6 @@ infra/**/package-lock.json
 *.sqlite
 chroma_db/
 chroma/
+
+# SwiftPM build artifacts
+.build/
