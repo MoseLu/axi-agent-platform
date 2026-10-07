@@ -99,7 +99,7 @@ pnpm dev
   "mcpServers": {
     "axi-agent-mcp": {
       "command": "node",
-      "args": ["/Volumes/code/workspace/projects/axi-agent-platform/infra/axi-agent-mcp/dist/index.js"],
+      "args": ["/Volumes/code/workspace/agent-cluster/axi-agent-platform/infra/axi-agent-mcp/dist/index.js"],
       "env": {
         "SWARM_API_BASE_URL": "https://your-api.example.com",
         "SWARM_API_KEY": "your-api-key"
