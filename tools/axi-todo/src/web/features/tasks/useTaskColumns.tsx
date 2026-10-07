@@ -1,5 +1,7 @@
 import { Typography } from "antd";
-import { AxiSvgIcon, AxiTag } from "@axi/core";
+import { AxiTag } from "@axi/core";
+import { AxiSvgIcon } from "@axi/icons";
+
 import { AxiTableActions, AxiTableButton, type AxiTableColumn } from "@axi/crud";
 import { useMemo, type MouseEvent } from "react";
 import { statusOptions } from "../../app/constants";

@@ -16,7 +16,9 @@
  * results are scoped to agent tasks only via `visibleTasks`.
  */
 import { message } from "antd";
-import { AxiIconButton, AxiLogoMark, AxiSvgIcon, useAxiTheme } from "@axi/core";
+import { AxiLogoMark, useAxiTheme } from "@axi/core";
+import { AxiIconButton, AxiSvgIcon } from "@axi/icons";
+
 import { AxiDashboardShell } from "@axi/shell";
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { statusOptions, workspaceRoot } from "../../app/constants";
