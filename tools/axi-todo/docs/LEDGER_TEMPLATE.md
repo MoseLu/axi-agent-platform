@@ -2,7 +2,7 @@
 
 > **Purpose**: Formalize the minimum-required-fields schema for every top-level key in the per-milestone ledger files under `.m1-snapshot/ledger/m{N}-entries.json`.
 >
-> **Why this exists**: M10 Track C identified 4 schema-drift candidates across M1-M11 ledgers (loreTrail string→object M6→M7, newFindings string→object M6→M7, ownerDecisionsRequired 5 field-shape variants, subTasks M6 dropped `deps` field). All four share a single root cause: the milestone ledger template was never formalized. Each milestone made up its own shape as it needed richer fields. M12 Track A audit confirmed zero automated readers (grep over `lib/`, `bin/`, `test/`, `scripts/`, `Sources/`, `src/` returns 0 hits for any ledger key — pure human/agent metadata). This doc declares the schema; future milestones inherit it automatically.
+> **Why this exists**: M10 Track C identified 4 schema-drift candidates across M1-M11 ledgers (loreTrail string→object M6→M7, newFindings string→object M6→M7, ownerDecisionsRequired 5 field-shape variants, subTasks M6 dropped `deps` field). All four share a single root cause: the milestone ledger template was never formalized. Each milestone made up its own shape as it needed richer fields. M12 Track A audit confirmed zero automated readers (grep over `lib/`, `bin/`, `test/`, `scripts/`, `Sources/`, `src/` returns 0 hits for any ledger key — pure human/agent metadata). This doc declares the schema; future milestone work inherits it automatically.
 
 ---
 
@@ -98,7 +98,7 @@ The M6→M7 migration was deliberate — M7 introduced `id` so cross-milestone r
 
 ## `trackTitle` field (M6+, optional, used per parallel-track subTask)
 
-`trackTitle` first appeared on M6 subTask entries (`m6-entries.json:27, 36, 45, 54, 63, 72` — S1/S2/S3/S4/S5/S6; M6.S99 omitted per M6 abandoned-`deps` historical pattern) as a human-readable track title. From M7 onward, every parallel-track milestone also uses it: M7 (4), M8 (5), M10 (6), M11 (4), M12 (7), M13 (1) — 33 `trackTitle` occurrences across M6-M13. `trackTitle` complements `loreTrail[].track` (which holds short track-id like `"M7.S2"`) by giving each track a descriptive label. Single-track milestones (M1, M2, M3, M4, M5, M9) typically omit it.
+`trackTitle` first appeared on M6 subTask entries (`m6-entries.json:27, 36, 45, 54, 63, 72` — S1/S2/S3/S4/S5/S6; M6.S99 omitted per M6 abandoned-`deps` historical pattern) as a human-readable track title. From M7 onward, every parallel-track milestone also uses it: M7 (4), M8 (5), M10 (6), M11 (4), M12 (7), M13 (1) — 33 `trackTitle` occurrences across M6-M13. `trackTitle` complements `loreTrail[].track` (which holds short track-id like `"M7.S2"`) by giving each track a descriptive label. Single-track milestone (M1, M2, M3, M4, M5, M9) typically omits it.
 
 ---
 

@@ -18,7 +18,7 @@ function makeFixtureState() {
     planningRecords: [
       {
         id: FIXTURE_UUID,
-        planningSummary: "Split auth refactor into 4 milestones",
+        planningSummary: "Split auth refactor into 4 milestone steps",
         splitRationale: "boundary between schema and runtime",
         granularityAssessment: "fine-grained per module",
         modelRationale: "use local qwen3:30b",
