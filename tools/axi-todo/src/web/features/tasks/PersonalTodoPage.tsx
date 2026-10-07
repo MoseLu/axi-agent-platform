@@ -1,5 +1,6 @@
 import { Empty, Input, type InputRef } from "antd";
-import { AxiIconButton, AxiSvgIcon } from "@axi/core";
+import { AxiIconButton, AxiSvgIcon } from "@axi/icons";
+
 import { AxiDatePicker } from "@axi/widgets";
 import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";

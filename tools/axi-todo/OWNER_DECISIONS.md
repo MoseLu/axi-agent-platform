@@ -138,7 +138,7 @@
 **Context** (verbatim, M8): M8 verified the engineering implementation of M5/M6/M7 and updated their `verificationStatus` to `Locally verified (M8 closure)`. M5 still has 1 open decision (TODO-m5-apply, surfaced as OD-M8-2). M6 still has 2 open decisions (TODO-m6-track-3-sync-apply + TODO-m6-track-2-swift-field-expansion). M7 still has 1 open decision (OD-M7-1, surfaced as OD-M8-1).
 
 **Options**:
-- Accept M5 + M6 + M7 milestones as `owner-accepted`
+- Accept M5 + M6 + M7 milestone work as `owner-accepted`
 - Defer until those dependent decisions close
 - Partial-accept
 
@@ -150,7 +150,7 @@
 
 ## Decision Eviction Policy (M12 Track B)
 
-> **Purpose**: Prevent the orphan-risk pattern flagged by M8-NEWFINDING-1 (closed in M12.S7) from recurring in future milestones. Mandatory eviction-check at every `S99` sub-task close. Authoritative location: this section of `OWNER_DECISIONS.md` (the canonical doc).
+> **Purpose**: Prevent the orphan-risk pattern flagged by M8-NEWFINDING-1 (closed in M12.S7) from recurring in future milestone work. Mandatory eviction-check at every `S99` sub-task close. Authoritative location: this section of `OWNER_DECISIONS.md` (the canonical doc).
 
 ### Component 1: Trigger Condition
 
@@ -203,7 +203,7 @@ The 5 currently-open decisions in this file now carry `eviction_status` fields p
 
 ### Failure-mode cost observed (Track B §4)
 
-Without this rule: ~10 minutes per milestone of bookkeeping-cleanup time, projected linearly. With this rule: ~2 minutes per milestone S99 to apply the eviction-check. Net savings over 10 milestones: ~80 minutes subagent time + elimination of the bookkeeping-gap class entirely.
+Without this rule: ~10 minutes per milestone of bookkeeping-cleanup time, projected linearly. With this rule: ~2 minutes per milestone S99 to apply the eviction-check. Net savings over 10 milestone iterations: ~80 minutes subagent time + elimination of the bookkeeping-gap class entirely.
 
 ### Forward compatibility
 

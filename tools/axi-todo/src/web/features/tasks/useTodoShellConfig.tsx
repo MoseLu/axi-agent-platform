@@ -1,5 +1,6 @@
 import { message } from "antd";
-import { AxiSvgIcon, axiIconNames, type AxiIconName } from "@axi/core";
+import { AxiSvgIcon, axiIconNames, type AxiIconName } from "@axi/icons";
+
 import { AxiGlobalSearch, AxiGlobalSearchTrigger, type AxiDashboardAvatarConfig, type AxiDashboardNavGroup } from "@axi/shell";
 import { useMemo, type MouseEvent } from "react";
 import type { RouteKey } from "../../app/types";

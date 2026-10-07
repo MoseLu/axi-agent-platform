@@ -43,7 +43,7 @@
   ],
   "outOfScopeButFlagged": [
     "5 currently-open decisions remain pending owner (no change from M12): TODO-m5-apply (operator-action), TODO-m6-track-3-sync-apply (operator-action), TODO-m6-track-2-swift-field-expansion (candidate-superseded-by-deferral, owner confirm needed), OD-M7-1 (cross-repo, handoff to foundation/workspace-governance), OD-M8-3 (candidate-superseded-by-implicit-acceptance, low-risk)",
-    "OD-M{N}-DELEGATE proliferation risk noted in M12 Track B bonus finding; future milestones should NOT add new delegate if prior exists with same linked decisions",
+    "OD-M{N}-DELEGATE proliferation risk noted in M12 Track B bonus finding; future milestone work should NOT add new delegate if prior exists with same linked decisions",
     "Pre-existing dirty working tree (axi-agent + workspace-governance) preserved per hard constraint — M13 verified no new dirty files introduced",
     "OD-M12-EVICT-DEFER (m12-entries.json ownerDecisionsRequired) remains active; 2 PARTIALLY-eligible evictions still deferred to owner"
   ],

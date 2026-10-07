@@ -154,13 +154,13 @@
     {
       "id": "OD-M8-2",
       "subject": "TODO-m5-apply-owner-confirm (carried from M5)",
-      "detail": "M5 produced an owner-gated --apply --confirm-apply tool (recheck-completed) with 4 options: Apply all 10 / Apply only cancelled / Dry-run / Cancel. M8 Track D flagged this as orphaned across M6/M7. M8 cross-referenced it on M6 ledger. The decision itself is still pending owner input — owner should pick one of the 4 M5 options before further milestones.",
+      "detail": "M5 produced an owner-gated --apply --confirm-apply tool (recheck-completed) with 4 options: Apply all 10 / Apply only cancelled / Dry-run / Cancel. M8 Track D flagged this as orphaned across M6/M7. M8 cross-referenced it on M6 ledger. The decision itself is still pending owner input — owner should pick one of the 4 M5 options before the next milestone.",
       "discovered_by": "M8 Track D summary audit"
     },
     {
       "id": "OD-M8-3",
       "subject": "M5/M6/M7 owner-acceptance sweep",
-      "detail": "M8 verified the engineering implementation of M5/M6/M7 and updated their verificationStatus to 'Locally verified (M8 closure)'. M5 still has 1 open decision (TODO-m5-apply-owner-confirm, surfaced as OD-M8-2). M6 still has 2 open decisions (TODO-m6-track-3-sync-apply + TODO-m6-track-2-swift-field-expansion). M7 still has 1 open decision (OD-M7-1, surfaced as OD-M8-1). Owner decision: accept M5 + M6 + M7 milestones as 'owner-accepted' / defer until those decisions close / partial-accept.",
+      "detail": "M8 verified the engineering implementation of M5/M6/M7 and updated their verificationStatus to 'Locally verified (M8 closure)'. M5 still has 1 open decision (TODO-m5-apply-owner-confirm, surfaced as OD-M8-2). M6 still has 2 open decisions (TODO-m6-track-3-sync-apply + TODO-m6-track-2-swift-field-expansion). M7 still has 1 open decision (OD-M7-1, surfaced as OD-M8-1). Owner decision: accept M5 + M6 + M7 milestone work as 'owner-accepted' / defer until those decisions close / partial-accept.",
       "discovered_by": "M8.S99 main agent close"
     }
   ],

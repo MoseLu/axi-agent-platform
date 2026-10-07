@@ -176,7 +176,7 @@
     {
       "id": "M8-NEWFINDING-1",
       "subject": "TODO-m5-apply-owner-confirm orphaned across M6/M7",
-      "detail": "M5 produced the recheck-completed tool + an owner-gated --apply --confirm-apply decision (TODO-m5-apply-owner-confirm), but the decision never entered M6 or M7 ledgers — surfaced via M8 Track D cross-milestone owner-decision matrix. Resurface in M5 ledger ownerDecisionsRequired so future milestones do not lose the thread.",
+      "detail": "M5 produced the recheck-completed tool + an owner-gated --apply --confirm-apply decision (TODO-m5-apply-owner-confirm), but the decision never entered M6 or M7 ledgers — surfaced via M8 Track D cross-milestone owner-decision matrix. Resurface in M5 ledger ownerDecisionsRequired so future milestone work does not lose the thread.",
       "discovered_by": "M8 Track D summary audit",
       "resolution": {
         "resolved": true,

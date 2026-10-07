@@ -1,4 +1,5 @@
-import { AxiIconButton, AxiSvgIcon } from "@axi/core";
+import { AxiIconButton, AxiSvgIcon } from "@axi/icons";
+
 import { AxiSelect } from "@axi/widgets";
 import { exportFormatOptions } from "../../app/constants";
 import type { ExportFormat, RouteKey, StatusFilter } from "../../app/types";

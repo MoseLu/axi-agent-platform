@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     # workflow token so the two authenticated directions cannot be confused.
     WORKFLOW_EVENT_SINK_TOKEN: str = ""
     WORKFLOW_EVENT_SINK_TIMEOUT_SECONDS: float = 5.0
+    OBSERVABILITY_TRACE_SINK_URL: str = ""
+    OBSERVABILITY_TRACE_SINK_TOKEN: str = ""
+    OBSERVABILITY_TRACE_PROJECT_ID: str = "axi-agent"
     
     # 智能体配置
     MAX_AGENTS: int = 10

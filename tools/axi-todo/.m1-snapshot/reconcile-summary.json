@@ -1,0 +1,350 @@
+{
+  "capturedAt": "2026-10-02T06:35:52.765Z",
+  "json": {
+    "total": 21,
+    "byStatus": {
+      "completed": 10,
+      "pending": 11
+    }
+  },
+  "pg": {
+    "total": 33,
+    "byStatus": {
+      "pending": 11,
+      "failed": 12,
+      "running": 2,
+      "completed": 3,
+      "cancelled": 5
+    }
+  },
+  "overlap": 0,
+  "jsonOnly": [
+    {
+      "id": "27c6eafa-f66a-4e96-bacc-bf6e489cb31f",
+      "status": "completed",
+      "title": "IELTS Mobile Practice Parity 01 - due review queue for quickmemory/test",
+      "updatedAt": "2026-06-03T23:55:19.893Z"
+    },
+    {
+      "id": "5dd3a8c3-446b-4d1a-bf43-ef2db2e36884",
+      "status": "completed",
+      "title": "IELTS Mobile Practice Parity 02 - progress resume and session lifecycle",
+      "updatedAt": "2026-06-03T23:55:19.893Z"
+    },
+    {
+      "id": "153c3dfc-7304-4bbc-96a5-f3765ce5ca84",
+      "status": "completed",
+      "title": "IELTS Mobile Practice Parity 03 - wrong-word recovery filters and multi-round review",
+      "updatedAt": "2026-06-03T23:55:19.893Z"
+    },
+    {
+      "id": "e83da185-959f-43a3-b69c-74e25454c7a7",
+      "status": "completed",
+      "title": "IELTS Mobile Practice Parity 04 - smart mode uses profile/stats instead of plain spelling",
+      "updatedAt": "2026-06-03T23:55:19.893Z"
+    },
+    {
+      "id": "a73af886-542f-486b-af09-3157fbd77c3b",
+      "status": "completed",
+      "title": "IELTS Mobile Practice Parity 05 - split PracticeScreen into mobile practice feature runtime",
+      "updatedAt": "2026-06-03T23:55:19.893Z"
+    },
+    {
+      "id": "bbe7e9aa-8fa8-48d8-a9bc-5f263d7b551f",
+      "status": "completed",
+      "title": "IELTS Mobile Practice Parity 06 - audio modes parity for dictation/listening/follow/radio",
+      "updatedAt": "2026-06-03T23:55:19.893Z"
+    },
+    {
+      "id": "48127c15-fd70-477e-8306-1a662efc54aa",
+      "status": "completed",
+      "title": "IELTS Mobile Practice Parity 07 - control surface and end-to-end evidence",
+      "updatedAt": "2026-06-03T23:55:19.893Z"
+    },
+    {
+      "id": "79afc81a-7410-4c3a-8101-17d412e000a0",
+      "status": "completed",
+      "title": "Axi Skills i18n scaffold verifier and batch manifest",
+      "updatedAt": "2026-06-05T15:19:47.862Z"
+    },
+    {
+      "id": "1b11be6f-a20a-4faa-bbcf-2db7fe26ab5e",
+      "status": "completed",
+      "title": "Axi Docs bilingual skills source routing",
+      "updatedAt": "2026-06-05T15:43:38.726Z"
+    },
+    {
+      "id": "ef45ad87-fbe0-48cc-90ed-ac6e7b0ee945",
+      "status": "completed",
+      "title": "Axi Skills zh translation batch task generator",
+      "updatedAt": "2026-06-05T15:34:18.123Z"
+    },
+    {
+      "id": "1dae4cea-9202-4d63-b53c-1a0d11c81de2",
+      "status": "pending",
+      "title": "Axi Super App 全工作区收敛总计划（持续 10x 波次编排）",
+      "updatedAt": "2026-09-19T06:21:39.408Z"
+    },
+    {
+      "id": "c88b19a2-5003-4b47-b940-23b7f6a77cd5",
+      "status": "pending",
+      "title": "Super App Wave 01/10：全工作区资产、Git 根与登记边界盘点",
+      "updatedAt": "2026-09-19T06:21:39.412Z"
+    },
+    {
+      "id": "e33503d3-5a69-4fbd-a9fb-686e0bcc1e15",
+      "status": "pending",
+      "title": "Super App Wave 01/10：axi-workbench 移动端 Web/Android 现状盘点",
+      "updatedAt": "2026-09-19T06:21:39.414Z"
+    },
+    {
+      "id": "4480a9d3-2519-4105-9b8d-fc5d8cce480d",
+      "status": "pending",
+      "title": "Super App Wave 01/10：聚合产品 IA、导航与模块目录设计",
+      "updatedAt": "2026-09-19T06:21:39.416Z"
+    },
+    {
+      "id": "60f57b9e-4fc7-4b05-bf83-524f7df37ee9",
+      "status": "pending",
+      "title": "Super App Wave 01/10：共享领域模型、模块边界与依赖图",
+      "updatedAt": "2026-09-19T06:21:39.417Z"
+    },
+    {
+      "id": "180027b1-c98a-4714-bccd-09cdfd4eeaf8",
+      "status": "pending",
+      "title": "Super App Wave 01/10：身份、账户、权限、租户与设备安全盘点",
+      "updatedAt": "2026-09-19T06:21:39.419Z"
+    },
+    {
+      "id": "078469a5-cb66-4dfc-8b5c-a5c7ea0993a8",
+      "status": "pending",
+      "title": "Super App Wave 01/10：后端、API、网关、数据与事件能力盘点",
+      "updatedAt": "2026-09-19T06:21:39.421Z"
+    },
+    {
+      "id": "fa97b2d8-b11f-49d0-b364-36b4a38223ce",
+      "status": "pending",
+      "title": "Super App Wave 01/10：移动端设计系统、壳、组件与交互规范盘点",
+      "updatedAt": "2026-09-19T06:21:39.422Z"
+    },
+    {
+      "id": "58ef8bb9-09b5-4c2b-a3fc-a06e2bfdb7b1",
+      "status": "pending",
+      "title": "Super App Wave 01/10：合并、服务化、归档、淘汰与可回滚迁移策略",
+      "updatedAt": "2026-09-19T06:21:39.423Z"
+    },
+    {
+      "id": "311a2775-f1e1-40ce-a2a7-418cb1497faf",
+      "status": "pending",
+      "title": "Super App Wave 01/10：构建、发布、运维、安全与可观测性目标态",
+      "updatedAt": "2026-09-19T06:21:39.425Z"
+    },
+    {
+      "id": "4a486a75-6760-4db5-9c9e-d6032c2940f1",
+      "status": "pending",
+      "title": "Super App Wave 01/10：最终验收、治理契约与下一波 10 任务生成规则",
+      "updatedAt": "2026-09-19T06:21:39.427Z"
+    }
+  ],
+  "pgOnly": [
+    {
+      "id": "0e86331e-39b1-4336-a882-dc9d7f6debcc",
+      "status": "pending",
+      "title": "Audit INDEX.md links for axi-sports-management-app",
+      "updatedAt": "2026-09-14T15:39:49.021Z"
+    },
+    {
+      "id": "739da9eb-4ace-40cd-9845-cb5dc62df367",
+      "status": "failed",
+      "title": "Deep-init docs completion - opencodex",
+      "updatedAt": "2026-09-14T15:39:49.021Z"
+    },
+    {
+      "id": "69d1ae4d-1e77-4659-9ed8-a4855822297d",
+      "status": "failed",
+      "title": "Deep-init docs completion - image2prompt",
+      "updatedAt": "2026-09-14T15:39:49.020Z"
+    },
+    {
+      "id": "82457a5c-e08f-4d23-9bc9-0171234590ff",
+      "status": "failed",
+      "title": "Deep-init docs completion - cliproxyapi",
+      "updatedAt": "2026-07-27T21:14:53.082Z"
+    },
+    {
+      "id": "8cf23bab-3152-4fd4-b58b-2bf3373ca2b9",
+      "status": "failed",
+      "title": "Deep-init docs completion - cockpit-tools",
+      "updatedAt": "2026-07-27T21:14:53.082Z"
+    },
+    {
+      "id": "85f5f5ce-2ff3-4119-bb15-f4548c0c0910",
+      "status": "running",
+      "title": "Deep-init docs completion - sub2api",
+      "updatedAt": "2026-06-11T16:05:24.325Z"
+    },
+    {
+      "id": "1d31831c-3004-43a1-89aa-4f2b2e8cdf30",
+      "status": "pending",
+      "title": "smoke verify writeback",
+      "updatedAt": "2026-06-11T16:05:16.456Z"
+    },
+    {
+      "id": "8efd623a-f1c4-4f6f-96d3-689285cfe7e3",
+      "status": "pending",
+      "title": "Deep-init docs completion - axi-pet",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "5f18c6f8-aa31-4391-91de-c61be34c67d5",
+      "status": "failed",
+      "title": "Deep-init docs suite - Axi Agent Platform monorepo",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "17cf1e31-506a-46ed-8e9a-b034c70507c9",
+      "status": "running",
+      "title": "Deep-init docs completion - axi-tauri-starter",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "8f44f4e7-94ee-48d9-a306-6eb705c3929d",
+      "status": "failed",
+      "title": "Deep-init docs completion - workspace root",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "80e4c870-62eb-4593-8ff3-648aa3ef0f0a",
+      "status": "failed",
+      "title": "Deep-init docs completion - axi-registry",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "93c68b5b-9e18-4848-92cd-4f68c0c54c3d",
+      "status": "completed",
+      "title": "Audit AGENTS.md accuracy for axi-image-preview",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "d7f18af3-03fa-46b8-b2e6-20b362f8d83a",
+      "status": "pending",
+      "title": "Deep-init docs completion - blinko",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "bab9b4cc-0dc5-42d1-ba28-8ef25f3b49c7",
+      "status": "failed",
+      "title": "Deep-init docs completion - axi-workspace-governance",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "5a294898-6c29-4bdd-80ad-647c07e07aba",
+      "status": "completed",
+      "title": "Audit CHANGELOG.md format for axi-pet",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "77febfb4-b804-438f-9be0-74e6c0436e5f",
+      "status": "pending",
+      "title": "Deep-init docs completion - axi-workbench",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "a3916cf1-83ea-47d5-99d6-237dcf1f38c8",
+      "status": "pending",
+      "title": "Deep-init docs completion - axi-docs",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "98877331-4ea6-4dd8-85e0-d91a5961a37f",
+      "status": "pending",
+      "title": "Deep-init docs completion - axi-video-downloader",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "1c846c70-1a12-499f-936e-d211fe56baf7",
+      "status": "completed",
+      "title": "Audit TDD.md verification commands for axi-notify",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "6ce82d3c-76aa-4b64-b5de-2b1c4df11332",
+      "status": "failed",
+      "title": "Deep-init docs completion - axi-ui",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "7c57e412-2e26-4ace-b50e-bc35a2275936",
+      "status": "pending",
+      "title": "Deep-init docs completion - comfyui",
+      "updatedAt": "2026-06-11T16:04:56.311Z"
+    },
+    {
+      "id": "4a20e45f-d523-4c28-9758-45600cf800a8",
+      "status": "pending",
+      "title": "桥接 smoke",
+      "updatedAt": "2026-06-09T11:37:13.815Z"
+    },
+    {
+      "id": "39019ffe-a2e5-43be-aadd-6872ad77a8dd",
+      "status": "pending",
+      "title": "Audit MILESTONES.md exit criteria for axi-docs",
+      "updatedAt": "2026-06-08T06:57:17.735Z"
+    },
+    {
+      "id": "59fc02c5-12f0-4e6c-a288-4b765fee5254",
+      "status": "pending",
+      "title": "Audit PRD.md structure for axi-workbench",
+      "updatedAt": "2026-06-08T06:57:07.624Z"
+    },
+    {
+      "id": "6f6c3412-51c4-4fc9-9344-6988a76b4c19",
+      "status": "cancelled",
+      "title": "Deep-init docs suite - reference repos batch B",
+      "updatedAt": "2026-06-08T01:26:19.012Z"
+    },
+    {
+      "id": "613f7369-d90b-45b5-852a-c1125bc77930",
+      "status": "cancelled",
+      "title": "Deep-init docs suite - reference repos batch A",
+      "updatedAt": "2026-06-08T01:26:19.010Z"
+    },
+    {
+      "id": "175cf543-ad39-443c-9a7e-16f8e396dce7",
+      "status": "cancelled",
+      "title": "Deep-init docs suite - workspace root governed resources",
+      "updatedAt": "2026-06-08T01:26:19.008Z"
+    },
+    {
+      "id": "44bd2be4-cd17-4c14-8521-e701de6ae234",
+      "status": "cancelled",
+      "title": "Deep-init docs suite - shared and infrastructure batch",
+      "updatedAt": "2026-06-08T01:26:19.002Z"
+    },
+    {
+      "id": "f2cadbf8-54b4-45f0-a305-3ee406ff6362",
+      "status": "failed",
+      "title": "Deep-init docs suite - products and local tools batch",
+      "updatedAt": "2026-06-08T01:24:35.960Z"
+    },
+    {
+      "id": "e036dd6f-dba1-42b4-a47f-55d8b512935c",
+      "status": "failed",
+      "title": "Deep-init docs suite - Axi app projects batch",
+      "updatedAt": "2026-06-08T01:24:35.960Z"
+    },
+    {
+      "id": "8864db63-4201-4a6c-b2ca-6bb7c57d2e3b",
+      "status": "failed",
+      "title": "Deep-init docs suite - Axi Workbench monorepo",
+      "updatedAt": "2026-06-08T01:16:32.915Z"
+    },
+    {
+      "id": "4e2de160-41d0-4a67-af09-403a10129344",
+      "status": "cancelled",
+      "title": "Workspace docs coverage audit before deep-init-pro rollout",
+      "updatedAt": "2026-06-08T00:17:43.363Z"
+    }
+  ],
+  "statusMismatches": []
+}
