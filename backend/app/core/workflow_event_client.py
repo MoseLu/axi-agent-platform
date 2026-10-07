@@ -41,10 +41,12 @@ class WorkflowLifecycleEventError(RuntimeError):
 class WorkflowLifecycleEventPublisher:
     """Publishes only v1 lifecycle metadata, never raw prompts, outputs, or secrets."""
 
-    def __init__(self, sink_url: str | None = None, internal_token: str | None = None, timeout: float | None = None):
+    def __init__(self, sink_url: str | None = None, internal_token: str | None = None, timeout: float | None = None, trace_sink_url: str | None = None, trace_token: str | None = None):
         self.sink_url = sink_url if sink_url is not None else settings.WORKFLOW_EVENT_SINK_URL
         self.internal_token = internal_token if internal_token is not None else settings.WORKFLOW_EVENT_SINK_TOKEN
         self.timeout = timeout if timeout is not None else settings.WORKFLOW_EVENT_SINK_TIMEOUT_SECONDS
+        self.trace_sink_url = trace_sink_url if trace_sink_url is not None else settings.OBSERVABILITY_TRACE_SINK_URL
+        self.trace_token = trace_token if trace_token is not None else settings.OBSERVABILITY_TRACE_SINK_TOKEN
 
     @property
     def enabled(self) -> bool:
@@ -86,8 +88,27 @@ class WorkflowLifecycleEventPublisher:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(self.sink_url, json=envelope, headers=headers)
                 response.raise_for_status()
+                await self._publish_trace(client, event, topic)
         except httpx.HTTPError as exc:
             raise WorkflowLifecycleEventError("Workflow event sink did not accept the Agent lifecycle event.") from exc
+
+    async def _publish_trace(self, client: httpx.AsyncClient, event: TaskExecutionEvent, topic: str) -> None:
+        if not self.trace_sink_url:
+            return
+        if not self.trace_token:
+            raise WorkflowLifecycleEventError("Trace sink is configured without an internal token.")
+        trace_id = event.trace_id
+        span_id = f"{event.idempotency_key}:lifecycle"
+        payload = {
+            "projectId": settings.OBSERVABILITY_TRACE_PROJECT_ID,
+            "traceId": trace_id,
+            "spanId": span_id,
+            "serviceId": "axi-agent",
+            "idempotencyKey": f"trace:{trace_id}:{span_id}",
+            "span": {"name": topic, "status": event.event_type, "taskId": event.task_id, "policyVersion": event.policy_version},
+        }
+        response = await client.post(self.trace_sink_url, json=payload, headers={"X-Axi-Service-Token": self.trace_token})
+        response.raise_for_status()
 
 
 def _event_id(topic: str, trace_id: str, idempotency_key: str, payload: dict[str, Any]) -> str:
