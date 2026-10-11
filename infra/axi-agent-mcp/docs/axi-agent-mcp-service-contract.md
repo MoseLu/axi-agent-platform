@@ -4,7 +4,7 @@ Generated: 2026-05-25
 
 ## Purpose
 
-`axi-agent-mcp` is the MCP service owner for Axi Agent. `axi-agent-platform` consumes this service as an external tool/service layer; it must not copy model routing, workflow execution, filesystem, git, CI, agent, skill, gate, vector, cache, or code-store implementations into the platform runtime.
+`axi-agent-mcp` is the MCP service owner for Axi Agent. `axi-agent` consumes this service as an external tool/service layer; it must not copy model routing, workflow execution, filesystem, git, CI, agent, skill, gate, vector, cache, or code-store implementations into the platform runtime.
 
 The local service/package path has been renamed from `mcp-swarm` to `axi-agent-mcp`. MCP tool names keep the `swarm_*` prefix for compatibility with existing callers.
 
@@ -12,19 +12,19 @@ The local service/package path has been renamed from `mcp-swarm` to `axi-agent-m
 
 | Group | Owner | Runtime consumer | Tool surface |
 |---|---|---|---|
-| `model-routing` | `axi-agent-mcp` | `axi-agent-platform` | `swarm_chat`, `swarm_chat_with_model`, `swarm_analyze_task`, stats, metrics, logs, circuit breaker |
-| `workflow` | `axi-agent-mcp` | `axi-agent-platform` | Workflow execute/list/validate/recommend catalog |
-| `workspace` | `axi-agent-mcp` | `axi-agent-platform` | Files, directory listing, code search, index, workspace analysis, tech-stack detection, file locks |
-| `git` | `axi-agent-mcp` | `axi-agent-platform` | Status, commit, branch creation, merge-request description |
-| `ci` | `axi-agent-mcp` | `axi-agent-platform` | Lint, tests, lint autofix |
-| `agents` | `axi-agent-mcp` | `axi-agent-platform` | Agent catalog, recommendation, dynamic roles, swarm execution |
-| `skills` | `axi-agent-mcp` | `axi-agent-platform` | Skill catalog and execution |
-| `governance` | `axi-agent-mcp` | `axi-agent-platform` | Quality gates and validation |
-| `data` | `axi-agent-mcp` | `axi-agent-platform` | DB stats, vector search/upsert, cache stats, code stats |
+| `model-routing` | `axi-agent-mcp` | `axi-agent` | `swarm_chat`, `swarm_chat_with_model`, `swarm_analyze_task`, stats, metrics, logs, circuit breaker |
+| `workflow` | `axi-agent-mcp` | `axi-agent` | Workflow execute/list/validate/recommend catalog |
+| `workspace` | `axi-agent-mcp` | `axi-agent` | Files, directory listing, code search, index, workspace analysis, tech-stack detection, file locks |
+| `git` | `axi-agent-mcp` | `axi-agent` | Status, commit, branch creation, merge-request description |
+| `ci` | `axi-agent-mcp` | `axi-agent` | Lint, tests, lint autofix |
+| `agents` | `axi-agent-mcp` | `axi-agent` | Agent catalog, recommendation, dynamic roles, swarm execution |
+| `skills` | `axi-agent-mcp` | `axi-agent` | Skill catalog and execution |
+| `governance` | `axi-agent-mcp` | `axi-agent` | Quality gates and validation |
+| `data` | `axi-agent-mcp` | `axi-agent` | DB stats, vector search/upsert, cache stats, code stats |
 
 ## Integration Rules
 
-- `axi-agent-platform` should call this service through MCP for these groups instead of importing or duplicating implementations.
+- `axi-agent` should call this service through MCP for these groups instead of importing or duplicating implementations.
 - Mutating tools are explicitly marked in `src/tool-contract.ts`; platform callers must apply project/worktree guardrails before calling them.
 - External API tools must receive credentials through the service environment, not through persisted platform task payloads.
 - The prior duplicate registration name `swarm_list_workflows` has been split: built-in workflow templates keep `swarm_list_workflows`; recommender catalog listing is `swarm_list_workflow_catalog`.

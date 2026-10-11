@@ -1,5 +1,5 @@
 # FastAPI and Server
-fastapi==0.109.1
+fastapi==0.141.1
 uvicorn[standard]==0.27.0
 websockets==15.0.1
 python-multipart==0.0.30
@@ -12,9 +12,9 @@ openai==2.41.0
 openai-swarm==0.1.0
 
 # Database
-sqlalchemy==2.0.25
+sqlalchemy==2.0.54
 alembic==1.13.1
-chromadb==0.4.22
+chromadb==1.5.9
 greenlet==3.4.0
 numpy>=2.0,<3.0
 

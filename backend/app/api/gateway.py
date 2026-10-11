@@ -186,7 +186,12 @@ async def check_component_health(
 
     # Check memory manager
     try:
-        summary = await memory_manager.summarize()
+        if hasattr(memory_manager, "get_memory_stats"):
+            summary = await memory_manager.get_memory_stats()
+        elif hasattr(memory_manager, "summarize"):
+            summary = await memory_manager.summarize()
+        else:
+            summary = {}
         components["memory_manager"] = {
             "status": "healthy",
             "sessions": summary.get("session_count", 0) if isinstance(summary, dict) else 0,

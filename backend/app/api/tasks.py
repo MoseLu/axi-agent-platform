@@ -18,17 +18,9 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 # 全局任务调度器实例
 task_scheduler = TaskScheduler()
 
-
-@router.on_event("startup")
-async def startup():
-    """启动时初始化调度器"""
-    await task_scheduler.start()
-
-
-@router.on_event("shutdown")
-async def shutdown():
-    """关闭时停止调度器"""
-    await task_scheduler.stop()
+# 启动/关闭由 backend/app/main.py 的 lifespan 全局处理，
+# 这里不再注册 @router.on_event 避免与全局 lifespan 重复启动/停止。
+# （main.py 在启动时调用 task_scheduler.start()，关闭时调用 task_scheduler.stop()。）
 
 
 @router.post("", response_model=Task)

@@ -4,7 +4,7 @@
 from enum import Enum
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AgentStatus(str, Enum):
@@ -69,9 +69,8 @@ class Agent(AgentBase):
     last_active: Optional[datetime] = Field(None, description="最后活跃时间")
     task_count: int = Field(default=0, description="任务计数")
     success_count: int = Field(default=0, description="成功任务数")
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentExecutionRequest(BaseModel):

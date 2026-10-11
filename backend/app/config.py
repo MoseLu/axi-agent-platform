@@ -3,6 +3,7 @@
 """
 import os
 from typing import Optional
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -78,9 +79,11 @@ class Settings(BaseSettings):
     AXI_AGENT_MCP_TIMEOUT_SECONDS: float = 5.0
     AXI_AGENT_MCP_PROTOCOL_VERSION: str = "2024-11-05"
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = ConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",
+    )
 
 
 @lru_cache()

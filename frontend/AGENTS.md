@@ -59,6 +59,6 @@ pnpm test         # Vitest 测试
 
 ## 相关模块
 
-- `axi-agent-platform/backend/`: Python FastAPI 后端
-- `axi-agent-platform/apps/desktop-glass-ui/`: macOS 桌面壳
-- 父项目: `axi-agent-platform/`
+- `axi-agent/backend/`: Python FastAPI 后端
+- `axi-agent/apps/desktop-glass-ui/`: macOS 桌面壳
+- 父项目: `axi-agent/`
