@@ -116,7 +116,7 @@
     {"sha": "6269083", "scope": "axi-sync", "track": "M19.S2", "subject": "chore: .githooks/*.log ignore (R1-B)"},
     {"sha": "bfe6503", "scope": "workspace-governance", "track": "M19.S3", "subject": "fix: restore graph object shape + 57→0 audit (R2-A)"},
     {"sha": "19aba49", "scope": "workspace-governance", "track": "M19.S4", "subject": "fix: preflight L3 _archive/ + docs/logs/ exemption (R2-B T1)"},
-    {"sha": "299b21f", "scope": "workspace-governance", "track": "M19.S4", "subject": "fix: signature gate fail-open for keyless hosts (R2-B T2)"},
+    {"sha": "4c0bc1a", "scope": "workspace-governance", "track": "M19.S4", "subject": "fix: signature gate fail-open for keyless hosts (R2-B T2, as pushed on origin)"},
     {"sha": "4c0bc1a", "scope": "workspace-governance", "track": "M19.S4", "subject": "fix: signature gate push verification (R2-B T2 final)"},
     {"sha": "f0c17cf", "scope": "workspace-governance", "track": "M19.S4", "subject": "fix: rewriter guard normalizeGraphProjects (R2-B T3)"},
     {"sha": "6787c515", "scope": "axi-ui", "track": "M19.S5", "subject": "chore: split PRD-000 713→9 files (R3-A Agent I)"},

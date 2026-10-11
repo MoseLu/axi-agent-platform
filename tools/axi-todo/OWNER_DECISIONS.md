@@ -889,7 +889,7 @@ Owner delegated closure 2026-10-11; M19 is a closure-only milestone that re-asse
 |---|---|---|---|
 | OD-M18-PERSONAL-DATA | CV moved to `~/Documents/personal/简历_2026-10-11.pdf` by root-cleanup Agent 8 | (non-git) | M18-fix-agent-8 (Wave B) |
 | OD-M18-GIT-XLSX | Moved to `.audit/audit-collection/2026-09-28-git-audit-decision.xlsx` | (non-git) | M18-fix-agent-8 (Wave B) |
-| OD-M18-WORKBENCH-PATCH | `git mv` to `archive/workbench_changes-2026-09-26.patch` (Option A) | `30a91f42` | R1-A (post-M18) |
+| OD-M18-WORKBENCH-PATCH | `git mv` to `archive/workbench_changes-2026-09-26.patch` (Option A) | `b54c54c8` | R1-A (post-M18) |
 | OD-M18-PETDESK-HARDLINK | APFS inode unlinked via rename+unlink+restore sequence; `PRD.md` nlink=1 confirmed | (local no-commit) | R1-B (post-M18) |
 | OD-M18-RUNTIME-ADR-013 | Wording pass: "explicitly blocked" → "former hold no longer applies; Phase M2 Rust scaffold complete" | `60bceae` | R1-B (post-M18) |
 | OD-M18-SYNC-ADR-014-STATUS | Front-matter `status: Proposed` → `status: Accepted` | `8469078` | R1-B (post-M18) |
@@ -897,7 +897,7 @@ Owner delegated closure 2026-10-11; M19 is a closure-only milestone that re-asse
 | OD-M18-MCP-ARCHIVE-POLICY | 13 stale reports archived to `_archive/2026-02-pre-restart/` (Option A: keep) | `b597baf` | M18-fix-agent-5 |
 | OD-M18-BRIDGE-ARCHIVE-POLICY | 5 stale bridge docs archived to `_archive/2026-04-initial/` (Option A: keep) | `6f14261` | M18-fix-agent-5 |
 | OD-M18-ADR-SEED | ADR-0001 + ADR-0002 drafted with `status: accepted pending retro`; full text now on origin | `74a252d` | M18-fix-agent-5 |
-| OD-M18-IELTS-INDEX-REFRESH | Real content refresh (124 → 175 lines) from current repo state | `56ab1277` | R3-B (post-M18) |
+| OD-M18-IELTS-INDEX-REFRESH | Real content refresh (124 → 175 lines) from current repo state | `56abce20` | R3-B (post-M18) |
 | OD-M18-UI-PRD-SPLIT | 4 axi-ui PRD files split into 33 output files (all ≤600 lines); stubs preserve original filenames | `6787c515` + `90d2a827` + R3-A 02-* + `ec31fe0c` | R3-A (post-M18) |
 | OD-M18-PUSH-37COMMITS | 21 repos pushed (excluding axiom-workspace-rs owner-gated); bypass register written | `f0d87128` + `33aa690` | R1-A + Submission Agent |
 | OD-M18-AXI-AGENT-PUSH | axi-agent `dev` ahead 0 after R2-A + R2-B + R3-B commits pushed | `bfe6503` + `4c0bc1a` + `f0c17cf` + `250c200` | R2-A + R2-B + R3-B |
