@@ -46,3 +46,5 @@ tools/axi-todo/.m1-snapshot/*.sql.gz
 
 # Stale m1-snapshot root mirror (canonical lives under tools/axi-todo/.m1-snapshot/)
 .m1-snapshot/
+
+docs/logs/submit/*.md

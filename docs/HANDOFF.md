@@ -1,6 +1,6 @@
 # Axi Agent Platform Handoff
 
-- Project: `axi-agent`
+- Project: `axi-agent-platform`
 - Path: `/Volumes/code/workspace/agent-cluster/axi-agent`
 - Owner: `Axi Core Projects`
 - Readiness: `verified`
