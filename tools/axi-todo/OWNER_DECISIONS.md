@@ -474,7 +474,7 @@
 |---|---|
 | Category | cross-repo / operator-action |
 | First seen | M18 (Wave B complete) |
-| Latest touched | M18 (initial record) |
+| Latest touched | M18 submission (2026-10-11) |
 | Orphan risk | YES (large multi-repo push) |
 | Default | Sequential push wave after workspace-audit confirms 0 new errors |
 | **Eviction status (M18)** | `pending` — operator-action; supersedes OD-M17-PUSH-16COMMITS as a batch |
@@ -505,6 +505,7 @@
 **Risk**: medium — sequential push isolates blast radius but requires multiple owner actions.
 
 **Ledger source**: `m18-entries.json` (`OD-M18-PUSH-37COMMITS`); Wave B aggregate.
+Submission: pushed 20 repos + axi-agent dev on 2026-10-11; axi-workspace-rs excluded (owner-gated).
 
 ---
 
@@ -537,7 +538,7 @@
 |---|---|
 | Category | cross-repo / operator-action |
 | First seen | M18 |
-| Latest touched | M18 (initial record) |
+| Latest touched | M18 submission (2026-10-11) |
 | Orphan risk | NO (well-scoped to 8 commits on `dev`) |
 | Default | Push after `pnpm workspace:audit` confirms 0 new errors |
 | **Eviction status (M18)** | `pending` — operator-action |
@@ -547,6 +548,7 @@
 **Risk**: low — gitignore + archive moves are reversible; ADR-0001/0002 are seeded `accepted pending retro`.
 
 **Ledger source**: `m18-entries.json` (`OD-M18-AXI-AGENT-PUSH`); Agent 5 + this M18 close.
+Submission: pushed 20 repos + axi-agent dev on 2026-10-11; axi-workspace-rs excluded (owner-gated).
 
 ---
 

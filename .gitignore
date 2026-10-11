@@ -48,3 +48,6 @@ tools/axi-todo/.m1-snapshot/*.sql.gz
 .m1-snapshot/
 
 docs/logs/submit/*.md
+
+# Hook-generated log noise (M18 submission hygiene)
+.githooks/*.log
