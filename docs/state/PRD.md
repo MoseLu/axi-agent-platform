@@ -40,7 +40,7 @@ The platform is the canonical owner of the local Axi Todo CLI and the desktop / 
 
 - N1 — The platform does **not** ship its own model router; routing is owned by `axi-agent-mcp`.
 - N2 — The platform does **not** maintain a hosted multi-tenant service; deployment target is the solo developer's local machine.
-- N3 — The platform does **not** translate or modify third-party / reference governance documents under `references/` or `docs/audit/`; those remain governed by the workspace governance project.
+- N3 — The platform does **not** translate or modify third-party / reference governance documents under `references/` or `/Volumes/code/workspace/.audit/`; those remain governed by the workspace governance project.
 - N4 — The platform does **not** claim ownership of upstream product direction; reference material (`参考.md`) is explicitly non-source-of-truth.
 
 ## 6. Acceptance Criteria

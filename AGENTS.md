@@ -31,7 +31,7 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 | `apps/desktop-glass-ui/` | 是 | macOS 玻璃态桌面壳原型；React + Vite + TypeScript + Electron，作为独立子 app 维护 |
 | `infra/axi-agent-mcp/` | 是 | MCP 蜂群服务（独立 Node.js 子项目），规则在 `infra/axi-agent-mcp/README.zh-CN.md` |
 | `tools/axi-todo/` | 是 | 内部 CLI 工具 |
-| `docs/project-docs.manifest.json`、`docs/state/PRD.md`、`docs/state/TDD.md`、`docs/MEMORY.md`、`docs/ADR/` | 是 | 项目门面与决策档案 |
+| `docs/project-docs.manifest.json`、`docs/state/PRD.md`、`docs/state/TDD.md`、`docs/ADR/` | 是 | 项目门面与决策档案 |
 | `README.zh-CN.md`、`docs/state/UPGRADE_v1.1.0.zh-CN.md`、`docs/state/upgrade-plan.zh-CN.md` | 是 | 根级文档的简体中文身份镜像（i18n mirror） |
 | `README.md`、`docs/state/UPGRADE_v1.1.0.md`、`docs/state/升级方案.md`、`docs/state/参考.md` | 是 | 源语言（中文）文档；本仓库 i18n 的「源」 |
 | `infra/axi-agent-mcp/docs/axi-agent-mcp-service-contract.md` | 是 | MCP 蜂群服务契约，跨项目边界前必读 |

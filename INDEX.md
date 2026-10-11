@@ -21,6 +21,8 @@ This file is the canonical map of human-authored and machine-authored documents 
 | `docs/state/upgrade-plan.zh-CN.md` | project root | Identity mirror of `升级方案.md`. | mirror |
 | `docs/state/参考.md` | project root | Reference notes for upstream products and inspiration (third-party / reference governance). | reference only |
 
+> Root-level `CHANGELOG.md`, `MILESTONE.md`, and `TODO.md` exist as one-line pointers to the canonical `docs/state/` files (consolidated in M18 doc-cleanup wave).
+
 ## `docs/` documents
 
 | Path | Owner | Purpose | Source of truth? |
@@ -28,9 +30,9 @@ This file is the canonical map of human-authored and machine-authored documents 
 | `docs/state/PRD.md` | docs-agent | Product requirements: users, acceptance criteria, non-goals. | yes |
 | `docs/state/TDD.md` | docs-agent | Test / technical design: architecture assumptions, test strategy, verification commands, risk cases. | yes |
 | `docs/project-docs.manifest.json` | docs-agent | Machine-readable doc inventory, owners, and verification policy. | yes |
-| `docs/ADR/` | architects | Architectural decision records (initialised 2026-06-08; first ADRs pending). | yes |
-| `docs/audit/` | docs-agent | Doc-gap audit snapshots (consumed by deep-init rollout). | reference only |
-| `docs/logs/` | platform runtime | Operational logs (not a documentation deliverable). | no |
+| `docs/ADR/` | architects | Architectural decision records (initialised 2026-06-08; first ADRs pending — schema-only at time of M18 cleanup). | yes |
+| `docs/logs/` | platform runtime | Operational logs (not a documentation deliverable; submit logs gitignored per M18). | no |
+| `docs/testing/` | backend maintainer | Backend test scaffolding notes. | yes |
 
 ## Module documents
 
@@ -62,4 +64,4 @@ This file is the canonical map of human-authored and machine-authored documents 
 
 - This `INDEX.md` is the authoritative doc map. When you add a new top-level document, register it here in the same commit that adds the file.
 - Doc files tagged **mirror** must not diverge from their source in body content; only an i18n note header may differ.
-- Reference / third-party governance docs (`docs/state/参考.md`, `docs/audit/`, etc.) must not be promoted to source-of-truth status without an explicit ADR.
+- Reference / third-party governance docs (`docs/state/参考.md`, `/Volumes/code/workspace/.audit/`, etc.) must not be promoted to source-of-truth status without an explicit ADR.

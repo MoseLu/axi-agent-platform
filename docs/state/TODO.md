@@ -83,7 +83,7 @@ Priority legend:
 
 ## Tracking
 
-- Source of truth for active items: this file plus the workspace docs gap-audit output under `docs/audit/`.
+- Source of truth for active items: this file plus the workspace docs gap-audit output under `/Volumes/code/workspace/.audit/`.
 - When an item is delivered, move its entry to `MILESTONE.md` with the commit hash and verification evidence; do not delete items here without a referenced commit.
 
 ## Zero-context handoff governance
