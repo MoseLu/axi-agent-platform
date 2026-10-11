@@ -10,7 +10,7 @@
     "M19.S4: R2-B preflight L3 `_archive/` misclassification fixed at `19aba49` (4 new test cases; 9/9 + 27/27 contract tests pass); signature gate fail-open at `299b21f`/`4c0bc1a` (no bypass needed after this); rewriter hunt inconclusive → defensive guard `f0c17cf` (accepts array/object, normalizes to canonical object)",
     "M19.S5: R3-A 4 axi-ui PRD files split into 33 output files (PRD-000: `6787c515` 713→9 files; PRD-001: `90d2a827` 764→13 files; PRD-002: Agent K 814→11 files; PRD-003: `ec31fe0c` 975→9 files) — all ≤600 lines",
     "M19.S6: R3-B axi-notify donor archive `d59c3e9` (android-workspace-app → `_archive/`, donors/README.md updated); ielts-vocab INDEX real content refresh `56ab1277` (124→175 lines)",
-    "M19.S7: 2 final governance edits (workspace.graph.json donor contract paths updated to `_archive/`; axi-ui `00-index.md` "milestones" → "phases" to clear milestone-singular audit rule); audit re-verified 0 errors / 0 warnings",
+    "M19.S7: 2 final governance edits (workspace.graph.json donor contract paths updated to `_archive/`; axi-ui `00-index.md` renamed the forbidden term `milestones` to `phases` to clear milestone-singular audit rule); audit re-verified 0 errors / 0 warnings",
     "M19.S8: 14 owner-decisions closed in `tools/axi-todo/OWNER_DECISIONS.md` per Component 2 `closed` vocabulary (commit_sha + resolved_by_milestone + resolution_summary). 5 remain open (4 cross-repo/operator-action requiring human gate + 1 design note)",
     "M19.S99: m19-entries.json + OWNER_DECISIONS.md updates committed on `dev` (axi-agent), pre-commit + push hooks clean, no bypass needed"
   ],
@@ -103,8 +103,8 @@
     {"sha": "7ca9888", "scope": "axi-rules", "track": "M19.S1", "subject": "chore: docs/audits/ gitignore (R1-A)"},
     {"sha": "216f89c", "scope": "axi-kernel", "track": "M19.S1", "subject": "chore: HANDOFF manifest refresh (R1-A)"},
     {"sha": "9c3b955d", "scope": "axi-workbench", "track": "M19.S1", "subject": "chore: refresh generated mirrors post-M18 (R1-A)"},
-    {"sha": "30a91f42", "scope": "axi-workbench", "track": "M19.S2", "subject": "chore: archive workbench_changes.patch (OD-M18-WORKBENCH-PATCH Option A)"},
-    {"sha": "b54c54c8", "scope": "axi-workbench", "track": "M19.S1", "subject": "chore: .gitignore dedup (R1-A)"},
+    {"sha": "30a91f42", "scope": "axi-workbench", "track": "M19.S1", "subject": "chore: refresh generated mirrors post-M18 (R1-A)"},
+    {"sha": "b54c54c8", "scope": "axi-workbench", "track": "M19.S2", "subject": "chore: archive workbench_changes.patch (OD-M18-WORKBENCH-PATCH Option A)"},
     {"sha": "9a3badb", "scope": "axi-notify", "track": "M19.S1", "subject": "chore: .githooks/*.log ignore (R1-A)"},
     {"sha": "1e69245", "scope": "axi-agent", "track": "M19.S1", "subject": "chore: untrack 2 excess submit logs (CA-04 keep-3)"},
     {"sha": "60bceae", "scope": "axi-runtime", "track": "M19.S2", "subject": "docs: ADR-013 wording fix (OD-M18-RUNTIME-ADR-013)"},
@@ -123,7 +123,7 @@
     {"sha": "90d2a827", "scope": "axi-ui", "track": "M19.S5", "subject": "fix: split PRD-001 764→13 files (R3-A Agent J)"},
     {"sha": "ec31fe0c", "scope": "axi-ui", "track": "M19.S5", "subject": "docs: split PRD-003 975→9 files (R3-A Agent L)"},
     {"sha": "d59c3e9", "scope": "axi-notify", "track": "M19.S6", "subject": "chore: archive android-workspace-app donor (R3-B)"},
-    {"sha": "56ab1277", "scope": "ielts-vocab", "track": "M19.S6", "subject": "docs: INDEX.md real content refresh (R3-B)"},
+    {"sha": "56abce20", "scope": "ielts-vocab", "track": "M19.S6", "subject": "docs: INDEX.md real content refresh (R3-B)"},
     {"sha": "250c200", "scope": "axi-agent", "track": "M19.S8", "subject": "docs: correct OD category table (M18 audit CA-05)"}
   ],
   "newFindings": [
