@@ -5,7 +5,7 @@ import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -144,6 +144,8 @@ async def health_check(request: Request):
         request.app.state.tool_manager,
         request.app.state.memory_manager,
     )
+    # Normalize to canonical surface: status (top-level) + healthy (bool) + components
+    health["status"] = "healthy" if health.get("healthy") else "unhealthy"
     return health
 
 

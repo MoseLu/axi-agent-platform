@@ -42,7 +42,7 @@
 
 ```bash
 git clone <repository-url>
-cd axi-agent-platform
+cd axi-agent
 ```
 
 ### 2. 配置环境变量
@@ -105,7 +105,7 @@ pnpm dev
 ## 项目结构
 
 ```
-axi-agent-platform/
+axi-agent/
 ├── backend/              # 后端代码
 │   ├── app/
 │   │   ├── api/         # API路由

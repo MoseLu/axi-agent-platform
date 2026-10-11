@@ -1,6 +1,6 @@
 # Axi Agent Platform — 项目根级 AGENTS
 
-> 本文件是 **`/Volumes/code/workspace/agent-cluster/axi-agent-platform` 仓库根级** AGENTS，是进入本仓库的 agent 第一站。
+> 本文件是 **`/Volumes/code/workspace/agent-cluster/axi-agent` 仓库根级** AGENTS，是进入本仓库的 agent 第一站。
 > 子模块（后端、前端、`infra/axi-agent-mcp`、升级方案镜像）的内部约束在各自的目录文件里，详见「Authoritative Sources」。
 > **两者的关系：根级 AGENTS = 项目门面与边界；子模块文件 = 实现与契约。** 任何对 `backend/`、`frontend/`、`infra/` 的修改必须先读对应子模块的文档；任何对仓库整体结构、升级方案、跨项目边界的判断必须先读本文件。
 
@@ -87,7 +87,7 @@ Axi Agent Platform 是 **「通用多智能体协作 + SubAgent 代码开发模�
 - **不翻译**：`references/*`、`references/archives/*`、`foundation/workspace-governance/references/*`、`foundation/workspace-governance/temp/*`。
 - **不复制内容到本项目**：工作区其他项目的 README、AGENTS、ADR 都不应被原样搬入本仓库；本项目只承载「Axi Agent Platform 自身产品 + 升级方案」的内容。
 - **不假装是源**：源语言（中文）文档是本仓库 i18n 的「源」；简体中文 `*.zh-CN.md` 镜像只是为满足工作区 i18n 校验脚本的最小差异化要求，**不替代**源文档的权威地位。源说明文档（如 `升级方案.md`）的简体中文镜像（如 `upgrade-plan.zh-CN.md`）已由 B6c 落地，**直接跳转**到源即可，不要再次回写正文。
-- **可消费**：通过 workspace graph（`workspace-project`）查询 `axi-agent-platform` 的 `consumes` / `consumers` / `provides` / `contracts`；不要在业务代码里硬编码跨项目绝对路径。
+- **可消费**：通过 workspace graph（`workspace-project`）查询 `axi-agent` 的 `consumes` / `consumers` / `provides` / `contracts`；不要在业务代码里硬编码跨项目绝对路径。
 - **可被消费**：本项目以 MCP 模型蜂群（`infra/axi-agent-mcp` 暴露的 `axi_agent_*` 工具）、SubAgent REST API（`/subagent/*` 路由）、Web 前端构建产物形式对外提供能力。
 
 ---
@@ -135,10 +135,10 @@ cd backend && pytest
 pnpm --dir frontend build
 
 # 镜像一致性校验（修改 *.zh-CN.md 后必跑）
-python foundation/workspace-governance/scripts/verify_doc_i18n.py agent-cluster/axi-agent-platform
+python foundation/workspace-governance/scripts/verify_doc_i18n.py agent-cluster/axi-agent
 
 # 工作区图谱健康检查
-/Volumes/code/workspace/scripts/workspace-project health axi-agent-platform
+/Volumes/code/workspace/scripts/workspace-project health axi-agent
 ```
 
 补充可选步骤：
@@ -160,7 +160,7 @@ python foundation/workspace-governance/scripts/verify_doc_i18n.py agent-cluster/
 - **不要**把源语言（`升级方案.md` 等）已经具备简体中文镜像（`upgrade-plan.zh-CN.md` 等）的正文内容**再回写一遍**——直接跳转即可，避免双源漂移。
 - **不要**改写 i18n 镜像中的 Windows 路径（`\` 保留、`C:\` 保留），避免触发 `verify_doc_i18n` 的 token multiset 误报。
 - **要**保持根级 `AGENTS.md` 与子模块文档的分层：根级谈边界与门面，子模块文件谈实现与契约。
-- **要**在改动跨项目契约（如 MCP 蜂群工具签名、SubAgent REST 路由）前先查 `workspace-project consumers axi-agent-platform`。
+- **要**在改动跨项目契约（如 MCP 蜂群工具签名、SubAgent REST 路由）前先查 `workspace-project consumers axi-agent`。
 - **要**在 `docs/state/CHANGELOG.md` 记录对仓库结构、依赖、SubAgent API、镜像策略的可见变更。
 
 ---
@@ -171,7 +171,7 @@ python foundation/workspace-governance/scripts/verify_doc_i18n.py agent-cluster/
 
 - **可写范围**：`backend/app/**`、`frontend/src/**`、`apps/desktop-glass-ui/**`、`infra/axi-agent-mcp/**`、`tools/axi-todo/**`、`docs/**`、根级 `AGENTS.md` / `README.md` / `README.zh-CN.md` / `docs/state/UPGRADE_v1.1.0*`。
 - **不可写**：`backend/chroma_db/`、`backend/axi_agent_platform.db`、`backend/projects/`（SubAgent 的 Git worktree 根目录）、`frontend/dist/`、`backend/__pycache__/` 与工作区级 `references/*` / `foundation/workspace-governance/`。
-- **不要**在业务代码里硬编码跨项目绝对路径；改跨项目能力前先查 `workspace-project consumers axi-agent-platform` / `workspace-project deps axi-agent-platform`。
+- **不要**在业务代码里硬编码跨项目绝对路径；改跨项目能力前先查 `workspace-project consumers axi-agent` / `workspace-project deps axi-agent`。
 - **不要**让 `backend/` 直接写其它项目的 workspace graph 或 Kernel 注册表字段；持久化变更必须经过 `foundation/axi-kernel` 的 `axi_kernel.register_*` API 或 `workspace-project` CLI。
 - **不要**把 OMX / Codex / Cursor 内部状态目录（`.omx/`、`.codegraph/`、agent transcripts）写入 commit。
 
@@ -180,7 +180,7 @@ python foundation/workspace-governance/scripts/verify_doc_i18n.py agent-cluster/
 - 把用户最新一条消息视为当前事实。
 - 在询问仓库根或路径前，先用 `workspace-project validate` + `WORKSPACE_INDEX.md` + `workspace-project list` 解析；`workspace-project whereami` 必须传本仓库的规范绝对路径。
 - "接手"、"零上下文接手"、"检查当前状态"、"是否可以开始后续开发"按 ready 任务处理：先读本文件 + `README.zh-CN.md` + `docs/state/UPGRADE_v1.1.0.zh-CN.md` + 最近 `CHANGELOG.md`，再跑最小验证。
-- 修改 `backend/**` → 至少跑 `make backend-test` 与相关 pytest；修改 `infra/axi-agent-mcp/**` → 至少跑 `pnpm --dir infra/axi-agent-mcp typecheck` 与 mcp 服务冒烟；改跨项目契约（SubAgent API / MCP 蜂群）→ 跑 `workspace-project consumers axi-agent-platform` 列出的下游最小验证。
+- 修改 `backend/**` → 至少跑 `make backend-test` 与相关 pytest；修改 `infra/axi-agent-mcp/**` → 至少跑 `pnpm --dir infra/axi-agent-mcp typecheck` 与 mcp 服务冒烟；改跨项目契约（SubAgent API / MCP 蜂群）→ 跑 `workspace-project consumers axi-agent` 列出的下游最小验证。
 - 普通 ready 检查禁止 `workspace-project deps / consumers / profile`，除非用户明确要求跨项目契约分析。
 - 答复结尾不再列多个"下一步选项"；按"Verification"里最小验证序列直接推进或报告。
 
